@@ -1,11 +1,11 @@
 package gov.nga.integration.cspace;
 
-public class Greeting {
+public class CSpaceSearchResponse {
 
     private final long id;
     private final String content;
 
-    public Greeting(long id, String content) {
+    public CSpaceSearchResponse(long id, String content) {
         this.id = id;
         this.content = content;
     }
