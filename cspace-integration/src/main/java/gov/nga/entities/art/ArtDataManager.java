@@ -234,6 +234,10 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             Map<Long, Location> newLocations = loadLocations();
             log.info(SystemUtils.freeMemorySummary());
             
+            log.info("Loading all components");
+            List<ArtObjectComponent> aocomps = loadComponents();
+            log.info(SystemUtils.freeMemorySummary());
+            
             log.info("Loading all art object text entries");
             EntityQuery<ArtObjectTextEntry> teq = new EntityQuery<ArtObjectTextEntry>(getDataSourceService());
             List<ArtObjectTextEntry> teList = teq.fetchAll(ArtObjectTextEntry.allTextEntryQuery, new ArtObjectTextEntry(this));
@@ -255,7 +259,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             log.info("found this many art object assocations: " + aoas.size());
 
             log.info("Loading all art objects and related data");
-            Map<Long, ArtObject> newArtObjects = getArtObjects(ocs, teList, aohist, aoDims, aoas);
+            Map<Long, ArtObject> newArtObjects = getArtObjects(ocs, teList, aohist, aoDims, aoas, aocomps);
             log.info(SystemUtils.freeMemorySummary());
             
             EntityQuery<ConstituentAltName> ceq = new EntityQuery<ConstituentAltName>(getDataSourceService());
@@ -946,7 +950,8 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             List<ArtObjectTextEntry> textEntries,
             List<ArtObjectHistoricalData> aohist,
             List<ArtObjectDimension> aoDims,
-            List<ArtObjectAssociationRecord> aoas
+            List<ArtObjectAssociationRecord> aoas,
+            List<ArtObjectComponent> aocomps
     ) throws SQLException {
 
         // ART OBJECT ASSOCIATIONS 
@@ -1082,6 +1087,13 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
                 o.addDimensions(d);
         }
         
+        log.info("Assigning components to art objects");
+        for (ArtObjectComponent c : aocomps) {
+            ArtObject o = (ArtObject)newArtObjects.get(c.getObjectID());
+            if (o != null)
+                o.addComponent(c);
+        }
+
         return newArtObjects;
 
     }
@@ -1332,7 +1344,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         locations = newLocations;
         rooms = null;
     }
-
+    
     public Map<Long, Location> getLocationsRaw() {
         return locations;
     }
@@ -1372,6 +1384,14 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return newLocations;
     }
 
+    // load all art object components
+    synchronized protected List<ArtObjectComponent> loadComponents() throws SQLException {
+        EntityQuery<ArtObjectComponent> eq = new EntityQuery<ArtObjectComponent>(getDataSourceService());
+        log.info("Starting pre-fetch of all components");
+        List<ArtObjectComponent> newComponents = eq.fetchAll(ArtObjectComponent.fetchAllComponentsQuery, new ArtObjectComponent(this));
+        log.info("found this many components: " + newComponents.size());
+        return newComponents;
+    }
 
     private void checkImageSizes(final Map<Long, ArtObject> newArtObjects)
     {

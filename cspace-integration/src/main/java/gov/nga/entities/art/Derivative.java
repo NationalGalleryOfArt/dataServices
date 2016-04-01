@@ -228,6 +228,24 @@ public abstract class Derivative extends ArtEntityImpl {
         return null;
     }
 
+    public static <I extends Derivative> I getLargestImage(List<I> images, IMGVIEWTYPE vt, String seq) {
+        I ip = null;
+        if (images != null) {
+            for (I i : images) {
+                if ( filterMatch(i,vt,seq)) {
+                    // skip over any cropped images or images that are too large
+                    if (ip == null || i.pixelCount() > ip.pixelCount())
+                        ip = i;
+                }
+            }
+        }
+        // if we have a cropped image of the exact size target box
+        // as the best non-cropped image we found, then return it instead
+        // if a preference was expressed for cropped images
+
+        return ip;
+    }
+
     public static <I extends Derivative> I getLargestImageFittingTarget(List<I> images, long targetWidth, long targetHeight, IMGVIEWTYPE vt, String seq, ImgSearchOpts... opts) {
         I ip = null;
         if (images != null) {

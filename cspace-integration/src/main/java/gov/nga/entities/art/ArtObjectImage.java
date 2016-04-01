@@ -93,5 +93,9 @@ public class ArtObjectImage extends Derivative {
         return IMAGECLASS.ARTOBJECTIMAGE;
     }
     
+    public static boolean isPrimaryView(Derivative d) {
+    	return ( d.getViewType() == IMGVIEWTYPE.PRIMARY && d.getSequence().equals(PRIMARY_OBJECT_IMAGE_SEQUENCE)) ;
+    }
+    
 }
 

@@ -135,6 +135,7 @@ public class EntityQuery<E extends ArtEntity> {
 			}
 			catch (SQLException se) {
 				log.error("Problem connecting to database: " + se.getMessage());
+				throw se;
 			}
 			finally {
 				if (rs != null)

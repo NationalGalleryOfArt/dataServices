@@ -1,5 +1,9 @@
 package gov.nga.integration.cspace;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -17,7 +21,9 @@ import gov.nga.utils.db.DataSourceService;
 public class CSpaceArtDataManager extends ArtDataManager {
 	
     private static final Logger log = LoggerFactory.getLogger(CSpaceArtDataManager.class);
+    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
+    
     @Autowired
     private ConfigService spring_configurator;
 
@@ -25,17 +31,27 @@ public class CSpaceArtDataManager extends ArtDataManager {
     private DataSourceService ds;
 
     @PostConstruct
-    public void postConstruct() throws Exception {
+    public void postConstruct() {
         // we probably don't really need to implement this
         // since we are going to asynchronously load the data
         // using the DataRefreshController
         log.info("AAAAAAAAAAAAAAAAAAAAAA: Activating Art Data Manager YEEHAAWW AAAAAAAAAAAAAAAAAAAAAAAA");
         setConfigService(spring_configurator);
         setDataSourceService(ds);
-        load();
+        // if we're unable to load, then we should try again every minute until we succeed
+        scheduler.schedule(this, 0, TimeUnit.SECONDS);
+    }
+    
+    public void run() {
+    	// unload TMS data if already loaded
+    	unload();
+    	if (!load()) {
+    		// if we are unable to load, then we will try again in one minute
+    		scheduler.schedule(this, 10, TimeUnit.SECONDS); 
+    	}
     }
         
-    // we unload all data upon deactivation of this component
+    // we unload all data upon destruction of this component
     @PreDestroy
     public void preDestroy() {
         log.info("AAAAAAAAAAAAAAAAAAAAAA: Destroying Art Data Manager");
@@ -49,9 +65,27 @@ public class CSpaceArtDataManager extends ArtDataManager {
     public void refreshData() {
     	// TODO - rework this to support refreshing without unloading the existing data from memory
     	log.info("****************** REFRESH OF TMS DATA RUNNING **********************");
-    	unload();
-   		load();
+    	scheduler.schedule(this, 0, TimeUnit.SECONDS);
     }
 
+    public class TaskExecutorExample {
+
+        private class MessagePrinterTask implements Runnable {
+
+            private String message;
+
+            public MessagePrinterTask(String message) {
+                this.message = message;
+            }
+
+            public void run() {
+                System.out.println(message);
+            }
+
+        }
+
+        
+
+    }
 
 }

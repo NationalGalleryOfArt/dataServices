@@ -181,7 +181,7 @@ public class ArtObject extends ArtEntityImpl {
 					"       objectLeonardoID, dimensions, inscription, " +
 					"       markings, catalogRaisonneRef, imageCopyright, " +
 					"       oldAccessionNum, zoomPermissionGranted, " + 
-					"       ngaimages.TMSObjectID AS downloadID, isVirtual " +
+					"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, description " +
 					"FROM data.objects " +
 					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID ";
 
@@ -226,6 +226,9 @@ public class ArtObject extends ArtEntityImpl {
 		Long downloadID             = TypeUtils.getLong(rs, 32);
 		downloadAvailable           = (downloadID == null || !downloadID.equals(objectID)) ? Long.valueOf(0) : Long.valueOf(1);
 		virtual       				= TypeUtils.getLong(rs, 33);
+		departmentAbbr				= rs.getString(34);
+		description					= rs.getString(35);
+		
 	}
 
 	// copy constructor used by classes extending ArtObject and adding addition fields
@@ -254,7 +257,7 @@ public class ArtObject extends ArtEntityImpl {
 		this.beginYear                  = source.beginYear;
 		this.canShowImagery             = source.canShowImagery;
 		this.catalogRaisonneRef         = source.catalogRaisonneRef;
-		this.parentChildAssociations				= source.parentChildAssociations; 
+		this.parentChildAssociations	= source.parentChildAssociations; 
 		this.classification             = source.classification;
 		this.constituents 			 	= source.constituents;
 		this.creditLine                 = source.creditLine;
@@ -291,6 +294,7 @@ public class ArtObject extends ArtEntityImpl {
 		this.visualBrowserClassification= source.visualBrowserClassification;
 		this.visualBrowserTimeSpan      = source.visualBrowserTimeSpan;
 		this.zoomPermissionGranted      = source.zoomPermissionGranted;
+		this.departmentAbbr				= source.departmentAbbr;
 	}
 
 
@@ -301,14 +305,14 @@ public class ArtObject extends ArtEntityImpl {
         "WHERE objectID @@ ";
 	 */
 
-	public void setAdditionalProperties(ResultSet rs) throws SQLException {
+	/*public void setAdditionalProperties(ResultSet rs) throws SQLException {
 		objectLeonardoID    = rs.getString(1);
 		dimensionsDesc      = rs.getString(2);
 		inscription         = rs.getString(3);
 		markings            = rs.getString(4);
 		catalogRaisonneRef  = rs.getString(5);
 		imageCopyright      = rs.getString(6);
-	}
+	}*/
 
 	public ArtObject factory(ResultSet rs) throws SQLException {
 		ArtObject ao = new ArtObject(this.getManager(),rs);
@@ -1275,6 +1279,19 @@ public class ArtObject extends ArtEntityImpl {
 		return getBestImageForBox(90,90,vt,seq,opts);
 	}
 
+	// returns a list of the largest image available for each of the available view types / sequence number permutations
+	public List<Derivative> getLargestImages() {
+		List<Derivative> largestImages = CollectionUtils.newArrayList();
+		for (IMGVIEWTYPE vt : getAvailableImageViewTypes()) {
+			for (String seq : getAvailableImageSequences(vt)) {
+				Derivative d = Derivative.getLargestImage(getImages(), vt, seq);
+				if (d != null)
+					largestImages.add(d);
+			}
+		}
+		return largestImages;
+	}
+	
 	public List<String> getAvailableImageSequences(IMGVIEWTYPE vt) {
 		return Derivative.getAvailableImageSequences(getImages(), vt);
 	}
@@ -1830,10 +1847,20 @@ public class ArtObject extends ArtEntityImpl {
 		return sf.getFilteredString(markings);
 	}
 
+	private String departmentAbbr = null;
+	public String getDepartmentAbbr() {
+		return departmentAbbr;
+	}
+	
 	private String catalogRaisonneRef = null;
 	public String getCatalogRaisonneRef() {
 		//loadDetails();
 		return catalogRaisonneRef; 
+	}
+	
+	private String description = null;
+	public String getDescription() {
+		return description; 
 	}
 
 	// indicate whether we are permitted to display zoom images for an object
@@ -1956,6 +1983,20 @@ public class ArtObject extends ArtEntityImpl {
 
 	public List<ArtObjectTextEntry> getExhibitionFootnoteEntries() {
 		return ArtObjectTextEntry.filterByTextType(getTextEntriesRaw(), TEXT_ENTRY_TYPE.EXHIBITION_HISTORY_FOOTNOTE);
+	}
+
+	private List<ArtObjectComponent> artObjectComponents = null;
+	private List<ArtObjectComponent> getArtObjectComponentsRaw() {
+		return artObjectComponents; 
+	}
+	synchronized protected void addComponent(ArtObjectComponent c) {
+		if (artObjectComponents == null)
+			artObjectComponents = CollectionUtils.newArrayList();
+		artObjectComponents.add(c);
+	}
+
+	public List<ArtObjectComponent> getComponents() {
+		return new ArrayList<ArtObjectComponent>(getArtObjectComponentsRaw());
 	}
 
 

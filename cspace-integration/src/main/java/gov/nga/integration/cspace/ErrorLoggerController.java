@@ -45,7 +45,7 @@ public class ErrorLoggerController {
 	
 	 @ResponseBody 
 	 	this annotation can be used to respond directly with the JSON response to avoid having to create
-	 	a whole response class structure to encode the response - will probably use this approach for the non-error services
+	 	a whole response class structure to encode the response - might use this approach for the non-error services
 	 	
 	 @RequestMapping(method=RequestMethod.GET, value="/fooBar")
 		public ResponseEntity<String> fooBar2() {
@@ -54,8 +54,15 @@ public class ErrorLoggerController {
     		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
     		return new ResponseEntity<String>(json, responseHeaders, HttpStatus.CREATED);
 		}
+		
+		
+	 // you can get the request and response by simply adding them to method signature 
+	 @RequestMapping(value = "/report/{objectId}", method = RequestMethod.GET)
+	 public @ResponseBody void generateReport(
+     	@PathVariable("objectId") Long objectId, 
+        HttpServletRequest request, 
+        HttpServletResponse response) {
 	 	
-	 * 
 	 */
 
 	@RequestMapping("/system/logger.json")
