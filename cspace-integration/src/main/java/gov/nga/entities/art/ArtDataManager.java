@@ -37,6 +37,10 @@ import org.slf4j.LoggerFactory;
 //    @Property(name="scheduler.expression", value="0 15 7 * * ? *", label="Refresh Schedule")
 public class ArtDataManager implements Runnable, ArtDataManagerService { 
 
+// TODO - make the TMS data manager class configurable to run either in private or public exclusively via artdatamanager configuration settings
+// TODO - separate all JCR related calls from the base ArtDataManager to keep it pure and simple and create new art data manager CQ implementation wrapper for OSGI
+// TODO - add a TMS basics JAR dependency in CQ that is generated from my separate GIT repository and simply provided to the AEM team
+
     private static final int CONTENT_SYNC_DELAY = 15;
 //	private static final String TMS_BUNDLE_REFRESH = "tmsBundleRefresh";
 //	private static final String TMS_ART_DATA_JCR_SYNC = "tmsArtDataJCRSync";

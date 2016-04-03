@@ -181,7 +181,8 @@ public class ArtObject extends ArtEntityImpl {
 					"       objectLeonardoID, dimensions, inscription, " +
 					"       markings, catalogRaisonneRef, imageCopyright, " +
 					"       oldAccessionNum, zoomPermissionGranted, " + 
-					"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, description " +
+					"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, " + 
+					"		description, portfolio, curatorialRemarks, watermarks " +
 					"FROM data.objects " +
 					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID ";
 
@@ -227,7 +228,10 @@ public class ArtObject extends ArtEntityImpl {
 		downloadAvailable           = (downloadID == null || !downloadID.equals(objectID)) ? Long.valueOf(0) : Long.valueOf(1);
 		virtual       				= TypeUtils.getLong(rs, 33);
 		departmentAbbr				= rs.getString(34);
-		description					= rs.getString(35);
+		description					= htmlToMarkdown(sanitizeHtml(rs.getString(35)));
+		portfolio					= rs.getString(36);
+		curatorialRemarks			= htmlToMarkdown(sanitizeHtml(rs.getString(37)));
+		watermarks					= rs.getString(38);
 		
 	}
 
@@ -295,6 +299,10 @@ public class ArtObject extends ArtEntityImpl {
 		this.visualBrowserTimeSpan      = source.visualBrowserTimeSpan;
 		this.zoomPermissionGranted      = source.zoomPermissionGranted;
 		this.departmentAbbr				= source.departmentAbbr;
+		this.description				= source.description;
+		this.portfolio 					= source.portfolio;
+		this.curatorialRemarks			= source.curatorialRemarks;
+		this.watermarks					= source.watermarks;
 	}
 
 
@@ -1847,6 +1855,11 @@ public class ArtObject extends ArtEntityImpl {
 		return sf.getFilteredString(markings);
 	}
 
+	private String portfolio = null;
+	public String getPortfolio() {
+		return portfolio;
+	}
+
 	private String departmentAbbr = null;
 	public String getDepartmentAbbr() {
 		return departmentAbbr;
@@ -1999,6 +2012,15 @@ public class ArtObject extends ArtEntityImpl {
 		return new ArrayList<ArtObjectComponent>(getArtObjectComponentsRaw());
 	}
 
+	private String curatorialRemarks=null;
+	public String getCuratorialRemarks() {
+		return curatorialRemarks;
+	}
+
+	private String watermarks=null;
+	public String getWatermarks() {
+		return watermarks;
+	}
 
 }
 

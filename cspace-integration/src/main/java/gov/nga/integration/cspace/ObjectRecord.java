@@ -3,7 +3,11 @@ package gov.nga.integration.cspace;
 import java.util.List;
 import java.util.Map;
 
-import gov.nga.entities.art.ArtDataManagerService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectComponent;
@@ -13,51 +17,80 @@ import gov.nga.entities.art.Bibliography;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Location;
 import gov.nga.utils.CollectionUtils;
+import gov.nga.utils.StringUtils;
 
+
+// TODO need to refactor this to have a single record container surrounding it.  Pretty easy since everything can extend a centralized record and the container can just encapsulate that
 public class ObjectRecord extends AbridgedObjectRecord {
 
+	private static final Logger log = LoggerFactory.getLogger(ObjectRecord.class);
+	
     private String classification;
+    private String subClassification;
     private String title;
     private String artistNames;
+    private String ownerNames;
     private String attribution;
-    private String accessionNumber;
+    private String accessionNum;
     private String bibliography;
     private String displayDate;
     private String creditLine;
     private String description;
-    private List<String> locations;
-    private List<String> homeLocations;
+    private List<String> location;
+    private List<String> homeLocation;
     private String medium;
+    private String inscription;
+    private String markings;
+    private String portfolio;
     private String departmentAbbr;
     private String dimensions;
-    private String provenance;
+    private String provenanceText;
+    private String curatorialRemarks;
+    private String watermarks;
+    private String catalogueRaisonneRef;
+    
+    // if null, don't include it since we have an option in the search APIs to not include references at all - so we don't want to 
+    // make it appear as if there are no references - we just won't include them at all if they are null
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<Reference> references;
     
     public ObjectRecord(ArtObject o, Map<Long, Location> locs) {
+    	this(o,locs,true);
+    }
+       
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean includeReferences) {
     	super(o);
     	if (o == null)
     		return;
+    	
     	setNamespace("cultObj");
         setId(o.getObjectID().toString());
         setClassification(o.getClassification());
-        setTitle(o.getTitle());
-        setArtistNames(o.getArtists());
+        setSubClassification(o.getSubClassification());
+        setTitle(StringUtils.removeMarkup(o.getTitle()));
+        this.artistNames = constituentNames(o.getArtists());
+        this.ownerNames = constituentNames(o.getOwners());
         setAttribution(o.getAttribution());
-        setAccessionNumber(o.getAccessionNum());
+        setAccessionNum(o.getAccessionNum());
         setBibliography(o.getBibliography());
         setDisplayDate(o.getDisplayDate());
         setCreditLine(o.getCreditLine());
-        setMedium(o.getMedium());
+        setMedium(StringUtils.removeMarkup(o.getMedium()));
+        setInscription(StringUtils.removeMarkup(o.getInscription()));
+        setMarkings(StringUtils.removeMarkup(o.getMarkings()));
+        setPortfolio(o.getPortfolio());
         setDimensions(o.getDimensions());
-        setProvenance(o.getProvenanceText());
-        setReferences(o);
+        setProvenanceText(StringUtils.removeMarkup(o.getProvenanceText()));
+        if (includeReferences)
+        	setReferences(o);
         setDepartmentAbbr(o.getDepartmentAbbr());
-        setDescription(o.getDescription());
+        setDescription(StringUtils.removeMarkup(o.getDescription()));
+        setCuratorialRemarks(StringUtils.removeMarkup(o.getCuratorialRemarks()));
+        setWatermarks(o.getWatermarks());
+        setCatalogueRaisonneRef(o.getCatalogRaisonneRef());
+        
         setAllLocations(o.getComponents(), locs);
         
-        // TODO - make the TMS data manager configurable to run in a certain mode via configs and 
-        // SQL params and setting would be contingent upon private or public extract
-          
     }
 
 	public String getClassification() {
@@ -66,6 +99,14 @@ public class ObjectRecord extends AbridgedObjectRecord {
 
 	public void setClassification(String classification) {
 		this.classification = classification;
+	}
+
+	public String getSubClassification() {
+		return subClassification;
+	}
+
+	public void setSubClassification(String subClassification) {
+		this.subClassification = subClassification;
 	}
 
 	public String getTitle() {
@@ -80,24 +121,28 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		return artistNames;
 	}
 
-	public void setArtistNames(List<ArtObjectConstituent> artists) {
-		String aNames=null;
-		if (artists != null) {
-			for (ArtObjectConstituent aoc : artists) {
+	public String getOwnerNames() {
+		return ownerNames;
+	}
+
+	public String constituentNames(List<ArtObjectConstituent> constituents) {
+		String cNames=null;
+		if (constituents != null) {
+			for (ArtObjectConstituent aoc : constituents) {
 				String cName = aoc.getConstituent().getForwardDisplayName();
 				String roleType = aoc.getRoleType();
 				if (cName != null) {
-					if (aNames != null)
-						aNames += "; ";
+					if (cNames != null)
+						cNames += "; ";
 					else
-						aNames = "";
-					aNames += cName;
+						cNames = "";
+					cNames += cName;
 					if (roleType != null)
-						aNames += " (" + roleType + ")";
+						cNames += " (" + roleType + ")";
 				}
 			}
 		}
-		this.artistNames = aNames;
+		return cNames;
 	}
 	
 	private void addComponentLocationDesc(List<String> locationList, Location location, ArtObjectComponent component) {
@@ -107,12 +152,14 @@ public class ObjectRecord extends AbridgedObjectRecord {
 	}
 
 	public void setAllLocations(List<ArtObjectComponent> components, Map<Long, Location> locations) {
-		this.locations = CollectionUtils.newArrayList();
-		this.homeLocations = CollectionUtils.newArrayList();
+		this.location = CollectionUtils.newArrayList();
+		this.homeLocation = CollectionUtils.newArrayList();
 		if (components != null && locations != null) {
 			for (ArtObjectComponent c : components) {
-				addComponentLocationDesc(this.locations,locations.get(c.getLocationID()), c);
-				addComponentLocationDesc(this.homeLocations,locations.get(c.getHomeLocationID()), c);
+				log.info("==========================" + c.getLocationID() + "===============================");
+				log.info("==========================" + c.getHomeLocationID() + "===============================");
+				addComponentLocationDesc(this.location,locations.get(c.getLocationID()), c);
+				addComponentLocationDesc(this.homeLocation,locations.get(c.getHomeLocationID()), c);
 			}
 		}
 	}
@@ -125,12 +172,12 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.attribution = attribution;
 	}
 
-	public String getAccessionNumber() {
-		return accessionNumber;
+	public String getAccessionNum() {
+		return accessionNum;
 	}
 
-	public void setAccessionNumber(String accessionNumber) {
-		this.accessionNumber = accessionNumber;
+	public void setAccessionNum(String accessionNum) {
+		this.accessionNum = accessionNum;
 	}
 
 	public String getBibliography() {
@@ -175,12 +222,12 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.description = description;
 	}
 
-	public List<String> getLocations() {
-		return locations;
+	public List<String> getLocation() {
+		return location;
 	}
 
-	public List<String> getHomeLocations() {
-		return homeLocations;
+	public List<String> getHomeLocation() {
+		return homeLocation;
 	}
 
 	public String getMedium() {
@@ -189,6 +236,30 @@ public class ObjectRecord extends AbridgedObjectRecord {
 
 	public void setMedium(String medium) {
 		this.medium = medium;
+	}
+
+	public String getInscription() {
+		return inscription;
+	}
+
+	public void setInscription(String inscription) {
+		this.inscription = inscription;
+	}
+
+	public String getMarkings() {
+		return markings;
+	}
+
+	public void setMarkings(String markings) {
+		this.markings = markings;
+	}
+
+	public String getPortfolio() {
+		return portfolio;
+	}
+
+	public void setPortfolio(String portfolio) {
+		this.portfolio = portfolio;
 	}
 
 	public String getDepartmentAbbr() {
@@ -207,12 +278,36 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.dimensions = dimensions;
 	}
 
-	public String getProvenance() {
-		return provenance;
+	public String getProvenanceText() {
+		return provenanceText;
 	}
 
-	public void setProvenance(String provenance) {
-		this.provenance = provenance;
+	public void setProvenanceText(String provenance) {
+		this.provenanceText = provenance;
+	}
+
+	public String getCuratorialRemarks() {
+		return curatorialRemarks;
+	}
+
+	public void setCuratorialRemarks(String curatorialRemarks) {
+		this.curatorialRemarks = curatorialRemarks;
+	}
+
+	public String getWatermarks() {
+		return watermarks;
+	}
+
+	public void setWatermarks(String watermarks) {
+		this.watermarks = watermarks;
+	}
+
+	public String getCatalogueRaisonneRef() {
+		return catalogueRaisonneRef;
+	}
+
+	public void setCatalogueRaisonneRef(String catalogueRaisonneNumber) {
+		this.catalogueRaisonneRef = catalogueRaisonneNumber;
 	}
 
 	public List<Reference> getReferences() {
@@ -256,6 +351,9 @@ public class ObjectRecord extends AbridgedObjectRecord {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
 			}
 		}
+		
+		if (rList.size() <= 0)
+			rList = null;
 		
 		this.references = rList;
 		//this.references = rList.toArray(new Reference[rList.size()]);

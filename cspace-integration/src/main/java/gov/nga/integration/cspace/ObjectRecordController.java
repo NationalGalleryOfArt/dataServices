@@ -23,7 +23,7 @@ public class ObjectRecordController {
     private ArtDataManagerService artDataManager;
 
     @RequestMapping("/art/{source}/objects/{id}.json")
-    public ResponseEntity<ObjectRecord> objectRecord(
+    public ResponseEntity<Record> Record(
     		@PathVariable(value="source") String source,
     		@PathVariable(value="id") String id,
 			HttpServletRequest request
@@ -48,6 +48,7 @@ public class ObjectRecordController {
     		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     	
     	// fetch the object using the art data manager service
+    	// TODO this can throw an exception if the data is not ready in which case we should 1) be prepared to handle that exception and 2) respond with appropriate error
     	ArtObject o = artDataManager.fetchByObjectID(l);
     	if (o == null)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -57,7 +58,7 @@ public class ObjectRecordController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		 
-		return new ResponseEntity<ObjectRecord>(or, headers, HttpStatus.OK);
+		return new ResponseEntity<Record>(new Record(or), headers, HttpStatus.OK);
 	}
 
     
