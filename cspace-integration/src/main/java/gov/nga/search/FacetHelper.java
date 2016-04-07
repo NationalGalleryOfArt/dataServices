@@ -42,8 +42,7 @@ public class FacetHelper {
 			}
 			
 			public void run() {
-				try
-				{
+				try	{
 					//PerformanceMonitor perfMonitor = PerformanceMonitorFactory.getMonitor(FacetHelper.class);
 					for (int j=start; j<end; j++) {
 						Faceted a = list.get(j);

@@ -2,9 +2,9 @@ package gov.nga.integration.cspace;
 
 public class Reference {
 	private String predicate;
-	private AbridgedRecord object;
+	private Record object;
 	
-	public Reference(String predicate, AbridgedRecord object) {
+	public Reference(String predicate, Record object) {
 		setPredicate(predicate);
 		setObject(object);
 	}
@@ -15,10 +15,10 @@ public class Reference {
 	public void setPredicate(String predicate) {
 		this.predicate = predicate;
 	}
-	public AbridgedRecord getObject() {
+	public Record getObject() {
 		return object;
 	}
-	public void setObject(AbridgedRecord object) {
+	public void setObject(Record object) {
 		this.object = object;
 	}
 }

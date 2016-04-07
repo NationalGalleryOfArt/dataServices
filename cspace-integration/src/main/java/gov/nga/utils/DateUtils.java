@@ -16,6 +16,7 @@ public class DateUtils {
 	public static final String DATE_FORMAT_MMMMD  = "MMMM d";
 	public static final String DATE_FORMAT_YYYY = "yyyy";
 	public static final String DATE_FORMAT_ISO_8601 = "yyyy-MM-dd";
+	public static final String DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ = "yyyy-MM-dd'T'HH:mm:ssZ";
 
 	private static final Logger logger = LoggerFactory.getLogger(DateUtils.class); 
 
@@ -42,6 +43,7 @@ public class DateUtils {
 		return c;
 	}
 
+	
 	public static String convertDate(String fromFormat, String toFormat, String dateStr) {
 		try {   
 			logger.debug("!%Date is converted from : " + fromFormat +  " format to " + toFormat + " date: " + dateStr);
@@ -64,6 +66,13 @@ public class DateUtils {
 			logger.error("Parse Exception : " + pe);
 		}
 		return dateStr;
+	}
+
+	public static String formatDate(String toFormat, Date date) {
+		if (date == null || toFormat == null) 
+			return null;  
+		SimpleDateFormat sdfDestination = new SimpleDateFormat(toFormat);
+		return sdfDestination.format(date);
 	}
 
 	/*

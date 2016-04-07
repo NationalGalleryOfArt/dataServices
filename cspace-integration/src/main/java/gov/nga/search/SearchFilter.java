@@ -2,6 +2,7 @@ package gov.nga.search;
 
 import java.util.List;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 //import org.slf4j.Logger;
@@ -402,6 +403,8 @@ public class SearchFilter implements CustomHash {
 					return true;
 			}
 			break;
+		case INTERSECTS:
+			throw new NotImplementedException("INTERSECTS currently not implemented for single value");
 		}
 
 		// by default, filter passes nothing since we're AND'ing filters together

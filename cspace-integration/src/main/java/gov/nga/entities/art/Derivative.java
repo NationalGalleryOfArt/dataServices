@@ -130,7 +130,7 @@ public abstract class Derivative extends ArtEntityImpl {
             return i;
 
         // if user prefers crop
-        if (i.isCropped())
+        if (i != null && i.isCropped())
             return i;
 
         boolean wantcrop = false;

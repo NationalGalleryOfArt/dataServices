@@ -26,6 +26,7 @@ import gov.nga.search.SearchFilter;
 import gov.nga.search.SortHelper;
 import gov.nga.search.SortOrder;
 import gov.nga.utils.CollectionUtils;
+import gov.nga.utils.DateUtils;
 import gov.nga.utils.MutableInt;
 import gov.nga.utils.StringUtils;
 import gov.nga.utils.TypeUtils;
@@ -84,7 +85,8 @@ public class ArtObject extends ArtEntityImpl {
 		VISUALBROWSERNATIONALITY,
 		VISUALBROWSERCLASSIFICATION, 
 		VISUALBROWSERTHEMEORKEYWORD,
-		NATIONALITY
+		NATIONALITY,
+		LASTDETECTEDMODIFICATION
 	}
 
 	// free text searches
@@ -117,19 +119,23 @@ public class ArtObject extends ArtEntityImpl {
 		CLASSIFICATION_ASC,                     // sorts by classification alphabetically
 		ATTRIBUTIONINV_ASC,                     // sorts by inverted attribution alphabetically
 		TITLE_ASC,                              // sorts by title alphabetically
+		TITLE_DESC,                              // sorts by title alphabetically
 		OBJECTID_ASC,                           // sorts by object id numerically
+		OBJECTID_DESC,                           // sorts by object id numerically
 		HASLARGERIMAGERY_DESC,                  // sorts based on whether object has image restrictions
 		HASTHUMBNAIL_DESC,                      // sorts based on whether a thumbnail image is available
 		ONVIEW_DESC,                            // sorts based on whether object is on view or not
 		NUMARTISTS_ASC,                         // sorts based on number of artist associations in ascending order
 		ATTRIBUTIONINV_ARTISTNAME_MATCH_ASC,    // sorts based on whether the inverted attribution exactly matches
-		// the preferred display name of an associated artist
-		ACCESSIONNUM_ASC,                          // added for searches using an accession number
+												// the preferred display name of an associated artist
+		ACCESSIONNUM_ASC,                       // added for searches using an accession number
+		ACCESSIONNUM_DESC,                       // added for searches using an accession number
 		VISUALBROWSERCLASSIFICATION_CUSTOM,     // john's custom classification sort
-
-		// for comparing two objects against a string provided by the caller
-		//      ATTRIBUTIONINV_MATCH_A_STRING,
-
+		LASTDETECTEDMODIFICATION_ASC,
+		LASTDETECTEDMODIFICATION_DESC,
+		FIRST_ARTIST_ASC,
+		FIRST_ARTIST_DESC,
+		
 		// only for comparing two art objects against a third base art object ( set using SortHelper.setBaseEntity() )
 		YEAR_MATCH,                             // sorts a vs. b based on matching each to the year of object c
 		CLASSIFICATION_MATCH,                   // "" but for classification
@@ -145,6 +151,7 @@ public class ArtObject extends ArtEntityImpl {
 		NUMSTYLESINCOMMON_MATCH_DESC,           // "" but for styles
 		NUMDONORSINCOMMON_MATCH_DESC,           // "" but for donors
 		NUMARTISTNATIONALITIESINCOMMON_MATCH_DESC   // "" but for nationalities of artists
+		
 
 	}
 
@@ -182,9 +189,11 @@ public class ArtObject extends ArtEntityImpl {
 					"       markings, catalogRaisonneRef, imageCopyright, " +
 					"       oldAccessionNum, zoomPermissionGranted, " + 
 					"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, " + 
-					"		description, portfolio, curatorialRemarks, watermarks " +
+					"		description, portfolio, curatorialRemarks, watermarks, lastDetectedModification " +
 					"FROM data.objects " +
-					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID ";
+					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID "
+					;
+					//+ "WHERE objectid <= 10000 ";
 
 	protected static final String briefObjectQuery = 
 			fetchAllObjectsQuery + " WHERE objectID @@ "; 
@@ -232,7 +241,9 @@ public class ArtObject extends ArtEntityImpl {
 		portfolio					= rs.getString(36);
 		curatorialRemarks			= htmlToMarkdown(sanitizeHtml(rs.getString(37)));
 		watermarks					= rs.getString(38);
-		
+		// TODO consider making below a timestamp rather than a string for faster comparisons
+		// although this will require a number of new filter tests in search filter I think
+		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, rs.getTimestamp(39));
 	}
 
 	// copy constructor used by classes extending ArtObject and adding addition fields
@@ -303,6 +314,7 @@ public class ArtObject extends ArtEntityImpl {
 		this.portfolio 					= source.portfolio;
 		this.curatorialRemarks			= source.curatorialRemarks;
 		this.watermarks					= source.watermarks;
+		this.lastDetectedModification	= source.lastDetectedModification;
 	}
 
 
@@ -607,32 +619,13 @@ public class ArtObject extends ArtEntityImpl {
 		case ACCESSIONNUM_ASC:
 			Long retVal = null;
 			if (getAccessionNum() != null && ao.getAccessionNum() != null)
-			{
 				retVal = new Long(getAccessionNum().equals(ao.getAccessionNum()) ? 1 : 0);
-			}
 			return retVal;
-		case ATTRIBUTIONINV_ARTISTNAME_MATCH_ASC:
-			break;
-		case ATTRIBUTIONINV_MATCH:
-			break;
-		case CLASSIFICATION_ASC:
-			break;
-		case HASLARGERIMAGERY_DESC:
-			break;
-		case HASTHUMBNAIL_DESC:
-			break;
-		case NUMARTISTS_ASC:
-			break;
-		case OBJECTID_ASC:
-			break;
-		case ONVIEW_DESC:
-			break;
-		case TITLE_ASC:
-			break;
-		case VISUALBROWSERCLASSIFICATION_CUSTOM:
-			break;
-		case YEAR_ASC:
-			break;
+		case LASTDETECTEDMODIFICATION_DESC:
+			retVal = null;
+			if (getLastDetectedModification() != null && ao.getLastDetectedModification() != null)
+				retVal = new Long(getLastDetectedModification().equals(ao.getLastDetectedModification()) ? 1 : 0);
+			return retVal;
 		default:
 			break;
 		}
@@ -665,10 +658,32 @@ public class ArtObject extends ArtEntityImpl {
 			return SortHelper.compareObjectsDiacritical(getAttributionInverted(), ao.getAttributionInverted());
 		case TITLE_ASC:
 			return SortHelper.compareObjectsDiacritical(stripLeadingArticle(getTitle()), stripLeadingArticle(ao.getTitle()));
+		case TITLE_DESC:
+			return SortHelper.compareObjectsDiacritical(stripLeadingArticle(ao.getTitle()), stripLeadingArticle(getTitle()));
 		case ACCESSIONNUM_ASC:
 			return SortHelper.compareObjects(getAccessionNum(), ao.getAccessionNum());
+		case ACCESSIONNUM_DESC:
+			return SortHelper.compareObjects(ao.getAccessionNum(), getAccessionNum());
+		case LASTDETECTEDMODIFICATION_ASC:
+			return SortHelper.compareObjects(getLastDetectedModification(), ao.getLastDetectedModification());
+		case LASTDETECTEDMODIFICATION_DESC:
+			return SortHelper.compareObjects(ao.getLastDetectedModification(), getLastDetectedModification());
+		case FIRST_ARTIST_ASC:
+			Constituent c = getFirstArtist();
+			Constituent ac = ao.getFirstArtist();
+			String cName = (c == null) ? null : c.getPreferredDisplayName();
+			String aName = (ac == null) ? null : ac.getPreferredDisplayName();
+			return SortHelper.compareObjects(cName,aName);
+		case FIRST_ARTIST_DESC:
+			c = getFirstArtist();
+			ac = ao.getFirstArtist();
+			cName = (c == null) ? null : c.getPreferredDisplayName();
+			aName = (ac == null) ? null : ac.getPreferredDisplayName();
+			return SortHelper.compareObjects(aName,cName);
 		case OBJECTID_ASC:
 			return SortHelper.compareObjects(getObjectID(), ao.getObjectID());
+		case OBJECTID_DESC:
+			return SortHelper.compareObjects(ao.getObjectID(), getObjectID());
 		case HASLARGERIMAGERY_DESC:
 			int a = hasImagery() ? 0 : 1;
 			int b = 0;
@@ -1057,6 +1072,8 @@ public class ArtObject extends ArtEntityImpl {
 			return f.filterMatch(v1);
 		case ACCESSIONNUM:
 			return f.filterMatch(getAccessionNum());
+		case LASTDETECTEDMODIFICATION:
+			return getLastDetectedModification() == null ? false : f.filterMatch(getLastDetectedModification().toString());
 		case ATTRIBUTION_INV:
 			return f.filterMatch(getAttributionInverted());
 		case PROVENANCE:
@@ -1515,6 +1532,13 @@ public class ArtObject extends ArtEntityImpl {
 			return CollectionUtils.newArrayList(displayArtists);
 		else
 			return CollectionUtils.newArrayList();
+	}
+	
+	public Constituent getFirstArtist() {
+		if (getArtistsRaw() != null && getArtistsRaw().size() > 0) {
+			return getArtistsRaw().get(0).getConstituent();
+		}
+		return null;
 	}
 
 	private void calculateDisplayArtists() {
@@ -2020,6 +2044,11 @@ public class ArtObject extends ArtEntityImpl {
 	private String watermarks=null;
 	public String getWatermarks() {
 		return watermarks;
+	}
+
+	private String lastDetectedModification=null;
+	public String getLastDetectedModification() {
+		return lastDetectedModification;
 	}
 
 }

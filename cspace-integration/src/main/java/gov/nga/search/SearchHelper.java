@@ -3,12 +3,10 @@ package gov.nga.search;
 import gov.nga.performancemonitor.PerformanceMonitor;
 import gov.nga.performancemonitor.PerformanceMonitorFactory;
 import gov.nga.utils.CollectionUtils;
-import gov.nga.utils.SystemUtils;
+
 import gov.nga.utils.hashcode.CustomHash;
 
-import java.util.Calendar;
 import java.util.List;
-import java.util.Map;
  
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
@@ -18,7 +16,6 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 	implements CustomHash {
 
 	private static final Logger log = LoggerFactory.getLogger(SearchHelper.class);
-	private static boolean disableCaching = true;
 
 	public static enum SEARCHOP {
 		// art object search fields
@@ -34,15 +31,6 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 	private List<FreeTextFilter> freeTextFilters = CollectionUtils.newArrayList();
 	private FreeTextSearchable<T> searchServicer = null;
 	
-	private class ResultSet {
-		List<Object> list;
-		Calendar created = Calendar.getInstance(); 
-		int hits = 0;
-	}
-	
-	private static Map<String, Object> cachedSearches = CollectionUtils.newHashMap();
-	private static Calendar lastCacheCheck = Calendar.getInstance();
-	
 	public long customHash() {
 		HashCodeBuilder hcb = new HashCodeBuilder(11,13);
 		for (SearchFilter f : filters) {
@@ -54,21 +42,6 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 		// hcb.append(searchServicer); this won't matter because
 		// the only difference is with T in these classes
 		return hcb.hashCode();
-	}
-	
-	private String customCacheHash(List<T> list, SortHelper<T> sortH) {
-		HashCodeBuilder hcb = new HashCodeBuilder(23,29);
-		hcb.append(list);
-		hcb.append(sortH.customHash());
-		hcb.append(customHash());
-		String cacheKey = hcb.hashCode() + ":";
-		if (list != null)
-			cacheKey += list.size();
-		cacheKey += ":";
-		if (sortH != null)
-			cacheKey += sortH.customHash();
-		cacheKey += ":" + customHash();
-		return cacheKey;
 	}
 	
 	public SearchHelper() {
@@ -139,117 +112,34 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 		return filters.size() + freeTextFilters.size();
 	}
 	
-	private List<T> getSortedListFromCache(List<T> list, SortHelper<T> sortH) {
-		if (disableCaching)
-			return null;
-		Calendar now = Calendar.getInstance();
-		boolean checkCache = false;
-		synchronized (this) {
-			if (now.getTimeInMillis() - lastCacheCheck.getTimeInMillis() > 60000) {
-				checkCache = true;
-				lastCacheCheck = Calendar.getInstance();
-			}
-		}
-		if (checkCache) {
-			log.info("Checking age of search cache");
-			// start eliminating from cache anything
-			// older than five minutes
-			List<String> delList = CollectionUtils.newArrayList();
-			for (String s : cachedSearches.keySet()) {
-				ResultSet r = (ResultSet) cachedSearches.get(s);
-				if ( now.getTimeInMillis() - r.created.getTimeInMillis() > 600000 )
-					delList.add(s);
-			}
-			// delete any cached results greater than five minutes old
-			// really, this should be triggered by an external
-			// party, but no biggie for now
-			for (String s : delList) {
-				cachedSearches.remove(s);
-			}
-		}
-		
-		String cacheKey = customCacheHash(list, sortH);
-		ResultSet result = null;
-		synchronized (cachedSearches) {
-			result = (ResultSet) cachedSearches.get(cacheKey);
-		}
-		if (result != null) {
-			result.hits++;
-			try {
-				log.info("Found cached result set for key " + cacheKey + ". Attempting to use it.");
-				@SuppressWarnings("unchecked")
-				List<T> res = (List) result.list;
-				//log.info("Cast result set without error.  Returning it");
-				return res;
-			}
-			catch (ClassCastException ce) {
-				// oops - we must have a hash collision here
-				// so unset any entries for cacheKey
-				saveSortedListToCache(list,sortH,null);
-			}
-		}
-		return null;
-	}
-	
-	private void saveSortedListToCache(List<T> list, SortHelper<T> sortH, List<T> value) {
-		if (disableCaching)
-			return;
-		String cacheKey = customCacheHash(list, sortH);
-		//log.info("hash is: " + cacheKey);
-		@SuppressWarnings("unchecked")
-		List<Object> val = (List) value;
-		ResultSet res = new ResultSet();
-		res.list = val;
-		synchronized (cachedSearches) {
-			if (val == null)
-				cachedSearches.remove(cacheKey);
-			else {
-				log.info("size of cache now: " + cachedSearches.size());
-				log.info(SystemUtils.freeMemorySummary());
-				cachedSearches.put(cacheKey, res);
-			}
-		}
-	}
-
-	
 	private List<T> searchExec(List<T> list, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH) {
 
 		PerformanceMonitor perfMonitor = PerformanceMonitorFactory.getMonitor(SearchHelper.class);
-		List<T> matches = getSortedListFromCache(list, sortH);
-		log.debug("value of match after cache fetch: " + matches);
-		perfMonitor.logElapseTimeFromLastReport("Pulled matches from cache");
-		if (matches == null) {
-			// not cached
-			matches = CollectionUtils.newArrayList();
+		// not cached
+		List<T>	matches = CollectionUtils.newArrayList();
 
-			// first we assemble a list of all matching objects, appending as we go which presumably
-			// will be faster than removing from the list we were provided
-			if (list != null) {
-				for (T a : list) {
-					boolean addit = true;
-					for (SearchFilter sf : filters) {
-						Boolean match = a.matchesFilter(sf); 
-						// if, in looping through the list of filters, we find that one of the filters
-						// cannot be matched or can be matched and doesn't match, then we set the flag
-						// to false and abort the inner loop
-						if (match == null || !match) {
-							addit = false;
-							break;
-						}
+		// first we assemble a list of all matching objects, appending as we go which presumably
+		// will be faster than removing from the list we were provided
+		if (list != null) {
+			for (T a : list) {
+				boolean addit = true;
+				for (SearchFilter sf : filters) {
+					Boolean match = a.matchesFilter(sf); 
+					// if, in looping through the list of filters, we find that one of the filters
+					// cannot be matched or can be matched and doesn't match, then we set the flag
+					// to false and abort the inner loop
+					if (match == null || !match) {
+						addit = false;
+						break;
 					}
-					if (addit)
-						matches.add(a);
 				}
+				if (addit)
+					matches.add(a);
 			}
-			perfMonitor.logElapseTimeFromLastReport("matches built for new cache");
-			// sort the art entities if a sort helper is provided
-			if (sortH != null) {
-				sortH.sortEntities(matches);
-				perfMonitor.logElapseTimeFromLastReport("matches sorted for new cache");
-			}
-			// save result to cache
-			saveSortedListToCache(list, sortH, matches);
-			perfMonitor.logElapseTimeFromLastReport("new cache saved");
+		}
+		// sort the art entities if a sort helper is provided
+		if (sortH != null) {
+			sortH.sortEntities(matches);
 		}
 		
 		// and now we count facets if the facethelper is not null
@@ -262,7 +152,7 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 			// a compiler error even results in the first place though since Faceted is
 			// implemented by the class T
 			@SuppressWarnings("unchecked")
-			List<Faceted> fList = (List) matches;
+			List<Faceted> fList = (List<Faceted>) matches;
 			fn.processFacets(fList);
 			perfMonitor.logElapseTimeFromLastReport("facets processed");
 		}
@@ -311,9 +201,7 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable>
 	public List<T> clipToPage(List<T> list, ResultsPaginator pn) {
 		if (list == null)
 			return null;
-		
 		pn.setTotalResults(list.size());
-		
 		return CollectionUtils.newArrayList(list.subList(pn.getStartIndex(), pn.getEndIndex()));
 	}
 

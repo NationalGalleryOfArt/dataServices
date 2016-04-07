@@ -73,6 +73,15 @@ public class CollectionUtils {
 		return new ArrayList<T1>(aColl);
 	}
 	
+	public static <T1> List<T1> clearEmptyOrNull(List<T1> aList) {
+		List<T1> nList = newArrayList();
+		for (T1 t : aList) {
+			if (t != null && !StringUtils.isNullOrEmpty(t.toString()))
+				nList.add(t);
+		}
+		return nList;
+	}
+	
 	public static <T2, T1 extends T2> List<T2> newArrayListFromSubclass(Collection<T1> aList) {
 		if (aList == null)
 			return null;

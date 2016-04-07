@@ -3,8 +3,8 @@ package gov.nga.integration.cspace;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
@@ -23,7 +23,7 @@ import gov.nga.utils.StringUtils;
 // TODO need to refactor this to have a single record container surrounding it.  Pretty easy since everything can extend a centralized record and the container can just encapsulate that
 public class ObjectRecord extends AbridgedObjectRecord {
 
-	private static final Logger log = LoggerFactory.getLogger(ObjectRecord.class);
+	//private static final Logger log = LoggerFactory.getLogger(ObjectRecord.class);
 	
     private String classification;
     private String subClassification;
@@ -48,6 +48,7 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String curatorialRemarks;
     private String watermarks;
     private String catalogueRaisonneRef;
+    private String lastDetectedModification;
     
     // if null, don't include it since we have an option in the search APIs to not include references at all - so we don't want to 
     // make it appear as if there are no references - we just won't include them at all if they are null
@@ -58,7 +59,7 @@ public class ObjectRecord extends AbridgedObjectRecord {
     	this(o,locs,true);
     }
        
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean includeReferences) {
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references) {
     	super(o);
     	if (o == null)
     		return;
@@ -81,13 +82,14 @@ public class ObjectRecord extends AbridgedObjectRecord {
         setPortfolio(o.getPortfolio());
         setDimensions(o.getDimensions());
         setProvenanceText(StringUtils.removeMarkup(o.getProvenanceText()));
-        if (includeReferences)
+        if (references)
         	setReferences(o);
         setDepartmentAbbr(o.getDepartmentAbbr());
         setDescription(StringUtils.removeMarkup(o.getDescription()));
         setCuratorialRemarks(StringUtils.removeMarkup(o.getCuratorialRemarks()));
         setWatermarks(o.getWatermarks());
         setCatalogueRaisonneRef(o.getCatalogRaisonneRef());
+        setLastDetectedModification(o.getLastDetectedModification());
         
         setAllLocations(o.getComponents(), locs);
         
@@ -156,8 +158,6 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.homeLocation = CollectionUtils.newArrayList();
 		if (components != null && locations != null) {
 			for (ArtObjectComponent c : components) {
-				log.info("==========================" + c.getLocationID() + "===============================");
-				log.info("==========================" + c.getHomeLocationID() + "===============================");
 				addComponentLocationDesc(this.location,locations.get(c.getLocationID()), c);
 				addComponentLocationDesc(this.homeLocation,locations.get(c.getHomeLocationID()), c);
 			}
@@ -308,6 +308,14 @@ public class ObjectRecord extends AbridgedObjectRecord {
 
 	public void setCatalogueRaisonneRef(String catalogueRaisonneNumber) {
 		this.catalogueRaisonneRef = catalogueRaisonneNumber;
+	}
+
+	public String getLastDetectedModification() {
+		return lastDetectedModification;
+	}
+
+	public void setLastDetectedModification(String lastDetectedModification) {
+		this.lastDetectedModification = lastDetectedModification;
 	}
 
 	public List<Reference> getReferences() {

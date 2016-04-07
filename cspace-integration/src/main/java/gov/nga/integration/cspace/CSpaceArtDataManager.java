@@ -22,7 +22,6 @@ public class CSpaceArtDataManager extends ArtDataManager {
 	
     private static final Logger log = LoggerFactory.getLogger(CSpaceArtDataManager.class);
     ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-
     
     @Autowired
     private ConfigService spring_configurator;
@@ -49,6 +48,9 @@ public class CSpaceArtDataManager extends ArtDataManager {
     		// if we are unable to load, then we will try again in one minute
     		scheduler.schedule(this, 10, TimeUnit.SECONDS); 
     	}
+    	else {
+    		ArtObjectThumbnailWorker.clearCache();
+    	}
     }
         
     // we unload all data upon destruction of this component
@@ -66,26 +68,6 @@ public class CSpaceArtDataManager extends ArtDataManager {
     	// TODO - rework this to support refreshing without unloading the existing data from memory
     	log.info("****************** REFRESH OF TMS DATA RUNNING **********************");
     	scheduler.schedule(this, 0, TimeUnit.SECONDS);
-    }
-
-    public class TaskExecutorExample {
-
-        private class MessagePrinterTask implements Runnable {
-
-            private String message;
-
-            public MessagePrinterTask(String message) {
-                this.message = message;
-            }
-
-            public void run() {
-                System.out.println(message);
-            }
-
-        }
-
-        
-
     }
 
 }

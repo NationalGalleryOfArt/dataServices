@@ -1,5 +1,8 @@
 package gov.nga.search;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ResultsPaginator {
 	
 	private Integer pagesize = 40;
@@ -7,25 +10,50 @@ public class ResultsPaginator {
 	private Integer totalResults = null;
 	private Integer startIndex = null;
 	private Integer endIndex = null;
+	private Integer skip = null;
+	
+	private static final Logger log = LoggerFactory.getLogger(ResultsPaginator.class);
+	static {
+		log.debug("class loaded");
+	}
+
+	public ResultsPaginator() {
+	}
 	
 	public ResultsPaginator(Integer pagesize, Integer page) {
+		this();
 		setPageSize(pagesize);
 		setPage(page);
 	}
-	
+
+	public ResultsPaginator(int skip, int limit) {
+		this();
+		setSkip(skip);
+		setPageSize(limit);
+	}
+
 	public void setTotalResults(Integer l) {
 		totalResults = l;
-		setPage(page);
+		if (skip == null)
+			setPage(page);
+		else
+			setWindow(skip, getPageSize());
 	}
 	
 	public Integer getTotalResults() {
 		return totalResults;
 	}
 
-	private void setPageSize(Integer l) {
+	protected void setPageSize(Integer l) {
 		pagesize = l;
 		if (pagesize < 1)
 			pagesize = 1;
+	}
+	
+	protected void setSkip(Integer l) {
+		this.skip = l;
+		if (this.skip < 0)
+			this.skip = 0;
 	}
 	
 	public Integer getPageSize() {
@@ -39,7 +67,35 @@ public class ResultsPaginator {
 		return null;
 	}
 
+	protected void setIndexes(Integer startIndex, Integer endIndex) {
+		// swap values if start and end are swapped
+		if (startIndex > endIndex) {
+			int hold = startIndex;
+			startIndex = endIndex;
+			endIndex = hold;
+		}
+
+		// we cannot specify an index greater than the end of the index of the last item + 1
+		if (endIndex > getTotalResults())
+			endIndex = getTotalResults();
+		if (startIndex >= getTotalResults())
+			startIndex = getTotalResults();
+		if (startIndex < 0)
+			startIndex = 0;
+		if (endIndex < 1)
+			endIndex = 1;
+		if (getTotalResults() <= 0 && endIndex == 1)
+			endIndex = 0;
+		this.startIndex = startIndex;
+		this.endIndex = endIndex;
+	}
+	
 	private void setPage(Integer l) {
+		// we're changing these locally then validating via setIndex since other subclasses will share
+		// this validation now, e.g. ResultsWindow
+		Integer startIndex = getStartIndex();
+		Integer endIndex = getEndIndex();
+		
 		page = l;
 		if (page != null) {
 			if (getPages() != null && page > getPages())
@@ -63,18 +119,15 @@ public class ResultsPaginator {
 		// increment it
 		endIndex++;
 		
-		// swap values if start and end are swapped
-		if (startIndex > endIndex) {
-			int hold = startIndex;
-			startIndex = endIndex;
-			endIndex = hold;
-		}
+		setIndexes(startIndex, endIndex);
+	}
 
-		// we cannot specify an index greater than the end of the index of the last item + 1
-		if (endIndex > getTotalResults())
-			endIndex = getTotalResults();
-		if (startIndex < 0)
-			startIndex = 0;
+	// allow a custom view into the result set to be used - this assumes total external control
+	// over the pagination if pagination will be used since calling this will throw off the
+	// page calculations a bit
+	private void setWindow(Integer skip, Integer limit) {
+		setPageSize(limit);
+		setIndexes(skip, skip+getPageSize());
 	}
 	
 	public Integer getStartIndex() {

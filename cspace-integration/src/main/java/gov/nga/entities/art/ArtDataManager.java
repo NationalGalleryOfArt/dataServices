@@ -138,8 +138,10 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         this.dataReady = dataReady;
     }
 
-    protected boolean isDataReady() {
-        return dataReady;
+    protected boolean isDataReady(boolean raiseException) {
+    	if (!dataReady && raiseException)
+    		throw new DataNotReadyException("TMS data services are starting up and currently unavailable.");
+    	return dataReady;
     }
      
  /*   
@@ -327,15 +329,13 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     
 
     public <T extends ArtObject>T fetchByObjectID (long objectID, ArtObjectFactory<T> factory) throws DataNotReadyException {
-        if(isDataReady()){
-            if(getArtObjectsRaw().get(objectID) == null){
-                return null;
-            }else{
-                return factory.createArtObject(getArtObjectsRaw().get(objectID));
-            }
-        }else{
-            throw new DataNotReadyException("TMS data not loaded into memory.");
-        }
+    	isDataReady(true);
+    	if( getArtObjectsRaw().get(objectID) == null ) {
+    		return null;
+    	}
+    	else {
+    		return factory.createArtObject(getArtObjectsRaw().get(objectID));
+    	}
     }
 
     public List<ArtObject> fetchByObjectIDs(Collection<Long> objectIDs, gov.nga.entities.art.ArtObject.SORT... order) throws DataNotReadyException {
@@ -357,8 +357,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     }
 
     public <T extends ArtObject>List<T> fetchByObjectIDs(Collection<Long> objectIDs, ArtObjectFactory<T> factory) throws DataNotReadyException {
-        if(!isDataReady())
-            throw new DataNotReadyException("TMS data not loaded into memory.");
+        isDataReady(true);
 
         List<T> have = CollectionUtils.newArrayList();
 
@@ -373,8 +372,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
 
     // returns all works related to this one
     public <T extends ArtObject>List<T> fetchRelatedWorks(ArtObject obj, ArtObjectFactory<T> factory) throws DataNotReadyException {
-        if(!isDataReady())
-            throw new DataNotReadyException("TMS data not loaded into memory.");
+        isDataReady(true);
 
         List<T> returnList = CollectionUtils.newArrayList();
         if (obj instanceof ArtObject)
@@ -412,8 +410,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     }
     
     public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher) throws DataNotReadyException {
-        if(!isDataReady())
-            throw new DataNotReadyException("TMS data not loaded into memory.");
+        isDataReady(true);
 
         List<T> list = new ArrayList<T>();
         for (ArtObject obj: getArtObjectsRaw().values())
@@ -571,9 +568,8 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
 
     public List<String> suggestArtObjectTitles(String artistName, String titleWords) {
 
-        if(!isDataReady()){
-            throw new DataNotReadyException("TMS data not loaded into memory.");
-        }
+        isDataReady(true);
+
         // we need to do two things here
         // 1. match on the full string that was entered for list #1
         // 2. match on each string individually and find the intersection
@@ -801,10 +797,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     
     private List<Suggestion> suggestSuggestions(String baseName, Set<Suggestion> suggestions) {
         // be sure data is loaded before we let the API get used
-        if(!isDataReady()){
-            throw new DataNotReadyException("TMS data not loaded into memory.");
-        }
-
+        isDataReady(true);
 
         List<Suggestion> combined = new ArrayList<Suggestion>();
         // prioritize based on closeness of match to given name

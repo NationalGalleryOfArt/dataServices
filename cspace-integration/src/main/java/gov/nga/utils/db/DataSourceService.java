@@ -56,6 +56,7 @@ public abstract class DataSourceService {
     public Connection getConnection(String dataSourceName) throws SQLException {
     	// check cache and return connection if valid, otherwise generate a new one and replace in cache
     	
+    	// TODO - make this a pooled connection class and overwrite close so that it isn't closable
     	Connection c = connectionMap.get(dataSourceName);
     	if ( (c != null) && (!c.isClosed()) && c.isValid(5) )
     		return c;
