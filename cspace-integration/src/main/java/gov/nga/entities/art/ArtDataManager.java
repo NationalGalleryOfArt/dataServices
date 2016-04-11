@@ -833,6 +833,24 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return combined;
     }
     
+    public List<Suggestion> suggestArtObjectsByArtistName(String baseName) {
+    	List<Suggestion> constituentSuggestions = suggestSuggestions(baseName, suggestNameSet(baseName, artistAltNames));
+    	List<Suggestion> objectSuggestions = CollectionUtils.newArrayList();
+    	for (Suggestion s: constituentSuggestions) {
+    		Constituent c = fetchByConstituentID(s.getEntityID());
+    		if (c != null) {
+    			for (Long id : c.getWorksIDs()) {
+    				objectSuggestions.add(new Suggestion(s.getString(),id));
+    			}
+    		}
+    	}
+    	return objectSuggestions;
+    }
+
+    public List<Suggestion> suggestArtObjectsByTitle(String baseName) {
+    	return suggestSuggestions(baseName, suggestNameSet(baseName, artObjectTitleWords));
+    }
+
     private List<String> suggestNames(String baseName, Set<Suggestion> suggestions) {
         
         List<Suggestion> rslts = suggestSuggestions(baseName, suggestions);

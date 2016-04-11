@@ -45,7 +45,11 @@ public class SortHelper<E extends Sortable> extends Sorter {
 	public void setRemoveBaseEntityFromSortedResults(boolean b) {
 		removeBaseEntity = b;
 	}
-	
+
+	public SortHelper(Object... order) {
+		this(new SortOrder(order));
+	}
+
 	public SortHelper(SortOrder so) {
 		super(so);
 	}

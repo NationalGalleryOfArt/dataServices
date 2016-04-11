@@ -1,5 +1,6 @@
 package gov.nga.entities.art;
 
+import gov.nga.entities.art.ArtDataManager.Suggestion;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ConstituentFactory;
 import gov.nga.search.Facet;
@@ -61,6 +62,8 @@ public interface ArtDataManagerService {
 	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory);
 	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory, FreeTextSearchable<C> freeTextSearcher);
 	public Map<String, String> getIndexOfArtistsRanges();
+    public List<Suggestion> suggestArtObjectsByArtistName(String baseName);
+    public List<Suggestion> suggestArtObjectsByTitle(String baseName);
 	public List<String> suggestArtistNames(String base);
 	public List<String> suggestOwnerNames(String base);
 	public Map<Long, String> suggestOwners(String baseName);

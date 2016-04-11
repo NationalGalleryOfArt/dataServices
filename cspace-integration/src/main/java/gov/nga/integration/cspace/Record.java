@@ -1,5 +1,8 @@
 package gov.nga.integration.cspace;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({ "namespace", "id", "source" })
 public abstract class Record {
 
 	private String namespace;

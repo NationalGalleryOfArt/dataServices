@@ -49,7 +49,7 @@ public class ObjectRecordController {
     	// not implemented if the source is not specified OR (preferably) a redirect to the generic search for object records
     	if (source == null) {
     		try {
-    			return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(new URI(response.encodeRedirectURL("/art/objects?id="+id))).body(null);
+    			return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(new URI(response.encodeRedirectURL("/art/objects.json?id="+id))).body(null);
     		}
     		catch (Exception ue) {
     			log.error("Unexpected exception with URI: " + ue.getMessage());

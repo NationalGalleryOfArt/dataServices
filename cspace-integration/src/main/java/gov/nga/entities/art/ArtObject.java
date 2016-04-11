@@ -193,7 +193,7 @@ public class ArtObject extends ArtEntityImpl {
 					"FROM data.objects " +
 					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID "
 					;
-					//+ "WHERE objectid <= 10000 ";
+					//+ "WHERE objectid = 1046 ";
 
 	protected static final String briefObjectQuery = 
 			fetchAllObjectsQuery + " WHERE objectID @@ "; 
@@ -632,8 +632,9 @@ public class ArtObject extends ArtEntityImpl {
 		return null;
 	}
 
-	private String stripLeadingArticle(String text)
-	{
+	private String stripLeadingArticle(String text)	{
+		if ( text == null ) 
+			return null;
 		return text.replaceAll("^(The|the|A|a|An|an) ", "");
 	}
 

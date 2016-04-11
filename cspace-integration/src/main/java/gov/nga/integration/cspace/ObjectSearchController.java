@@ -28,14 +28,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+//import gov.nga.entities.art.ArtDataManager.Suggestion;
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.Location;
+//import gov.nga.entities.art.ArtObject.SEARCH;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SearchHelper.SEARCHOP;
 import gov.nga.search.SortHelper;
+
 import gov.nga.utils.CollectionUtils;
 
 import gov.nga.utils.StringUtils;
@@ -100,27 +102,25 @@ public class ObjectSearchController {
 
     	// various helpers are used to accumulate search criteria, order, and paginate the results
     	SearchHelper<ArtObject> searchHelper = new SearchHelper<ArtObject>();
-    	SortHelper<ArtObject> sortHelper = new SortHelper<>();
+    	
 
     	// process all of the request parameters
     	processIDs(searchHelper, ids, cultObj_ids);
-    	processLastModified(searchHelper, lastModified, cultObj_lastModified);
-    	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
+    	// these can be used if we decide to go with a "startswith" type of search rather than "contains"
+    	//processSuggestableField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
+    	//processSuggestableField(searchHelper, titles, cultObj_titles, ArtObject.SEARCH.TITLE);
     	processTextField(searchHelper, numbers, cultObj_numbers, ArtObject.SEARCH.ACCESSIONNUM);
+    	processLastModified(searchHelper, lastModified, cultObj_lastModified);
     	processTextField(searchHelper, titles, cultObj_titles, ArtObject.SEARCH.TITLE);
+    	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
     	
-    	processSort(sortHelper, order);
+    	SortHelper<ArtObject> sortHelper = getSortHelper(order);
     	
     	// the list of items that will be returned (constructed from art object records)
 		List<Item> partialResults = CollectionUtils.newArrayList();
 
     	// execute the search using the prepared search helper
     	List<ArtObject> artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
-    	
-    	// 
-    	// locations are necessary since home location and location are really not attributes of the object
-    	// but of components that comprise the object
-    	Map<Long, Location> locs = artDataManager.getLocationsRaw();
     	
     	if (artObjects.size() > 0) {
 			// Map used to accumulate the thumbnail computations from Futures
@@ -136,12 +136,17 @@ public class ObjectSearchController {
     		for (ArtObject o : artObjects) {
     			URL objectURL = null;
     			try {
-    				objectURL = new URL(request.getScheme(),request.getServerName(),request.getServerPort(),"/art/tms/objects/"+o.getObjectID()+".json");
+    				String scheme = request.getHeader("X-Forwarded-Proto");
+    				if (StringUtils.isNullOrEmpty(scheme)) {
+    					String sslOn = request.getHeader("X-Forwarded-SSL");
+    					scheme = StringUtils.isNullOrEmpty(sslOn) ? request.getScheme() : "https"; 
+    				}
+    				objectURL = new URL(scheme,request.getServerName(),request.getServerPort(),"/art/tms/objects/"+o.getObjectID()+".json");
     			}
     			catch (MalformedURLException me) {
     				log.error("Problem creating object URL: " + me.getMessage());
     			}
-    			ObjectRecord objectRecord = new ObjectRecord(o, locs, references);
+    			Record objectRecord = new AbridgedObjectRecord(o, references);
     			Future<String> thumb = thumbnails.get(o.getObjectID());
     			String thumbVal = (thumb == null ? null : thumb.get());
     			partialResults.add(new Item(objectURL, thumbVal, objectRecord));
@@ -156,10 +161,11 @@ public class ObjectSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, partialResults), headers, HttpStatus.OK);
 	}
     
-    private void processSort(SortHelper<ArtObject> sortHelper, List<String> order) throws APIUsageException {
+    private SortHelper<ArtObject> getSortHelper(List<String> order) throws APIUsageException {
     	order = CollectionUtils.clearEmptyOrNull(order);
     	if (order == null || order.size() <= 0)
-    		return;
+    		return new SortHelper<>(ArtObject.SORT.ACCESSIONNUM_ASC);
+    	
     	String firstOrder = order.get(0); 
     	String[] requestedOrders = firstOrder.split(",");
     	List<ArtObject.SORT> orders = CollectionUtils.newArrayList();
@@ -218,7 +224,8 @@ public class ObjectSearchController {
     		}
     	}
 		if (orders != null && orders.size() > 0)
-			sortHelper.setSortOrder(orders.toArray());
+			return new SortHelper<ArtObject>(orders.toArray());
+		return null;
     }
     
     private String processSource(HttpServletRequest req) throws APIUsageException {
@@ -233,7 +240,47 @@ public class ObjectSearchController {
     	return source;
     }
 
-    // ARTISTNAMES FIELD
+    /*
+    // we can use this approach for "startswith" operator should we decide to switch to that
+    private void processSuggestableField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
+    	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
+    	aList = CollectionUtils.clearEmptyOrNull(aList);
+
+    	List<String> nList = CollectionUtils.newArrayList();
+    	String search=null;
+    	for (String an : aList) {
+    		if (!StringUtils.isNullOrEmpty(an)) {
+    			nList.add(an);
+    			if (search != null)
+    				search += " ";
+    			else
+    				search = "";
+    			search += an;
+    		}
+    	}
+    	if (!StringUtils.isNullOrEmpty(search)) {
+    		List<Suggestion> suggestions = CollectionUtils.newArrayList();
+    		switch (field) {
+    		case TITLE:
+    			suggestions = artDataManager.suggestArtObjectsByTitle(search); 		
+    			break;
+    		case ARTIST_ALLNAMES:
+    			suggestions = artDataManager.suggestArtObjectsByArtistName(search);
+    			break;
+    		default: 
+    			break;
+    		}
+    		// the suggestions will have a list of object IDs, so we have to translate that into a list of IDs that are provided
+    		// to the byID search
+    		List<String> ids = CollectionUtils.newArrayList();
+    		for (Suggestion s : suggestions) {
+    			ids.add(s.getEntityID().toString());
+    		}
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, SEARCH.OBJECTID, ids, false));
+    	}
+    }*/
+
+    // ARTISTNAMES & TITLES FIELD
     private void processTextField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
     	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
     	aList = CollectionUtils.clearEmptyOrNull(aList);
@@ -252,7 +299,7 @@ public class ObjectSearchController {
 		List<String> iList = CollectionUtils.newArrayList(ids, cultObj_ids);
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
-    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.OBJECTID, ids));
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.OBJECTID, iList));
     }
     
 	// LASTMODIFIED FIELD

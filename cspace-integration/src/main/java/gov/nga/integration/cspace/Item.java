@@ -3,7 +3,9 @@ package gov.nga.integration.cspace;
 import java.net.URL;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+@JsonPropertyOrder({ "url", "record", "thumbnail" })
 public class Item {
 	Record record = null;
 	URL	url = null;
