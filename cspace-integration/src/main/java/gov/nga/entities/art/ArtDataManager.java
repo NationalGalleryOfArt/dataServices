@@ -382,8 +382,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             Map<String, MutableInt> nationalities = baseO.getNationalities();
             Map<T, Long> m = CollectionUtils.newHashMap();
             ArtObjectMapComparator<T> smc = new ArtObjectMapComparator<T>(m);
-            Map<T,Long> sm = CollectionUtils.newTreeMap(smc);
-    
+            Map<T, Long> sm = CollectionUtils.newTreeMap(smc);
     
             if (baseO != null) {
                 // common styles
@@ -409,7 +408,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return returnList;
     }
     
-    public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher) throws DataNotReadyException {
+    public <T extends ArtObject> List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher) throws DataNotReadyException {
         isDataReady(true);
 
         List<T> list = new ArrayList<T>();
@@ -922,7 +921,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             // intend to search against
             SearchHelper<ArtObject> sh = new SearchHelper<ArtObject>();
             searchArtObjects(sh,null,fn);
-            setStandardArtObjectFacets(fn.getFacets());
+            setStandardArtObjectFacets(fn.getFacets()); 
         }
         return standardArtObjectFacets;
     }

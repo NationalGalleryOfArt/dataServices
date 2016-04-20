@@ -14,8 +14,7 @@ public class PerformanceMonitor
     private Calendar lastClickTime;
     private Logger log;
     
-    @SuppressWarnings("unchecked")
-    protected PerformanceMonitor(Class logClass)
+    protected PerformanceMonitor(Class<?> logClass)
     {
         this(logClass.getSimpleName());
     }

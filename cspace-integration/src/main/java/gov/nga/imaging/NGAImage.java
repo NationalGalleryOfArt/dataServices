@@ -1,7 +1,6 @@
 package gov.nga.imaging;
 
 import java.util.Collection;
-import java.util.Map;
 
 public class NGAImage
 {

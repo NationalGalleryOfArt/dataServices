@@ -3,6 +3,7 @@ package gov.nga.entities.art;
 import gov.nga.entities.common.FingerprintedEntity;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SortOrder;
+import gov.nga.search.Sorter;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.utils.stringfilter.EmptyFilter;
 import gov.nga.utils.stringfilter.StringFilter;
@@ -53,8 +54,8 @@ public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEn
 		return null;
 	}
 	
-	public Integer aspectScore(Object ao, Object order, String matchString) {
-		return null;
+	public int aspectScore(Object ao, Object order, String matchString) {
+		return Sorter.NULL;
 	}
 	
 	public Boolean matchesFilter(SearchFilter filter) {

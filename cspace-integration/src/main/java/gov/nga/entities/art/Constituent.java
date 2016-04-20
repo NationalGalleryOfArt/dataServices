@@ -4,12 +4,14 @@ import gov.nga.entities.art.TextEntry.TEXT_ENTRY_TYPE;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SortHelper;
+import gov.nga.search.Sorter;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 import gov.nga.utils.TypeUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.CollationKey;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
@@ -165,6 +167,8 @@ public class Constituent extends ArtEntityImpl
 		biography 					= htmlToMarkdown(sanitizeHtml(rs.getString(14)));
 		constituentLeonardoID		= rs.getString(15);
 		ulanID 						= rs.getString(16);
+		
+		preferredDisplayNameCKey  	= StringUtils.getDefaultCollator().getCollationKey(preferredDisplayName);
 	}
 	
 	protected Constituent(Constituent source) throws SQLException {
@@ -296,14 +300,13 @@ public class Constituent extends ArtEntityImpl
 				String e = m.get(s);
 				String v = getPreferredDisplayNameStartsWith();
 
-				Integer c1 = SortHelper.compareObjectsDiacritical(s, v);
-				Integer c2 = SortHelper.compareObjectsDiacritical(e, v);
+				int c1 = SortHelper.compareObjectsDiacriticalAutoCache(s, v);
+				int c2 = SortHelper.compareObjectsDiacriticalAutoCache(e, v);
 
-				if (c1 == null)
+				if (c1 == Sorter.NULL)
 					c1 = 0;
-				if (c2 == null)
+				if (c2 == Sorter.NULL)
 					c2 = 0;
-
 
 				if (c1 <= 0 && c2 >= 0) {
 					setIndexOfArtistRange(s + " to " + e);
@@ -342,15 +345,15 @@ public class Constituent extends ArtEntityImpl
 	// in any of a fixed number of dimensions
 	// returns 1 if a match is found, 0 if one is not found
 	// or null if a comparison cannot be made on the given dimension
-	public Integer aspectScore(Object ae, Object order, String matchString) {
+	public int aspectScore(Object ae, Object order, String matchString) {
 
 		Constituent c = (Constituent) ae;
 
 		if (c == null || order == null)
-			return null;
+			return Sorter.NULL;
 		switch ((SORT) order) {
 		case PREFERRED_DISPLAY_NAME_ASC: 
-			return SortHelper.compareObjectsDiacritical(getPreferredDisplayName(), c.getPreferredDisplayName());
+			return SortHelper.compareObjectsDiacritical(getPreferredDisplayNameCKey(), c.getPreferredDisplayNameCKey());
 		case HASBIOGRAPHY_ASC:
 			// we need to reverse this because we want biographies first
 			int a = hasBiography() ? 0 : 1;
@@ -363,7 +366,7 @@ public class Constituent extends ArtEntityImpl
 		default:
 			break;
 		}
-		return null;
+		return Sorter.NULL;
 	}
 
 	public String freeTextSearchToNodePropertyName(Object field) {
@@ -704,6 +707,11 @@ public class Constituent extends ArtEntityImpl
 	public String getJCREntityType() 
 	{
 		return JCRNODENAME;
+	}
+	
+	private CollationKey preferredDisplayNameCKey = null;
+	public CollationKey getPreferredDisplayNameCKey() {
+		return preferredDisplayNameCKey;
 	}
 	
 }

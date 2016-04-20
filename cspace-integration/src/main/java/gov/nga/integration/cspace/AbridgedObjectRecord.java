@@ -56,7 +56,7 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		setId(o.getObjectID().toString());
         setClassification(o.getClassification());
 		setAccessionNum(o.getAccessionNum());
-        setTitle(StringUtils.removeMarkup(o.getTitle()));
+        setTitle(StringUtils.removeOnlyHTMLAndFormatting(o.getTitle()));
         setLastDetectedModification(o.getLastDetectedModification());
 
         this.artistNames = constituentNames(o.getArtists());
@@ -75,6 +75,12 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 	}
 
 	public void setClassification(String classification) {
+		if (classification != null) {
+			if ( classification.startsWith("Index of American Design") )
+				classification = "Drawing";
+			else if ( classification.startsWith("Ephemera") )
+				classification = "Ephemera";
+		}
 		this.classification = classification;
 	}
 

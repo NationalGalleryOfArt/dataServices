@@ -18,7 +18,7 @@ import java.util.Map;
 
 public interface ArtDataManagerService {
 	
-	// JDBC Pool Service
+	// JDBC Pool Service 
 	public DataSourceService getDataSourceService();
 	
 	// Art Location Services

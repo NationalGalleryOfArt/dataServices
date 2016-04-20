@@ -1,11 +1,9 @@
 package gov.nga.performancemonitor;
 
-public class PerformanceMonitorFactory 
-{
-	@SuppressWarnings("unchecked")
-	public static PerformanceMonitor getMonitor(Class classSeed)
+public class PerformanceMonitorFactory {
+	public static PerformanceMonitor getMonitor(@SuppressWarnings("rawtypes") Class classSeed)
 	{
-		return new PerformanceMonitor(classSeed);
+		return new PerformanceMonitor(classSeed.getClass());
 	}
 	
 	public static PerformanceMonitor getMonitor(String classSeed)

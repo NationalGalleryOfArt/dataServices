@@ -2,12 +2,12 @@ package gov.nga.entities.art;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.CollationKey;
 import java.util.*;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Quantity;
 
-import gov.nga.utils.stringfilter.RemoveMarkupFilter;
 import gov.nga.utils.stringfilter.StringFilter;
 
 import org.slf4j.Logger;
@@ -25,6 +25,7 @@ import gov.nga.entities.art.TextEntry.TEXT_ENTRY_TYPE;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SortHelper;
 import gov.nga.search.SortOrder;
+import gov.nga.search.Sorter;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.DateUtils;
 import gov.nga.utils.MutableInt;
@@ -163,8 +164,8 @@ public class ArtObject extends ArtEntityImpl {
 	protected static final String baseTermsQuery =
 			ArtObjectTerm.fetchAllObjectTermsQuery + " WHERE ot.objectID @@ ";
 
-	protected static StringFilter removeMarkupFilter = new RemoveMarkupFilter();
-
+	// this is far too inefficient for searches and sorts - plus it removes all diacritics unnecessarily
+	//protected static StringFilter removeMarkupFilter = new RemoveMarkupFilter();
 
 	// NOTES ABOUT CONCURRENCY
 	// In the artobjectmanager and constituentmanager classes, we make sure
@@ -244,7 +245,23 @@ public class ArtObject extends ArtEntityImpl {
 		// TODO consider making below a timestamp rather than a string for faster comparisons
 		// although this will require a number of new filter tests in search filter I think
 		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, rs.getTimestamp(39));
+	
+		// pre-compute commonly used collation keys to speed up sort routines
+		formatFreeTitle				= StringUtils.removeOnlyHTMLAndFormatting(getTitle());
+		formatFreeMedium			= StringUtils.removeOnlyHTMLAndFormatting(getMedium());
+		strippedTitleCKey 			= StringUtils.getDefaultCollator().getCollationKey(stripLeadingArticle(StringUtils.removeDiacritics(getTitle())));
+		attributionInvertedCKey 	= StringUtils.getDefaultCollator().getCollationKey(StringUtils.removeDiacritics(attributionInverted));
 	}
+
+	private String stripLeadingArticle(String text)	{
+		if ( text == null ) 
+			return null;
+		//text = text.replaceAll("/[^\\w\\s]|_/g", "").replaceAll("/\\s+/g", " ").replaceAll("^(The|the|A|a|An|an) ", "");
+		//return text;
+		text = text.replaceAll("[^a-zA-Z0-9\\s]", "");
+		return text.replaceAll("^(The|the|A|a|An|an) ", "").trim();
+	}
+
 
 	// copy constructor used by classes extending ArtObject and adding addition fields
 	// on top of an existing art object instance - composition might be a better approach here
@@ -541,16 +558,15 @@ public class ArtObject extends ArtEntityImpl {
 	}
 
 	private void calculateAttributionArtistNameMatch() {
-		String ainv = getAttributionInverted();
 		Integer score = null;
 		for (ArtObjectConstituent oc : getArtistsRaw()) {
 			Constituent c = oc.getConstituent();
 			if (c == null)
 				continue;
-			Integer s = SortHelper.compareObjectsDiacritical(ainv, c.getPreferredDisplayName());
+			int s = SortHelper.compareObjectsDiacritical(getAttributionInvertedCKey(), c.getPreferredDisplayNameCKey());
 			// null is returned if the two objects are equal (rather than 0) 
 			// so we set s = 0 for those cases
-			s = (s == null || s == 0) ? 0 : 1;
+			s = (s == Sorter.NULL || s == 0) ? 0 : 1;
 			if (score == null || score > s)
 				score = s;
 			// no point in continuing if we already found the lowest possible value
@@ -632,35 +648,27 @@ public class ArtObject extends ArtEntityImpl {
 		return null;
 	}
 
-	private String stripLeadingArticle(String text)	{
-		if ( text == null ) 
-			return null;
-		return text.replaceAll("^(The|the|A|a|An|an) ", "");
-	}
-
 	// determine whether not the given art object matches this art object
 	// in any of a fixed number of dimensions
 	// returns 1 if a match is found, 0 if one is not found
 	// or null if a comparison cannot be made on the given dimension
-	public Integer aspectScore(Object ae, Object order, String matchString) {
+	public int aspectScore(Object ae, Object order, String matchString) {
 
 		ArtObject ao = (ArtObject) ae;
 
-		//      log.info("aspectScore in ArtObject");
-
 		if (ao == null || order == null)
-			return null;
+			return Sorter.NULL;
 		switch ((SORT) order) {
 		case YEAR_ASC: 
 			return SortHelper.compareObjects(getBeginYear(), ao.getBeginYear());
 		case CLASSIFICATION_ASC:
 			return SortHelper.compareObjects(getClassification(), ao.getClassification());
 		case ATTRIBUTIONINV_ASC:
-			return SortHelper.compareObjectsDiacritical(getAttributionInverted(), ao.getAttributionInverted());
+			return SortHelper.compareObjectsDiacritical(getAttributionInvertedCKey(), ao.getAttributionInvertedCKey());
 		case TITLE_ASC:
-			return SortHelper.compareObjectsDiacritical(stripLeadingArticle(getTitle()), stripLeadingArticle(ao.getTitle()));
+			return SortHelper.compareObjectsDiacritical(getStrippedTitleCKey(), ao.getStrippedTitleCKey());
 		case TITLE_DESC:
-			return SortHelper.compareObjectsDiacritical(stripLeadingArticle(ao.getTitle()), stripLeadingArticle(getTitle()));
+			return SortHelper.compareObjectsDiacritical(ao.getStrippedTitleCKey(), getStrippedTitleCKey());
 		case ACCESSIONNUM_ASC:
 			return SortHelper.compareObjects(getAccessionNum(), ao.getAccessionNum());
 		case ACCESSIONNUM_DESC:
@@ -674,13 +682,13 @@ public class ArtObject extends ArtEntityImpl {
 			Constituent ac = ao.getFirstArtist();
 			String cName = (c == null) ? null : c.getPreferredDisplayName();
 			String aName = (ac == null) ? null : ac.getPreferredDisplayName();
-			return SortHelper.compareObjects(cName,aName);
+			return SortHelper.compareObjectsDiacriticalAutoCache(cName,aName);
 		case FIRST_ARTIST_DESC:
 			c = getFirstArtist();
 			ac = ao.getFirstArtist();
 			cName = (c == null) ? null : c.getPreferredDisplayName();
 			aName = (ac == null) ? null : ac.getPreferredDisplayName();
-			return SortHelper.compareObjects(aName,cName);
+			return SortHelper.compareObjectsDiacriticalAutoCache(aName,cName);
 		case OBJECTID_ASC:
 			return SortHelper.compareObjects(getObjectID(), ao.getObjectID());
 		case OBJECTID_DESC:
@@ -762,18 +770,17 @@ public class ArtObject extends ArtEntityImpl {
 		default:
 			break; 
 		}
-		return null;
+		return Sorter.NULL;
 	}
 
-	protected Long relatedTotalScore(ArtObject o, Object data) {
+	protected Long relatedTotalScore(ArtObject o, Map<String, MutableInt> data) {
 		Long cnt = Long.valueOf(0);
 		for (RELATEDASPECT a : RELATEDASPECT.values() )
 			cnt += relatedAspectScore(o, a, data);
 		return cnt;
 	}
 
-	@SuppressWarnings("unchecked")
-	protected Long relatedAspectScore(ArtObject o, RELATEDASPECT aspect, Object data) {
+	protected Long relatedAspectScore(ArtObject o, RELATEDASPECT aspect, Map<String, MutableInt> data) {
 		long aspScore;
 		switch (aspect)  {
 		case STYLE:
@@ -799,7 +806,7 @@ public class ArtObject extends ArtEntityImpl {
 				return Long.valueOf(aspect.weight);
 			return Long.valueOf(0);
 		case ARTISTNATIONALITY:
-			Map<String, MutableInt> nationalities = (Map<String, MutableInt>) data;
+			Map<String, MutableInt> nationalities = data;
 			return aspect.weight * numCommonArtistNationalities(o,nationalities);
 		case RELATEDDONOR:
 			return aspect.weight * numCommonDonors(o);
@@ -1056,11 +1063,11 @@ public class ArtObject extends ArtEntityImpl {
 		case ONVIEW: 
 			return f.filterMatch(isOnView().toString());
 		case TITLE:
-			return f.filterMatch(getTitle(removeMarkupFilter));
+			return f.filterMatch(getFormatFreeTitle());
 		case OBJECTID:
 			return f.filterMatch(getObjectID().toString());
 		case MEDIUM:
-			return f.filterMatch(getMedium(removeMarkupFilter));
+			return f.filterMatch(getFormatFreeMedium());
 		case YEARS_SPAN:
 			Long by = getBeginYear();
 			Long ey = getEndYear();
@@ -1078,7 +1085,7 @@ public class ArtObject extends ArtEntityImpl {
 		case ATTRIBUTION_INV:
 			return f.filterMatch(getAttributionInverted());
 		case PROVENANCE:
-			return f.filterMatch(getProvenanceText(removeMarkupFilter));
+			return f.filterMatch(StringUtils.removeOnlyHTMLAndFormatting(getProvenanceText()));
 		case CREDITLINE:
 			return f.filterMatch(creditLine);
 		case DONORCONSTITUENTID:
@@ -1682,12 +1689,17 @@ public class ArtObject extends ArtEntityImpl {
 
 	private String title = null;
 	public String getTitle() {
-		return getTitle(getDefaultFilter());
+		return title;
+	}
+	
+	private String formatFreeTitle = null;
+	public String getFormatFreeTitle() {
+		return formatFreeTitle;
 	}
 
-	public String getTitle(StringFilter sf) {
-		return sf.getFilteredString(title);
-	}
+//	public String getTitle(StringFilter sf) {
+//		return sf.getFilteredString(title);
+//	}
 	private Long locationID = null;
 	public Long getLocationID() {
 		return locationID;
@@ -1814,10 +1826,15 @@ public class ArtObject extends ArtEntityImpl {
 
 	String medium = null;
 	public String getMedium() {
-		return getMedium(getDefaultFilter());
+		return medium;
 	}
 	public String getMedium(StringFilter sf) {
 		return sf.getFilteredString(medium);
+	}
+	
+	private String formatFreeMedium = null;
+	public String getFormatFreeMedium() {
+		return formatFreeMedium;
 	}
 
 	private Long maxDerivativeExtent = null;
@@ -1866,7 +1883,7 @@ public class ArtObject extends ArtEntityImpl {
 
 	private String inscription = null;
 	public String getInscription() {
-		return getInscription(getDefaultFilter());
+		return inscription;
 	}
 	public String getInscription(StringFilter sf) {
 		return sf.getFilteredString(inscription);
@@ -1874,7 +1891,7 @@ public class ArtObject extends ArtEntityImpl {
 
 	private String markings = null;
 	public String getMarkings() {
-		return getMarkings(getDefaultFilter());
+		return markings;
 	}
 	public String getMarkings(StringFilter sf) {
 		return sf.getFilteredString(markings);
@@ -2052,6 +2069,16 @@ public class ArtObject extends ArtEntityImpl {
 		return lastDetectedModification;
 	}
 
+	private CollationKey strippedTitleCKey = null;
+	public CollationKey getStrippedTitleCKey() {
+		return strippedTitleCKey;
+	}
+
+	private CollationKey attributionInvertedCKey = null;
+	public CollationKey getAttributionInvertedCKey() {
+		return attributionInvertedCKey;
+	}
+	
 }
 
 

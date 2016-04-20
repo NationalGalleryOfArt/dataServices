@@ -10,7 +10,9 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		HASPRIMARYDEPICTION("hasPrimaryDepiction"),
 		HASDEPICTION("hasDepiction"),
 		PRIMARILYDEPICTS("primarilyDepicts"),
-		DEPICTS("depicts");
+		DEPICTS("depicts"),
+		// TODO - implement related assets in order to test conservation space's import features
+		RELATEDASSET("relatedAsset");
 		
 		private String label;
 		public String getLabel() {

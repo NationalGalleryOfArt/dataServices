@@ -49,10 +49,7 @@ public class ConstituentAltName extends ArtEntityImpl {
 	
 	public static Comparator<ConstituentAltName> sortByDisplayNameAsc = new Comparator<ConstituentAltName>() {
 		public int compare(ConstituentAltName a, ConstituentAltName b) {
-			Integer c = SortHelper.compareObjects(a.getDisplayName(), b.getDisplayName());
-			if (c == null)
-				return 0;
-			return c;
+			return SortHelper.compareObjects(a.getDisplayName(), b.getDisplayName());
 		}
 	};
 	

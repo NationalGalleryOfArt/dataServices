@@ -103,6 +103,14 @@ public class CollectionUtils {
 			return null;
 		return new HashSet<T1>(aColl);
 	}
+	
+	public static <T1> Set<T1> newTreeSet(Comparator<T1> c) {
+		return new TreeSet<T1>(c);
+	}
+
+	public static <T1> Set<T1> newTreeSet() {
+		return new TreeSet<T1>();
+	}
 
 	public static <T1> LinkedHashSet<T1> newLinkedHashSet() {
 		return new LinkedHashSet<T1>();

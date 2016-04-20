@@ -37,6 +37,7 @@ public class ObjectRecordController {
     	return objectRecordSource(null, id, request, response);
     }
 
+    // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
     @RequestMapping("/art/{source}/objects/{id}.json")
     public ResponseEntity<RecordContainer> objectRecordSource(
     		@PathVariable(value="source") String source,

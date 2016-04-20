@@ -26,7 +26,7 @@ public interface ArtEntity
 	
 	public Long matchesAspect(Object ao, Object order);
 	
-	public Integer aspectScore(Object ao, Object order, String matchString);
+	public int aspectScore(Object ao, Object order, String matchString);
 	
 	public Boolean matchesFilter(SearchFilter filter);
 	

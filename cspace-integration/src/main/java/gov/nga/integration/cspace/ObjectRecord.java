@@ -61,15 +61,15 @@ public class ObjectRecord extends AbridgedObjectRecord {
         setBibliography(o.getBibliography());
         setDisplayDate(o.getDisplayDate());
         setCreditLine(o.getCreditLine());
-        setMedium(StringUtils.removeMarkup(o.getMedium()));
-        setInscription(StringUtils.removeMarkup(o.getInscription()));
-        setMarkings(StringUtils.removeMarkup(o.getMarkings()));
+        setMedium(StringUtils.removeOnlyHTMLAndFormatting(o.getMedium()));
+        setInscription(StringUtils.removeOnlyHTMLAndFormatting(o.getInscription()));
+        setMarkings(StringUtils.removeOnlyHTMLAndFormatting(o.getMarkings()));
         setPortfolio(o.getPortfolio());
         setDimensions(o.getDimensions());
-        setProvenanceText(StringUtils.removeMarkup(o.getProvenanceText()));
+        setProvenanceText(StringUtils.removeOnlyHTMLAndFormatting(o.getProvenanceText()));
         setDepartmentAbbr(o.getDepartmentAbbr());
-        setDescription(StringUtils.removeMarkup(o.getDescription()));
-        setCuratorialRemarks(StringUtils.removeMarkup(o.getCuratorialRemarks()));
+        setDescription(StringUtils.removeOnlyHTMLAndFormatting(o.getDescription()));
+        setCuratorialRemarks(StringUtils.removeOnlyHTMLAndFormatting(o.getCuratorialRemarks()));
         setWatermarks(o.getWatermarks());
         setCatalogueRaisonneRef(o.getCatalogRaisonneRef());
         

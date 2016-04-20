@@ -45,8 +45,8 @@ public class Facet {
 				return 1;
 			if (bNumeric && !aNumeric)
 				return -1;
-			Integer i = Sorter.compareObjectsDiacritical(a, b);
-			return i == null ? 0 : i;
+			int i = Sorter.compareObjectsDiacriticalAutoCache(a, b);
+			return i == Sorter.NULL ? 0 : i;
 		}
 	};
 	

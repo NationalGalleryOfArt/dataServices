@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 public class StringUtils {
 
-    private static Collator defaultCollator = Collator.getInstance();
+    public static Collator defaultCollator = Collator.getInstance();
     
     private static final Logger logger = LoggerFactory
             .getLogger(StringUtils.class);
@@ -46,6 +46,8 @@ public class StringUtils {
     }
 
     public static String removeDiacritics(String in) {
+    	if (in == null)
+    		return null;
         return Normalizer.normalize(in, Normalizer.Form.NFD).replaceAll(
                 "\\p{InCombiningDiacriticalMarks}+", "");
     }
@@ -141,6 +143,9 @@ public class StringUtils {
 
     }
 
+    // ummm... ok... you know... there are libraries available that do all this
+    // already so why reinvent the wheel not to mention introduce a bunch of bugs
+    // and inefficiencies. 
     public final static String htmlEntities[] = { "&euro;", "", "&lsquor;",
             "&fnof;", "&ldquor;", "&hellip;", "&dagger;", "&Dagger;", "&#710;",
             "&permil;", "&Scaron;", "&lsaquo;", "&OElig;", "", "&#381;", "",
@@ -299,8 +304,16 @@ public class StringUtils {
     public static String deAccent(String str) {
         String nfdNormalizedString = Normalizer.normalize(str,
                 Normalizer.Form.NFD);
+        // dpb wonders why you want to compile this pattern every time the method is called??? and why you didn't just use the 
+        // existing "removeDiacritics()" method...
         Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
         return pattern.matcher(nfdNormalizedString).replaceAll("");
+    }
+    
+    public static String removeOnlyHTML(String htmlString) {
+    	if (htmlString == null)
+    		return null;
+    	return htmlString.replaceAll("\\<.*?\\>", "");
     }
 
     /*
@@ -397,9 +410,12 @@ public class StringUtils {
      */
     public static String htmlToMarkdown(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) return text;
+        if (org.apache.commons.lang3.StringUtils.isBlank(text)) 
+        	return text;
         text = text.replaceAll("(?i)</?em.*?>", "_");
         text = text.replaceAll("(?i)</?i.*?>", "_");
+        if (text != null)
+        	text = text.trim();
         return text;
     }
 
@@ -445,10 +461,16 @@ public class StringUtils {
 
     public static String markdownToText(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) return text;
+        if (org.apache.commons.lang3.StringUtils.isBlank(text)) 
+        	return text;
         return text.replaceAll("_","");
     }
 
+    public static String removeOnlyHTMLAndFormatting(String text)
+    {
+        return removeOnlyHTML(markdownToText(text));
+    }
+    
     public static String removeMarkup(String text)
     {
         return removeHTML(markdownToText(text));

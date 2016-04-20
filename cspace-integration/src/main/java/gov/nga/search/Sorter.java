@@ -1,15 +1,19 @@
 package gov.nga.search;
 
+import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 import gov.nga.utils.hashcode.CustomHash;
- 
+
+import java.text.CollationKey;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class Sorter implements CustomHash { 
 
 	private SortOrder sortOrder = null;
+	public static final int NULL=99;
 	
 	public long customHash() {
 		HashCodeBuilder hcb = new HashCodeBuilder(5,7);
@@ -42,39 +46,68 @@ public class Sorter implements CustomHash {
 		return null;
 	}
 	
-	public static <T1 extends Comparable<T1>> Integer compareObjectsDiacritical(T1 v1, T1 v2) {
+	private static Map<String, CollationKey> collationKeyCache = CollectionUtils.newHashMap(); 
+	// TODO: this needs to be changed to force the comparison of a collation key which can then be pre-computed 
+	// by the caller rather than forcing the collator to use a very expensive method every time
+	
+	public static <T1 extends Comparable<T1>> int compareObjectsDiacriticalAutoCache(T1 v1, T1 v2) {
 		if (v1 == null && v2 == null)
-			return null;
+			return Sorter.NULL;
 		if (v1 == null)
-			return new Integer(1);
+			return 1;
 		if (v2 == null)
-			return new Integer(-1);
+			return -1;
 		if (v1.equals(v2))
-			return null;
-		return StringUtils.getDefaultCollator().compare(v1, v2);
+			return Sorter.NULL;
+		
+		String s1 = v1.toString();
+		String s2 = v2.toString();
+		CollationKey k1 = collationKeyCache.get(s1);
+		CollationKey k2 = collationKeyCache.get(s2);
+		if (k1 == null) {
+			k1 = StringUtils.getDefaultCollator().getCollationKey(s1);
+			collationKeyCache.put(s1, k1);
+		}
+		if (k2 == null) {
+			k2 = StringUtils.getDefaultCollator().getCollationKey(s2);
+			collationKeyCache.put(s2, k2);
+		}
+		return k1.compareTo(k2);
 	}
 
-	public static <T1 extends Comparable<T1>> Integer compareObjects(T1 v1, T1 v2) {
+	public static int compareObjectsDiacritical(CollationKey k1, CollationKey k2) {
+		if (k1 == null && k2 == null)
+			return Sorter.NULL;
+		if (k1 == null)
+			return 1;
+		if (k2 == null)
+			return -1;
+		if (k1.equals(k2))
+			return Sorter.NULL;
+		return k1.compareTo(k2);
+	}
+
+	public static <T1 extends Comparable<T1>> int compareObjects(T1 v1, T1 v2) {
 		if (v1 == null && v2 == null)
-			return null;
+			return Sorter.NULL;
 		if (v1 == null)
-			return new Integer(1);
+			return 1;
 		if (v2 == null)
-			return new Integer(-1);
+			return -1;
 		if (v1.equals(v2))
-			return null;
+			return Sorter.NULL;
 		return v1.compareTo(v2);
 	}
 
-	protected static <T1 extends Comparable<T1>> Integer compareMatchesPreferLarger(T1 v1, T1 v2) {
+	protected static <T1 extends Comparable<T1>> int compareMatchesPreferLarger(T1 v1, T1 v2) {
 		if (v1 == null && v2 == null)
-			return null;
+			return Sorter.NULL;
 		if (v1 == null)
-			return new Integer(1);
+			return 1;
 		if (v2 == null)
-			return new Integer(-1);
+			return -1;
 		if (v1.equals(v2))
-			return null;
+			return Sorter.NULL;
 		// this is key - we have to reverse the sort because we're preferring cases where
 		// a larger number of matches exist 
 		return v2.compareTo(v1);

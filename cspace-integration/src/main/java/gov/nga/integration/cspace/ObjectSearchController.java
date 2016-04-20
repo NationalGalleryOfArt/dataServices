@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 //import gov.nga.entities.art.ArtDataManager.Suggestion;
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.ArtObject.SORT;
 //import gov.nga.entities.art.ArtObject.SEARCH;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;
@@ -49,6 +50,9 @@ public class ObjectSearchController {
 	private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
 	
 	private static Pattern sourceMatcher = Pattern.compile("/art/(.*)/objects");
+	
+	private static final SORT defaultSortOrder = ArtObject.SORT.ACCESSIONNUM_ASC;
+
 	
 	// this executor helps to more quickly disperse the work that is required in order to 
 	// compute base64 thumbnail values
@@ -77,9 +81,9 @@ public class ObjectSearchController {
 			@RequestParam(value="cultObj:number",		required=false) List<String> cultObj_numbers,
 
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
-			@RequestParam(value="thumbnail", 			required=false, defaultValue="true") boolean thumbnail,
+			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
 
-			@RequestParam(value="order", 				required=false, defaultValue="title") List<String> order,
+			@RequestParam(value="order", 				required=false					   ) List<String> order,
 
 			@RequestParam(value="skip",					required=false, defaultValue="0") int skip,
 			@RequestParam(value="limit",				required=false, defaultValue="50") int limit,
@@ -122,15 +126,16 @@ public class ObjectSearchController {
     	// execute the search using the prepared search helper
     	List<ArtObject> artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
     	
+    	log.info("results size:" + artObjects.size());
     	if (artObjects.size() > 0) {
 			// Map used to accumulate the thumbnail computations from Futures
-    		Map<Long,Future<String>> thumbnails = CollectionUtils.newHashMap();
-    		if (thumbnail) {
+    		Map<Long,Future<String>> thumbnailMap = CollectionUtils.newHashMap();
+    		if (thumbnails) {
     			// submit the work to fetch thumbnails and compute base64 values of them
     			for (ArtObject o : artObjects) {
     				Callable<String> thumbWorker = new ArtObjectThumbnailWorker(o);
     				Future<String> future = thumbnailWorkDistributor.submit(thumbWorker);
-    				thumbnails.put(o.getObjectID(), future);
+    				thumbnailMap.put(o.getObjectID(), future);
     			}
     		}
     		for (ArtObject o : artObjects) {
@@ -147,7 +152,7 @@ public class ObjectSearchController {
     				log.error("Problem creating object URL: " + me.getMessage());
     			}
     			Record objectRecord = new AbridgedObjectRecord(o, references);
-    			Future<String> thumb = thumbnails.get(o.getObjectID());
+    			Future<String> thumb = thumbnailMap.get(o.getObjectID());
     			String thumbVal = (thumb == null ? null : thumb.get());
     			partialResults.add(new Item(objectURL, thumbVal, objectRecord));
     		}
@@ -161,71 +166,71 @@ public class ObjectSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, partialResults), headers, HttpStatus.OK);
 	}
     
+    // Spring REST will automatically parse values that are separated with a comma into an array
+    // and will pass the individual values
     private SortHelper<ArtObject> getSortHelper(List<String> order) throws APIUsageException {
     	order = CollectionUtils.clearEmptyOrNull(order);
-    	if (order == null || order.size() <= 0)
-    		return new SortHelper<>(ArtObject.SORT.ACCESSIONNUM_ASC);
-    	
-    	String firstOrder = order.get(0); 
-    	String[] requestedOrders = firstOrder.split(",");
-    	List<ArtObject.SORT> orders = CollectionUtils.newArrayList();
-    	for (String fieldName : requestedOrders) {
-    		if (fieldName == null)
-    			throw new APIUsageException("Unspecified sort order field");
-    		
-    		// detect the order (asc or desc)
-    		boolean ascending = true;
-    		if (fieldName.substring(0,1).equals("-")) {
-    			ascending = false;
-    			// strip the minus sign
-    			fieldName = fieldName.substring(1);
-    		}
-    		String ns = NamespaceUtils.getNamespace(fieldName,ObjectRecord.getDefaultNamespace());
-    		if (!ns.equals("cultObj"))
-    			throw new APIUsageException("Unsupported namespace or empty field encountered in sort order");
-    		
-    		fieldName = NamespaceUtils.stripNamespace(fieldName);
-    		if (fieldName != null) {
-    			// now we have a fieldName we should be able to sort on and we know the direction 
-    			switch (fieldName) {
-    			case "title" :
-    				if (ascending)
-    					orders.add(ArtObject.SORT.TITLE_ASC);
-    				else
-    					orders.add(ArtObject.SORT.TITLE_DESC);
-    				break;
-    			case "number" :
-    				if (ascending)
-    					orders.add(ArtObject.SORT.ACCESSIONNUM_ASC);
-    				else
-    					orders.add(ArtObject.SORT.ACCESSIONNUM_DESC);
-    				break;
-    			case "artistNames" :
-    				if (ascending)
-    					orders.add(ArtObject.SORT.FIRST_ARTIST_ASC);
-    				else
-    					orders.add(ArtObject.SORT.FIRST_ARTIST_DESC);
-    				break;
-    			case "lastModified" :
-    				if (ascending)
-    					orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_ASC);
-    				else
-    					orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_DESC);
-    				break;
-    			case "id" :
-    				if (ascending)
-    					orders.add(ArtObject.SORT.OBJECTID_ASC);
-    				else
-    					orders.add(ArtObject.SORT.OBJECTID_DESC);
-    				break;
-    			default:
-    				throw new APIUsageException("Sorting on field " + fieldName + " is unsupported.");
+		List<ArtObject.SORT> orders = CollectionUtils.newArrayList();
+
+    	if (order != null && order.size() > 0) {
+    		for (String fieldName : order) {
+    			if (fieldName == null)
+    				throw new APIUsageException("Unspecified sort order field");
+
+    			// detect the order (asc or desc)
+    			boolean ascending = true;
+    			if (fieldName.substring(0,1).equals("-")) {
+    				ascending = false;
+    				// strip the minus sign
+    				fieldName = fieldName.substring(1);
+    			}
+    			String ns = NamespaceUtils.getNamespace(fieldName,ObjectRecord.getDefaultNamespace());
+    			if (!ns.equals("cultObj"))
+    				throw new APIUsageException("Unsupported namespace or empty field encountered in sort order");
+
+    			fieldName = NamespaceUtils.stripNamespace(fieldName);
+    			if (fieldName != null) {
+    				// now we have a fieldName we should be able to sort on and we know the direction 
+    				switch (fieldName) {
+    				case "title" :
+    					if (ascending)
+    						orders.add(ArtObject.SORT.TITLE_ASC);
+    					else
+    						orders.add(ArtObject.SORT.TITLE_DESC);
+    					break;
+    				case "number" :
+    					if (ascending)
+    						orders.add(ArtObject.SORT.ACCESSIONNUM_ASC);
+    					else
+    						orders.add(ArtObject.SORT.ACCESSIONNUM_DESC);
+    					break;
+    				case "artistNames" :
+    					if (ascending)
+    						orders.add(ArtObject.SORT.FIRST_ARTIST_ASC);
+    					else
+    						orders.add(ArtObject.SORT.FIRST_ARTIST_DESC);
+    					break;
+    				case "lastModified" :
+    					if (ascending)
+    						orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_ASC);
+    					else
+    						orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_DESC);
+    					break;
+    				case "id" :
+    					if (ascending)
+    						orders.add(ArtObject.SORT.OBJECTID_ASC);
+    					else
+    						orders.add(ArtObject.SORT.OBJECTID_DESC);
+    					break;
+    				default:
+    					throw new APIUsageException("Sorting on field " + fieldName + " is unsupported.");
+    				}
     			}
     		}
     	}
-		if (orders != null && orders.size() > 0)
-			return new SortHelper<ArtObject>(orders.toArray());
-		return null;
+    	// always append the default sort order to the end of the list
+		orders.add(defaultSortOrder);
+		return new SortHelper<ArtObject>(orders.toArray());
     }
     
     private String processSource(HttpServletRequest req) throws APIUsageException {

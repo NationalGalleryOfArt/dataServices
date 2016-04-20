@@ -87,6 +87,7 @@ public abstract class DataSourceService {
     			connectionMap.remove(s);
     		}
     	}
+    	log.info("finished closing database connections");
     }
     
 }

@@ -27,15 +27,15 @@ public class FacetHelper {
 		facets = fs;
 	}
 	
-	public void processFacets(List<Faceted> list) {
+	public void processFacets(List<? extends Faceted> list) {
 
 		class FacetCalculator implements Runnable {
 			
-			List<Faceted> list = null;
+			List<? extends Faceted> list = null;
 			int start = 0; 
 			int end = 0;
 			
-			public FacetCalculator(List<Faceted> list, int start, int end) {
+			public FacetCalculator(List<? extends Faceted> list, int start, int end) {
 				this.list = list;
 				this.start = start;
 				this.end = end;

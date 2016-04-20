@@ -5,7 +5,9 @@ import gov.nga.performancemonitor.PerformanceMonitorFactory;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.hashcode.CustomHash;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -16,8 +18,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SearchHelper <T extends Faceted & Searchable & Sortable> 
-implements CustomHash {
+public class SearchHelper <T extends Faceted & Searchable & Sortable> implements CustomHash {
 
 	private static final Logger log = LoggerFactory.getLogger(SearchHelper.class);
 
@@ -25,18 +26,47 @@ implements CustomHash {
 			Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
 	public static enum SEARCHOP {
-		// art object search fields
-		STARTSWITH,
-		LIKE,
+		// art object search fields, listed in order of ascending computational expense
+		// such that we can keep our search operations sorted in order of least expensive first
 		EQUALS,
-		BETWEEN,
 		IN,
-		INTERSECTS
+		STARTSWITH,
+		BETWEEN,
+		LIKE,
+		INTERSECTS;
 	}
 
-	private List<SearchFilter> filters = CollectionUtils.newArrayList(); 
+	// a sorted set is used in order to automatically sort the filters by the least
+	// expensive operation first since we can iterate through the filters faster
+	// that way
+	private Set<SearchFilter> filters = CollectionUtils.newTreeSet(getComparator()); 
 	private List<FreeTextFilter> freeTextFilters = CollectionUtils.newArrayList();
 	private FreeTextSearchable<T> searchServicer = null;
+	
+	// sort the search filters based on the operation being requested
+	// so that we always start with the least expensive
+	private Comparator<SearchFilter> getComparator() {
+		return new Comparator<SearchFilter>() {
+			// TODO an alternative approach to avoid having to suppress warnings would be to declare 
+			// the enums used for SEARCHING to implement an interface. Then, the 
+			// interface could be used as the declared type for the purpose of comparison 
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			public int compare(SearchFilter a, SearchFilter b) {
+				int res = a.getOp().compareTo(b.getOp());
+				if (res == 0) {
+					Enum fieldA = (Enum) a.getField();
+					Enum fieldB = (Enum) a.getField();
+					res = fieldA.compareTo(fieldB);
+					// never return equivalence here unless the hashes are complete identical in which
+					// case all of the search parameters will also be identical and there's no point in
+					// having two identical search filters so the TreeSet will only keep one
+					if (res == 0)
+						return Long.compare(a.customHash(),b.customHash());
+				}
+				return res;
+			}
+		};
+	}
 
 	public long customHash() {
 		HashCodeBuilder hcb = new HashCodeBuilder(11,13);
@@ -119,58 +149,83 @@ implements CustomHash {
 		return filters.size() + freeTextFilters.size();
 	}
 
-	private class SearchWorker implements Callable<T> {
-		T matchObj;
-		List<SearchFilter> filters;
+	private class SearchWorker implements Callable<List<T>> {
+		List<T> objList;
+		Set<SearchFilter> filters;
+		int start;
+		int end;
 
-		public SearchWorker(T matchObj, List<SearchFilter> filters) {
-			this.matchObj = matchObj;
+		public SearchWorker(List<T> objList, int start, int end, Set<SearchFilter> filters) {
+			this.objList = objList;
 			this.filters = filters;
+			this.start = start;
+			this.end = end;
 		}
 
-		public T call() {
-			if (matchObj != null) {
-				for (SearchFilter sf : this.filters) {
-					Boolean match = matchObj.matchesFilter(sf); 
-					// if, in looping through the list of filters, we find that one of the filters
-					// cannot be matched or can be matched and doesn't match, then we set the flag
-					// to false and abort the inner loop
-					if (match == null || !match)
-						return null;
+		public List<T> call() {
+			List<T> matches = CollectionUtils.newArrayList();
+			for (int i=start; i<=end; i++) {
+				T matchObj = objList.get(i);
+				if (matchObj != null) {
+					boolean addit=true;
+					for (SearchFilter sf : this.filters) {
+						Boolean match = matchObj.matchesFilter(sf); 
+						// if, in looping through the list of filters, we find that one of the filters
+						// cannot be matched or can be matched and doesn't match, then we set the flag
+						// to false and abort the inner loop
+						if (match == null || !match) {
+							addit=false;
+							break;
+						}
+					}
+					if (addit)
+						matches.add(matchObj);
 				}
-				return matchObj;
 			}
-			return null;
+			return matches;
 		}
 	}
-
+	
 	private List<T> searchExec(List<T> list, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH) {
-
+		
 		PerformanceMonitor perfMonitor = PerformanceMonitorFactory.getMonitor(SearchHelper.class);
-		// not cached
-		List<T>	matches = CollectionUtils.newArrayList();
+		
+		// create an auto sorted set to enable insertion sorting rather than
+		// sorting everything at the end
+		Set<T> matches = sortH.createAutoSortedSet();
+		
+		for (SearchFilter f : this.filters) {
+			log.info("FILTER: " + f.getOp() + " " + f.getField());
+		}
 
-		/* TODO - this could become significantly more efficient if we did two things
-		a) sort the filters, putting the least expensive operations at the top - will potentially do that later - would need
-		   expense factor on the enum I think
-		b) restructure this loop to use Future<boolean> with a fixed size thread pool - would operate up to (#Cores-1) faster
-		   first we assemble a list of all matching objects, appending as we go which presumably
-		   will be faster than removing from the list we were provided 
-		 */
-		if (list != null) {
+		perfMonitor.resetSeedTime();
+		if (list != null && list.size() > 0) {
 			// prepare the search work for a thread pool for maximum performance
-			List<Future<T>> futures = CollectionUtils.newArrayList();
-			for (T a : list) {
-				Callable<T> searchWorker = new SearchWorker(a, filters);
+			
+			perfMonitor.logElapseTimeFromLastReport("starting futures");
+			List<Future<List<T>>> futures = CollectionUtils.newArrayList();
+			
+			// divide the list and divvy it up to workers - this is more efficient than creating a separate
+			// future for each item in the list
+			int chunk = (list.size() / Runtime.getRuntime().availableProcessors()) - 1;
+			if (chunk <= 0)
+				chunk = 1;
+			for (int start=0; start < list.size(); ) {
+				int end = start + chunk;
+				if (end >= list.size())
+					end = list.size()-1;
+				Callable<List<T>> searchWorker = new SearchWorker(list, start, end, filters);
 				futures.add(searchDistributor.submit(searchWorker));
+				start = end + 1;
 			}
-
+			perfMonitor.logElapseTimeFromLastReport("done creating futures - now collecting them");
+			
 			try {
 				// query the results of the thread pool
-				for (Future<T> f : futures) {
-					T a = f.get();
-					if (a != null)
-						matches.add(a);
+				for (Future<List<T>> f : futures) {
+					List<T> a = f.get();
+					if (a != null && a.size() > 0)
+						matches.addAll(a);
 				}
 			}
 			catch (ExecutionException ee) {
@@ -179,35 +234,39 @@ implements CustomHash {
 			catch (InterruptedException ie) {
 				log.info("Search thread was interrupted" + ie.getMessage());
 			}
+			perfMonitor.logElapseTimeFromLastReport("done collecting futures");
 		}
 		// sort the art entities if a sort helper is provided
-		if (sortH != null) {
+		/*if (sortH != null) {
 			sortH.sortEntities(matches);
-		}
+		}*/
+		//perfMonitor.logElapseTimeFromLastReport("done sorting");
 
+		// copy the Set into a List (hopefully the order will be retained)
+		list = CollectionUtils.newArrayList(matches);
+		log.debug("Total results found: " + matches.size());
 		// and now we count facets if the facethelper is not null
 		// we we send them back to the caller
 		log.debug("Process facets: " + fn);
-		perfMonitor.logElapseTimeFromLastReport("Starting work on facets");
 		if (fn != null) {
+			perfMonitor.logElapseTimeFromLastReport("Starting work on facets");
 			// we cast the List as a list of Faceted objects here because that's
 			// all we really need it for to process the facets - I'm not sure why
 			// a compiler error even results in the first place though since Faceted is
 			// implemented by the class T
-			@SuppressWarnings("unchecked")
-			List<Faceted> fList = (List<Faceted>) matches;
-			fn.processFacets(fList);
+			
+			//List<T> fList = (List<Faceted>) list;
+			fn.processFacets(list);
 			perfMonitor.logElapseTimeFromLastReport("facets processed");
 		}
-
+		
 		// finally, we clip the results for the pagination 
-		if (pn != null)
-		{
-			matches = clipToPage(matches,pn);
+		if (pn != null) {
+			list = clipToPage(list,pn);
 			perfMonitor.logElapseTimeFromLastReport("matches clipped");
 		}
 		perfMonitor.logElapseTimeFromSeed("searchExec completed");
-		return matches;
+		return list;
 	}
 
 	public List<T> search(List<T> baseList, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH) {

@@ -2,6 +2,7 @@ package gov.nga.entities.art;
 
 import gov.nga.entities.art.ArtObject;
 import gov.nga.search.SortHelper;
+import gov.nga.search.Sorter;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -26,14 +27,14 @@ public class ArtObjectMapComparator<T extends ArtObject> implements Comparator<T
 	public int compare(ArtObject a, ArtObject b) {
 		int c = base.get(b).compareTo(base.get(a)); 
 		if (c == 0) {
-			Integer d = SortHelper.compareObjectsDiacritical(a.getAttributionInverted(), b.getAttributionInverted());
-			if (d == null || d.equals(0)) {
-				Integer e = SortHelper.compareObjectsDiacritical(a.getTitle(), b.getTitle());
-				if (e == null || e.equals(0))
+			int d = SortHelper.compareObjectsDiacritical(a.getAttributionInvertedCKey(), b.getAttributionInvertedCKey());
+			if (d == Sorter.NULL || d == 0) {
+				int e = SortHelper.compareObjectsDiacritical(a.getStrippedTitleCKey(), b.getStrippedTitleCKey());
+				if (e == Sorter.NULL || e == 0)
 					return a.getObjectID().compareTo(b.getObjectID());
-				return e.intValue();
+				return e;
 			}
-			return d.intValue();
+			return d;
 		}
 		return c;
 	}
