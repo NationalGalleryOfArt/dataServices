@@ -25,10 +25,10 @@ public class CSpaceDataSource extends DataSourceService {
 
 	@PostConstruct
 	private void postConstruct() {
-		setDriverClassName(config.getString("jdbc.driverClassName"));
-	    setUrl(config.getString("jdbc.url"));
-	    setUsername(config.getString("jdbc.username"));
-	    setPassword(config.getString("jdbc.password"));
+		setDriverClassName(config.getString(CSpaceConfigService.tmsDBDriverProperty));
+	    setUrl(config.getString(CSpaceConfigService.tmsDBURLProperty));
+	    setUsername(config.getString(CSpaceConfigService.tmsDBUserNameProperty));
+	    setPassword(config.getString(CSpaceConfigService.tmsDBPasswordProperty));
 	}
 	
 	@PreDestroy

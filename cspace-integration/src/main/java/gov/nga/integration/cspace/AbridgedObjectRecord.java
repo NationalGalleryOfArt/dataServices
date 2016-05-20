@@ -2,7 +2,6 @@ package gov.nga.integration.cspace;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.entities.art.ArtObject;
@@ -13,7 +12,7 @@ import gov.nga.entities.art.Derivative;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
-@JsonPropertyOrder({ "namespace", "source", "id", "accessionNum", "title", "classification", "artistNames", "lastDetectedModification", "references" })
+@JsonPropertyOrder({ "namespace", "source", "id", "accessionNum", "title", "classification", "artistNames", "lastModified", "references" })
 public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
 	private static final String defaultNamespace = "cultObj";
@@ -23,12 +22,6 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 	private String title;						// optional, but searchable, so including it in results
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
-    private String lastDetectedModification;	// not defined at all in conspace, but searchable, so including it in results
-
-	// if null, don't include it since we have an option in the search APIs to not include references at all - so we don't want to 
-	// make it appear as if there are no references - we just won't include them at all if they are null
-	@JsonInclude(JsonInclude.Include.NON_NULL)
-	private List<Reference> references;
 
 	public enum PREDICATE {
 		HASPARENT("hasParent"),
@@ -57,7 +50,7 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
         setClassification(o.getClassification());
 		setAccessionNum(o.getAccessionNum());
         setTitle(StringUtils.removeOnlyHTMLAndFormatting(o.getTitle()));
-        setLastDetectedModification(o.getLastDetectedModification());
+        setLastModified(o.getLastDetectedModification());
 
         this.artistNames = constituentNames(o.getArtists());
 	}
@@ -98,18 +91,6 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
 	public void setAccessionNum(String accessionNum) {
 		this.accessionNum = accessionNum;
-	}
-
-	public String getLastDetectedModification() {
-		return lastDetectedModification;
-	}
-
-	public List<Reference> getReferences() {
-		return references;
-	}
-
-	public void setLastDetectedModification(String lastDetectedModification) {
-		this.lastDetectedModification = lastDetectedModification;
 	}
 
 	public String constituentNames(List<ArtObjectConstituent> constituents) {
@@ -161,11 +142,12 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		}
 		// then we go through the largest images associated with this work and return them as associated images
 		for (Derivative d : o.getLargestImages()) {
-			AbridgedImageRecord air = new AbridgedImageRecord(d);
+			AbridgedImageRecord air = new AbridgedImageRecord(d,false);
 			if (ArtObjectImage.isPrimaryView(d)) {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
 			}
-			else {
+			// we don't want to return cropped images associated with this object
+			else if (!d.isCropped()) {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
 			}
 		}
@@ -173,7 +155,7 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		if (rList.size() <= 0)
 			rList = null;
 
-		this.references = rList;
+		setReferences(rList);
 		//this.references = rList.toArray(new Reference[rList.size()]);
 	}
 

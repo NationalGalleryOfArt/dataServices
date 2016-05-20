@@ -73,7 +73,7 @@ public class FacetHelper {
 
 		if (list != null && list.size() > 0) {
 			
-			int threads = Runtime.getRuntime().availableProcessors();
+			int threads = Runtime.getRuntime().availableProcessors() * 2;
 
 			// if we have a very small list, then we only use
 			// as many threads as we have items in our list

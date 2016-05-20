@@ -46,7 +46,7 @@ public class ObjectRecordController {
 			HttpServletResponse response
 	) {
     	
-    	log.info("SOURCE: " + source);
+    	log.debug("SOURCE: " + source);
     	// not implemented if the source is not specified OR (preferably) a redirect to the generic search for object records
     	if (source == null) {
     		try {

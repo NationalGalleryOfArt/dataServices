@@ -3,9 +3,9 @@ package gov.nga.integration.cspace;
 import gov.nga.search.ResultsPaginator;
 
 public class Paging {
-	long limit;
-	long skip;
-	long total;
+	int limit;
+	int skip;
+	int total;
 	
 	public Paging(ResultsPaginator pn) {
 		setSkip(pn.getStartIndex());
@@ -13,16 +13,23 @@ public class Paging {
 		setTotal(pn.getTotalResults());
 	}
 
-	public void setLimit(long limit) {
-		this.limit = limit;
+	public void setLimit(Integer limit) {
+		if (limit != null)
+			this.limit = limit;
 	}
 
-	public void setSkip(long skip) {
-		this.skip = skip;
+	public void setSkip(Integer skip) {
+		if (skip != null)
+			this.skip = skip;
+		else
+			this.skip = 0;
 	}
 
-	public void setTotal(long total) {
-		this.total = total;
+	public void setTotal(Integer total) {
+		if (total != null)
+			this.total = total;
+		else
+			this.total = 0;
 	}
 
 	public long getLimit() {

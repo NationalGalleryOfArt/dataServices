@@ -1,5 +1,7 @@
 package gov.nga.integration.cspace;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -9,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import gov.nga.utils.StringUtils;
 
 
 // all authorization will be handled by the Apache Server configured as a proxy server for this service
@@ -95,5 +99,12 @@ public class ErrorLoggerController {
 		return new ResponseEntity<ErrorLoggerResponse>(er, headers, HttpStatus.OK);
 	}
 
+	public static void logSearchResults(HttpServletRequest request, int numSearchResults) {
+		String url = request.getRequestURL().toString();
+		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
+			url += "?" + request.getQueryString();
+		log.info(numSearchResults + " results for " + url);
+	}
+	
 }
 

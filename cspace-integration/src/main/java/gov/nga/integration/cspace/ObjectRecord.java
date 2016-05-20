@@ -16,7 +16,7 @@ import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
 @JsonPropertyOrder({ "namespace", 	"source", 			"id", 				"accessionNum", 	"title", 		"classification", 
-					 "artistNames", "lastDetectedModification",			 	"attribution", 		"subClassification", 
+					 "artistNames", "lastModified",		"attribution", 		"subClassification", 
 					 "displayDate", "medium",			"dimensions",		"departmentAbbr",
 					 "location",	"homeLocation",		"ownerNames",  		"creditLine",		"description",	"inscription",
 					 "markings",	"portfolio",		"provenanceText",	"curatorialRemarks","watermarks",	"bibliography",

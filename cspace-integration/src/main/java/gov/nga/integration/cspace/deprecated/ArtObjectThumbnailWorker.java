@@ -1,4 +1,4 @@
-package gov.nga.integration.cspace;
+package gov.nga.integration.cspace.deprecated;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -14,6 +14,7 @@ import com.gs.collections.impl.map.mutable.ConcurrentHashMap;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.integration.cspace.Thumbnail;
 
 public class ArtObjectThumbnailWorker implements Callable<String> {
 	
@@ -48,17 +49,9 @@ public class ArtObjectThumbnailWorker implements Callable<String> {
 		if (d != null) {
 			URI relativeURI = d.getSourceImageURI();
 			URL absoluteURL = null;
+			// thrown if URI is not absolute
 			try {
-				absoluteURL = relativeURI.toURL();
-			} 
-			catch (IllegalArgumentException ie) {
-				// thrown if URI is not absolute
-				try {
-					absoluteURL = new URL("http:" + relativeURI.toString());
-				}
-				catch (MalformedURLException me) {
-					log.error("Problem creating absolute URI for thumbnail:" + me.getMessage());
-				}
+				absoluteURL = new URL("http:" + relativeURI.toString());
 			}
 			catch (MalformedURLException me) {
 				log.error("Problem creating absolute URI for thumbnail:" + me.getMessage());

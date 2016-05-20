@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,11 +27,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-//import gov.nga.entities.art.ArtDataManager.Suggestion;
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.ArtObject.SORT;
-//import gov.nga.entities.art.ArtObject.SEARCH;
+import gov.nga.entities.art.Derivative.ImgSearchOpts;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SearchHelper;
@@ -45,20 +44,28 @@ import gov.nga.utils.StringUtils;
 
 
 @RestController
-public class ObjectSearchController {
+public class ObjectSearchController extends RecordSearchController {
 
 	private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
 	
-	private static Pattern sourceMatcher = Pattern.compile("/art/(.*)/objects");
+	private static Pattern sourcePattern = Pattern.compile("/art/(.*)/objects");
+	public Pattern getSourcePattern() {
+		return sourcePattern;
+	}
 	
-	private static final SORT defaultSortOrder = ArtObject.SORT.ACCESSIONNUM_ASC;
+	private static String[] supportedNamespaces = new String[]{ObjectRecord.getDefaultNamespace()};
 
+	private static String[] sources = new String[]{"tms"};
+	public String[] getSupportedSources() {
+		return sources;
+	}
 	
-	// this executor helps to more quickly disperse the work that is required in order to 
-	// compute base64 thumbnail values
-	private ExecutorService thumbnailWorkDistributor = 
-			Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    
+	public String getDefaultNamespace() {
+		return ObjectRecord.getDefaultNamespace();
+	}
+
+	private static final SORT defaultSortOrder = ArtObject.SORT.ACCESSIONNUM_ASC;
+	    
     @Autowired
     private ArtDataManagerService artDataManager;
 
@@ -82,6 +89,7 @@ public class ObjectSearchController {
 
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
+			@RequestParam(value="base64", 				required=false, defaultValue="true") boolean base64,
 
 			@RequestParam(value="order", 				required=false					   ) List<String> order,
 
@@ -97,16 +105,14 @@ public class ObjectSearchController {
 	) throws APIUsageException, InterruptedException, ExecutionException {  	
     	
     	// validate source if present
-    	processSource(request);
+    	String[] requestedSources = getSources(request);
+    	if (requestedSources.length > 1)
+    		throw new APIUsageException("Multiple sources specified, but only one supported");
     	
-    	// limit results to a reasonable number to encourage well behaved API usage
-    	if (limit > 1000)
-    		limit = 1000;
-    	ResultsPaginator paginator = new ResultsPaginator(skip, limit);
+    	ResultsPaginator paginator = getPaginator(skip, limit);
 
     	// various helpers are used to accumulate search criteria, order, and paginate the results
     	SearchHelper<ArtObject> searchHelper = new SearchHelper<ArtObject>();
-    	
 
     	// process all of the request parameters
     	processIDs(searchHelper, ids, cultObj_ids);
@@ -123,38 +129,53 @@ public class ObjectSearchController {
     	// the list of items that will be returned (constructed from art object records)
 		List<Item> partialResults = CollectionUtils.newArrayList();
 
-    	// execute the search using the prepared search helper
-    	List<ArtObject> artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
+    	// execute the search using the prepared search helper, but only if we actually have search criteria
+		// otherwise, we return an empty result set
+		List<ArtObject> artObjects = CollectionUtils.newArrayList();
+		if (searchHelper.getFilterSize() > 0)
+			artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
     	
-    	log.info("results size:" + artObjects.size());
+    	ErrorLoggerController.logSearchResults(request, artObjects.size());
     	if (artObjects.size() > 0) {
-			// Map used to accumulate the thumbnail computations from Futures
-    		Map<Long,Future<String>> thumbnailMap = CollectionUtils.newHashMap();
-    		if (thumbnails) {
-    			// submit the work to fetch thumbnails and compute base64 values of them
+    		
+    		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+
+    		try {
+    			// Map used to accumulate the thumbnail computations from Futures
+    			Map<Long,Future<String>> thumbnailMap = CollectionUtils.newHashMap();
+    			if (thumbnails) {
+    				
+    				int thumbWidth = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailWidthProperty);
+    				int thumbHeight = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailHeightProperty);
+    				// submit the work to fetch thumbnails and compute base64 values of them
+    				for (ArtObject o : artObjects) {
+    					// get the zoom image for this object, then call the ImageThumbNailWorker in a multi-threaded context to fetch them
+    					Derivative d = o.getZoomImage();
+    					// if for some reason we don't have a zoom image, use the crop
+    					if (d == null)
+    						d = o.getLargeThumbnail(ImgSearchOpts.FALLBACKTOLARGESTFIT);
+    					Callable<String> thumbWorker = new ImageThumbnailWorker(d,thumbWidth,thumbHeight,base64);
+    					Future<String> future = threadPool.submit(thumbWorker);
+    					thumbnailMap.put(o.getObjectID(), future);
+    				}
+    			}
     			for (ArtObject o : artObjects) {
-    				Callable<String> thumbWorker = new ArtObjectThumbnailWorker(o);
-    				Future<String> future = thumbnailWorkDistributor.submit(thumbWorker);
-    				thumbnailMap.put(o.getObjectID(), future);
+    				URL objectURL = null;
+    				String scheme = RecordSearchController.getRequestScheme(request);
+    				try {
+    					objectURL = new URL(scheme,request.getServerName(),request.getServerPort(),"/art/tms/objects/"+o.getObjectID()+".json");
+    				}
+    				catch (MalformedURLException me) {
+    					log.error("Problem creating object URL: " + me.getMessage());
+    				}
+    				Record objectRecord = new AbridgedObjectRecord(o, references);
+    				Future<String> thumb = thumbnailMap.get(o.getObjectID());
+    				String thumbVal = (thumb == null ? null : thumb.get());
+    				partialResults.add(new Item(objectURL, thumbVal, objectRecord));
     			}
     		}
-    		for (ArtObject o : artObjects) {
-    			URL objectURL = null;
-    			try {
-    				String scheme = request.getHeader("X-Forwarded-Proto");
-    				if (StringUtils.isNullOrEmpty(scheme)) {
-    					String sslOn = request.getHeader("X-Forwarded-SSL");
-    					scheme = StringUtils.isNullOrEmpty(sslOn) ? request.getScheme() : "https"; 
-    				}
-    				objectURL = new URL(scheme,request.getServerName(),request.getServerPort(),"/art/tms/objects/"+o.getObjectID()+".json");
-    			}
-    			catch (MalformedURLException me) {
-    				log.error("Problem creating object URL: " + me.getMessage());
-    			}
-    			Record objectRecord = new AbridgedObjectRecord(o, references);
-    			Future<String> thumb = thumbnailMap.get(o.getObjectID());
-    			String thumbVal = (thumb == null ? null : thumb.get());
-    			partialResults.add(new Item(objectURL, thumbVal, objectRecord));
+    		finally {
+    			threadPool.shutdown();
     		}
     	}
     	
@@ -166,127 +187,58 @@ public class ObjectSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, partialResults), headers, HttpStatus.OK);
 	}
     
-    // Spring REST will automatically parse values that are separated with a comma into an array
-    // and will pass the individual values
-    private SortHelper<ArtObject> getSortHelper(List<String> order) throws APIUsageException {
-    	order = CollectionUtils.clearEmptyOrNull(order);
-		List<ArtObject.SORT> orders = CollectionUtils.newArrayList();
-
-    	if (order != null && order.size() > 0) {
-    		for (String fieldName : order) {
-    			if (fieldName == null)
-    				throw new APIUsageException("Unspecified sort order field");
-
-    			// detect the order (asc or desc)
-    			boolean ascending = true;
-    			if (fieldName.substring(0,1).equals("-")) {
-    				ascending = false;
-    				// strip the minus sign
-    				fieldName = fieldName.substring(1);
-    			}
-    			String ns = NamespaceUtils.getNamespace(fieldName,ObjectRecord.getDefaultNamespace());
-    			if (!ns.equals("cultObj"))
-    				throw new APIUsageException("Unsupported namespace or empty field encountered in sort order");
-
-    			fieldName = NamespaceUtils.stripNamespace(fieldName);
-    			if (fieldName != null) {
-    				// now we have a fieldName we should be able to sort on and we know the direction 
-    				switch (fieldName) {
-    				case "title" :
-    					if (ascending)
-    						orders.add(ArtObject.SORT.TITLE_ASC);
-    					else
-    						orders.add(ArtObject.SORT.TITLE_DESC);
-    					break;
-    				case "number" :
-    					if (ascending)
-    						orders.add(ArtObject.SORT.ACCESSIONNUM_ASC);
-    					else
-    						orders.add(ArtObject.SORT.ACCESSIONNUM_DESC);
-    					break;
-    				case "artistNames" :
-    					if (ascending)
-    						orders.add(ArtObject.SORT.FIRST_ARTIST_ASC);
-    					else
-    						orders.add(ArtObject.SORT.FIRST_ARTIST_DESC);
-    					break;
-    				case "lastModified" :
-    					if (ascending)
-    						orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_ASC);
-    					else
-    						orders.add(ArtObject.SORT.LASTDETECTEDMODIFICATION_DESC);
-    					break;
-    				case "id" :
-    					if (ascending)
-    						orders.add(ArtObject.SORT.OBJECTID_ASC);
-    					else
-    						orders.add(ArtObject.SORT.OBJECTID_DESC);
-    					break;
-    				default:
-    					throw new APIUsageException("Sorting on field " + fieldName + " is unsupported.");
-    				}
-    			}
-    		}
+    protected static ArtObject.SORT fieldNameToSortEnum(OrderField f) {
+    	if (StringUtils.isNullOrEmpty(f.fieldName))
+    		return null;
+    	switch (f.fieldName) {
+    	case "cultObj:title" :
+    		if (f.ascending)
+    			return ArtObject.SORT.TITLE_ASC;
+    		else
+    			return ArtObject.SORT.TITLE_DESC;
+    	case "cultObj:number" :
+    		if (f.ascending)
+    			return ArtObject.SORT.ACCESSIONNUM_ASC;
+    		else
+    			return ArtObject.SORT.ACCESSIONNUM_DESC;
+    	case "cultObj:artistNames" :
+    		if (f.ascending)
+    			return ArtObject.SORT.FIRST_ARTIST_ASC;
+    		else
+    			return ArtObject.SORT.FIRST_ARTIST_DESC;
+    	case "cultObj:lastModified" :
+    		if (f.ascending)
+    			return ArtObject.SORT.LASTDETECTEDMODIFICATION_ASC;
+    		else
+    			return ArtObject.SORT.LASTDETECTEDMODIFICATION_DESC;
+    	case "cultObj:id" :
+    		if (f.ascending)
+    			return ArtObject.SORT.OBJECTID_ASC;
+    		else
+    			return ArtObject.SORT.OBJECTID_DESC;
     	}
-    	// always append the default sort order to the end of the list
-		orders.add(defaultSortOrder);
-		return new SortHelper<ArtObject>(orders.toArray());
+    	return null;
     }
     
-    private String processSource(HttpServletRequest req) throws APIUsageException {
-    	String source = null;
-    	Matcher m = sourceMatcher.matcher(req.getRequestURI());
-    	if (m.find())
-    		source = m.group(1);
-    	if (source == null)
-    		source = "tms";
-    	if (!source.equals("tms"))
-    		throw new APIUsageException("No such source: " + source);
-    	return source;
+    
+    // Spring REST will automatically parse values that are separated with a comma into an array
+    // and will pass the individual values
+    protected SortHelper<ArtObject> getSortHelper(List<String> order) throws APIUsageException {
+    	List<ArtObject.SORT> orders = CollectionUtils.newArrayList();
+    	for (OrderField f : getSortFields(order,supportedNamespaces)) {
+    		ArtObject.SORT s = fieldNameToSortEnum(f);
+    		if (s != null)
+    			orders.add(s);
+    		else
+    			throw new APIUsageException("Sorting on field " + f.fieldName + " is unsupported.");
+    	}
+    	// always append the default sort order to the end of the list
+    	orders.add(defaultSortOrder);
+    	return new SortHelper<ArtObject>(orders.toArray());
     }
-
-    /*
-    // we can use this approach for "startswith" operator should we decide to switch to that
-    private void processSuggestableField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
-    	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
-    	aList = CollectionUtils.clearEmptyOrNull(aList);
-
-    	List<String> nList = CollectionUtils.newArrayList();
-    	String search=null;
-    	for (String an : aList) {
-    		if (!StringUtils.isNullOrEmpty(an)) {
-    			nList.add(an);
-    			if (search != null)
-    				search += " ";
-    			else
-    				search = "";
-    			search += an;
-    		}
-    	}
-    	if (!StringUtils.isNullOrEmpty(search)) {
-    		List<Suggestion> suggestions = CollectionUtils.newArrayList();
-    		switch (field) {
-    		case TITLE:
-    			suggestions = artDataManager.suggestArtObjectsByTitle(search); 		
-    			break;
-    		case ARTIST_ALLNAMES:
-    			suggestions = artDataManager.suggestArtObjectsByArtistName(search);
-    			break;
-    		default: 
-    			break;
-    		}
-    		// the suggestions will have a list of object IDs, so we have to translate that into a list of IDs that are provided
-    		// to the byID search
-    		List<String> ids = CollectionUtils.newArrayList();
-    		for (Suggestion s : suggestions) {
-    			ids.add(s.getEntityID().toString());
-    		}
-    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, SEARCH.OBJECTID, ids, false));
-    	}
-    }*/
-
+    
     // ARTISTNAMES & TITLES FIELD
-    private void processTextField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
+    protected static void processTextField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
     	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
     	aList = CollectionUtils.clearEmptyOrNull(aList);
 
@@ -300,7 +252,7 @@ public class ObjectSearchController {
     }
 
 	// ID FIELD
-	public void processIDs(SearchHelper<ArtObject> searchHelper, List<String> ids, List<String> cultObj_ids) {
+	protected static void processIDs(SearchHelper<ArtObject> searchHelper, List<String> ids, List<String> cultObj_ids) {
 		List<String> iList = CollectionUtils.newArrayList(ids, cultObj_ids);
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
@@ -308,53 +260,51 @@ public class ObjectSearchController {
     }
     
 	// LASTMODIFIED FIELD
-    public void processLastModified(SearchHelper<ArtObject> searchHelper, List<String> lastModified, List<String> cultObj_lastModified) throws APIUsageException {
-    	List<String> lmList = CollectionUtils.newArrayList(lastModified, cultObj_lastModified);
-    	
-    	int size = ( lmList == null ? 0 : lmList.size() );
-    	String lm1 = null;
-    	if (size > 0)
-    		lm1 = lmList.get(0);
-    	String lm2 = null;
-    	if (size > 1)
-    		lm2 = lmList.get(1);
-    	
-    	// if one of the supplied values is not null, then we can proceed
-    	if (!StringUtils.isNullOrEmpty(lm1) || !StringUtils.isNullOrEmpty(lm1)) {
-    		// take the first two
-    		try {
-    			
-    			/*  FROM API CONTROL DOC
-    			 * 	If a single value is supplied, that value should be assumed as the earliest date with an unbounded upper limit.  
-    			 *  When two or more values are supplied, only the first two values should be used and those values represent a date 
-    			 *  range.  If the second value is earlier than the first, the values should be swapped by the API implementation in 
-    			 *  order to construct a valid date range for the search.
-    			 */
-    			
-    			// if lm1 is empty, then we will always assign a lower bound based on the TMS conversion date
-    			if (StringUtils.isNullOrEmpty(lm1))
-    				lm1 = "1/1/2008";
-    			// if lm2 is empty, then we assign an upper bound of today's date since no records could possibly be modified after the current time
-    			if (StringUtils.isNullOrEmpty(lm2))
-    				lm2 = DateTime.now().toString();
-    			
-    			// swap if lm1 is > lm2 for some reason, then we swap values
-    			if (lm1.compareTo(lm2) > 0) {
-    				String hold = lm1; lm1=lm2; lm2=hold;
-    			}
-
-    			// now, all the dates should be set to something non empty, so we try to parse them
-    			DateTime dm1 = new DateTime(lm1);
-    			DateTime dm2 = new DateTime(lm2);
-        		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, ArtObject.SEARCH.LASTDETECTEDMODIFICATION, dm1.toString(), dm2.toString() ));
-    		}
-    		catch (IllegalArgumentException ie) {
-    			throw new APIUsageException("Could not parse one of the dates supplied for last modified date: "+ie.getMessage());
-    		}
+    protected static void processLastModified(SearchHelper<ArtObject> searchHelper, List<String> lastModified, List<String> cultObj_lastModified) throws APIUsageException {
+    	DateTime[] dates = getLastModifiedDates(lastModified,cultObj_lastModified,"1/1/2008");
+    	if (dates != null && dates.length > 1) {
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, ArtObject.SEARCH.LASTDETECTEDMODIFICATION, dates[0].toString(), dates[1].toString() ));
     	}
     }
     
-    
-
-
 }
+
+/*
+// we can use this approach for "startswith" operator should we decide to switch to that
+private void processSuggestableField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
+	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
+	aList = CollectionUtils.clearEmptyOrNull(aList);
+
+	List<String> nList = CollectionUtils.newArrayList();
+	String search=null;
+	for (String an : aList) {
+		if (!StringUtils.isNullOrEmpty(an)) {
+			nList.add(an);
+			if (search != null)
+				search += " ";
+			else
+				search = "";
+			search += an;
+		}
+	}
+	if (!StringUtils.isNullOrEmpty(search)) {
+		List<Suggestion> suggestions = CollectionUtils.newArrayList();
+		switch (field) {
+		case TITLE:
+			suggestions = artDataManager.suggestArtObjectsByTitle(search); 		
+			break;
+		case ARTIST_ALLNAMES:
+			suggestions = artDataManager.suggestArtObjectsByArtistName(search);
+			break;
+		default: 
+			break;
+		}
+		// the suggestions will have a list of object IDs, so we have to translate that into a list of IDs that are provided
+		// to the byID search
+		List<String> ids = CollectionUtils.newArrayList();
+		for (Suggestion s : suggestions) {
+			ids.add(s.getEntityID().toString());
+		}
+		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, SEARCH.OBJECTID, ids, false));
+	}
+}*/

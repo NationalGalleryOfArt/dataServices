@@ -75,9 +75,11 @@ public class CollectionUtils {
 	
 	public static <T1> List<T1> clearEmptyOrNull(List<T1> aList) {
 		List<T1> nList = newArrayList();
-		for (T1 t : aList) {
-			if (t != null && !StringUtils.isNullOrEmpty(t.toString()))
-				nList.add(t);
+		if (aList != null) {
+			for (T1 t : aList) {
+				if (t != null && !StringUtils.isNullOrEmpty(t.toString()))
+					nList.add(t);
+			}
 		}
 		return nList;
 	}

@@ -1,6 +1,7 @@
 package gov.nga.entities.art;
 
 import gov.nga.entities.art.ArtDataManager.Suggestion;
+import gov.nga.entities.art.ArtEntity.OperatingMode;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ConstituentFactory;
 import gov.nga.search.Facet;
@@ -61,6 +62,7 @@ public interface ArtDataManagerService {
 	public List<Constituent> 				searchConstituents(SearchHelper<Constituent> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<Constituent> sortH);
 	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory);
 	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory, FreeTextSearchable<C> freeTextSearcher);
+	//public <E extends ArtEntity> List<E> 	searchArtEntity(List<E> list, SearchHelper<E> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<E> sortH);
 	public Map<String, String> getIndexOfArtistsRanges();
     public List<Suggestion> suggestArtObjectsByArtistName(String baseName);
     public List<Suggestion> suggestArtObjectsByTitle(String baseName);
@@ -72,9 +74,16 @@ public interface ArtDataManagerService {
 	public Map<Long, ArtObject> getArtObjectsRaw();
 	public Map<Long, Constituent> getConstituentsRaw();
     public Map<Long, Location> getLocationsRaw();
+    public List<Derivative> getDerivatives();
 
+    // Derivative Services
+    public Derivative fetchDerivativeByImageID(String imageID);
+    
 	// fetch configuration services reference
 	public ConfigService getConfig();
 
     public Long synchronizationFinishedAt();
+
+    // the operating mode of the APIs
+	public OperatingMode getOperatingMode();
 }

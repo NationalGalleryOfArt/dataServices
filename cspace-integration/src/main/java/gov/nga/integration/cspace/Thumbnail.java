@@ -46,4 +46,5 @@ public class Thumbnail {
 	public String toString() {
 		return representation;
 	}
+	
 }

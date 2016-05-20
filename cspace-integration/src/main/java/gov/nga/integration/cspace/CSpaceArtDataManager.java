@@ -44,12 +44,13 @@ public class CSpaceArtDataManager extends ArtDataManager {
     public void run() {
     	// unload TMS data if already loaded
     	unload();
+    	// TODO -- having to clear cache manually from here isn't the best design but for only one cache at this level, it's probably fine
+    	// for now.  In future, probably a better pattern would be to implement a resetOnLoad interface and then find all classes implementing it
+    	// and call the rest operation
+        ImageThumbnailWorker.clearCache();
     	if (!load()) {
     		// if we are unable to load, then we will try again in one minute
     		scheduler.schedule(this, 10, TimeUnit.SECONDS); 
-    	}
-    	else {
-    		ArtObjectThumbnailWorker.clearCache();
     	}
     }
         

@@ -28,12 +28,12 @@ public class ResearchImage extends ArtObjectImage {
     protected static final String fetchAllImagesQuery = 
         "SELECT imageID,        imgVolumePath,      filename,       format, " + 
         "       width,          height,             targetWidth,    targetHeight, " +
-        "       viewType,       setDotSequence,     tmsObjectID, " +
-        "                       tmsImageObjectID,   projectID, " +
+        "       viewType,       setDotSequence,     tmsObjectID, 	catalogued, " +
+        "       tmsImageObjectID,   				projectID, " +
         "       isDetail,       isZoomable,         viewSubType, " +
         "       altCaption,     altAttribution,     altTitle, " +
         "       altDisplayDate, altMedium,          altCreditLine, " +
-        "       altImageRef,    qualifier,          photoCredit  " +
+        "       altImageRef,    qualifier,          photoCredit " +
         "FROM data.object_researchimages ";
 
     protected String getAllImagesQuery() {
@@ -72,20 +72,20 @@ public class ResearchImage extends ArtObjectImage {
             setViewType(Derivative.IMGVIEWTYPE.INSCRIPTION);
             
         try {
-            setTmsImageObjectID(TypeUtils.getLong(rs, 12));
-            setProjectID(rs.getString(13));
-            setIsDetail(TypeUtils.getLong(rs, 14));
-            setIsZoomable(TypeUtils.getLong(rs, 15));
-            setViewSubType(rs.getString(16));
-            setAltCaption(rs.getString(17));
-            setAltAttribution(rs.getString(18));
-            setAltTitle(rs.getString(19));
-            setAltDisplayDate(rs.getString(20));
-            setAltMedium(rs.getString(21));
-            setAltCreditLine(rs.getString(22));
-            setAltImageRef(rs.getString(23));
-            setQualifier(rs.getString(24));
-            setPhotoCredit(rs.getString(25));
+            setTmsImageObjectID(TypeUtils.getLong(rs, 13));
+            setProjectID(rs.getString(14));
+            setIsDetail(TypeUtils.getLong(rs, 15));
+            setIsZoomable(TypeUtils.getLong(rs, 16));
+            setViewSubType(rs.getString(17));
+            setAltCaption(rs.getString(18));
+            setAltAttribution(rs.getString(19));
+            setAltTitle(rs.getString(20));
+            setAltDisplayDate(rs.getString(21));
+            setAltMedium(rs.getString(22));
+            setAltCreditLine(rs.getString(23));
+            setAltImageRef(rs.getString(24));
+            setQualifier(rs.getString(25));
+            setPhotoCredit(rs.getString(26));
             
             // because PPCM is usually computed based on other data, it goes last
             // setPixelsPerCM(TypeUtils.getLong(rs, xx));

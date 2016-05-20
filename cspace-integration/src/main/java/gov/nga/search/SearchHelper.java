@@ -22,9 +22,6 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 
 	private static final Logger log = LoggerFactory.getLogger(SearchHelper.class);
 
-	private ExecutorService searchDistributor = 
-			Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
 	public static enum SEARCHOP {
 		// art object search fields, listed in order of ascending computational expense
 		// such that we can keep our search operations sorted in order of least expensive first
@@ -202,6 +199,8 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 		if (list != null && list.size() > 0) {
 			// prepare the search work for a thread pool for maximum performance
 			
+			ExecutorService searchDistributor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+			
 			perfMonitor.logElapseTimeFromLastReport("starting futures");
 			List<Future<List<T>>> futures = CollectionUtils.newArrayList();
 			
@@ -233,6 +232,9 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 			}
 			catch (InterruptedException ie) {
 				log.info("Search thread was interrupted" + ie.getMessage());
+			}
+			finally {
+				searchDistributor.shutdown();
 			}
 			perfMonitor.logElapseTimeFromLastReport("done collecting futures");
 		}

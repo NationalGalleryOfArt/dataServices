@@ -1,5 +1,6 @@
 package gov.nga.entities.art;
 
+import gov.nga.entities.art.ArtEntity.OperatingMode;
 import gov.nga.entities.art.ArtObject.FACET;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ArtObjectFactoryImpl;
@@ -125,7 +126,15 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     protected void setConfigService(ConfigService configurator) {
         this.configurator = configurator;
     }
-
+    
+    public final String operatingModePropertyName = "operatingMode"; 
+    public OperatingMode getOperatingMode() {
+    	String opmode = getConfig().getString(operatingModePropertyName);
+    	if ( !StringUtils.isNullOrEmpty(opmode) && opmode.equals(OperatingMode.PRIVATE.toString()) )
+    		return OperatingMode.PRIVATE;
+    	else
+    		return OperatingMode.PUBLIC;
+    }
 
     private volatile Long synchronizationFinishedAt = -1L;
 
@@ -133,7 +142,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return this.synchronizationFinishedAt;
     } 
 
-    protected boolean dataReady=false;
+    private boolean dataReady=false;
     synchronized protected void setDataReady(boolean dataReady) {
         this.dataReady = dataReady;
     }
@@ -219,7 +228,9 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         setConstituents(null);
         setStandardArtObjectFacets(null);
         setAllIndexOfArtistRanges(null);
+        clearDerivativesByImageID();
         clearSuggestMaps();
+        clearDerivativesRaw();
     }
 
     synchronized public boolean load() {
@@ -926,6 +937,15 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return standardArtObjectFacets;
     }
     
+    // separate the images into a map indexed by object id
+    private Map<String, Derivative> derivativesByImageID = CollectionUtils.newHashMap();
+    public Derivative fetchDerivativeByImageID(String imageID) {
+    	return derivativesByImageID.get(imageID);
+    }
+    synchronized private void clearDerivativesByImageID() {
+    	derivativesByImageID = CollectionUtils.newHashMap();
+    }
+    
     synchronized protected <T extends Derivative> void loadImagery(Map<Long, ArtObject> newArtObjects, T seed) throws SQLException {
         
         EntityQuery<T> deq = new EntityQuery<T>(getDataSourceService());
@@ -933,9 +953,13 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         List<T> newImages = deq.fetchAll(seed.getAllImagesQuery(), seed);
         log.debug("found this many " + seed.getClass().getName() + " images: " + newImages.size());
         
+        // add to the derivatives list
+        derivativesRaw.addAll(newImages);
+        
         // separate the images into a map indexed by object id
         Map<Long, List<T>> imgByObject = CollectionUtils.newHashMap();
         for (T d : newImages) {
+        	derivativesByImageID.put(d.getImageID(), d);
             ArtObject o = (ArtObject)newArtObjects.get(d.getObjectID());
             if ( o != null && o.imageOK(d) ) {
                 List<T> ld = imgByObject.get(d.getObjectID());
@@ -1160,13 +1184,24 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         sh.setFreeTextServicer(freeTextSearcher);
         return sh.search(list, pn, fn, sortH);
     }
-    
+
+    //public <E extends ArtEntity> List<E> searchArtEntity(List<E> list, SearchHelper<E> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<E> sortH) {
+    //    return sh.search(list, pn, fn, sortH);
+   // }
+
+    private List<Derivative> derivativesRaw = CollectionUtils.newArrayList();
+    public List<Derivative> getDerivatives() {
+    	return CollectionUtils.newArrayList(this.derivativesRaw);
+    }
+    synchronized private void clearDerivativesRaw() {
+    	derivativesRaw = CollectionUtils.newArrayList();
+    }
+
     public <C extends Constituent>List<C> searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory) {
         return searchConstituents(sh, pn, fn, sortH, factory, new ArtEntityFreeTextSearch<C>());
     }
 
     public List<Constituent> searchConstituents(SearchHelper<Constituent> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<Constituent> sortH) {
-        
         return searchConstituents(searchH, pn, fn, sortH, constFactory);
     }
     

@@ -1,22 +1,18 @@
 package gov.nga.entities.art;
 
 import gov.nga.entities.common.FingerprintedEntity;
-import gov.nga.search.SearchFilter;
-import gov.nga.search.SortOrder;
-import gov.nga.search.Sorter;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.utils.stringfilter.EmptyFilter;
 import gov.nga.utils.stringfilter.StringFilter;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEntity
 {
 	//private static final Logger log = LoggerFactory.getLogger(ArtEntity.class);
-
-	private static SortOrder noDefaultSort = new SortOrder();
+	
+//	private static SortOrder noDefaultSort = new SortOrder();
     private static StringFilter emptyFilter = new EmptyFilter();
 
     private ArtDataManagerService manager=null;
@@ -41,30 +37,34 @@ public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEn
 	public DataSourceService getDataSourceService() {
 		return getManager().getDataSourceService();
 	}
-
-	public SortOrder getDefaultSortOrder() {
-		return noDefaultSort;
-	}
-
-	public SortOrder getNaturalSortOrder() {
-		return noDefaultSort;
-	}
-
-	public Long matchesAspect(Object ao, Object order) {
-		return null;
-	}
 	
-	public int aspectScore(Object ao, Object order, String matchString) {
-		return Sorter.NULL;
+	public OperatingMode getOperatingMod() {
+		return manager.getOperatingMode();
 	}
+
+//	public SortOrder getDefaultSortOrder() {
+//		return noDefaultSort;
+//	}
+
+//	public SortOrder getNaturalSortOrder() {
+//		return noDefaultSort;
+//	}
+
+//	public Long matchesAspect(Object ao, Object order) {
+//		return null;
+//	}
 	
-	public Boolean matchesFilter(SearchFilter filter) {
-		return false;
-	}
+//	public int aspectScore(Object ao, Object order, String matchString) {
+//		return Sorter.NULL;
+//	}
+	
+//	public Boolean matchesFilter(SearchFilter filter) {
+//		return false;
+//	}
     
-	public List<String> getFacetValue(Object o) {
-		return null;
-	}
+//	public List<String> getFacetValue(Object o) {
+//		return null;
+//	}
 	
 	public void setAdditionalProperties(ResultSet rs) throws SQLException {
 	}
@@ -86,7 +86,6 @@ public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEn
     {
         return emptyFilter;
     }
-
     
 /*	private static String tmsDateToDisplayDate(String tmsDate) {
 		boolean bc = false;
