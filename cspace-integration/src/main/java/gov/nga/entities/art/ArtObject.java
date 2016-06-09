@@ -196,6 +196,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 					"		description, portfolio, curatorialRemarks, watermarks, lastDetectedModification, isPublic " +
 					"FROM data.objects " +
 					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID "
+//					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID WHERE objectID < 5000 "
 					;
 					//+ "WHERE objectid = 1046 ";
 

@@ -21,7 +21,7 @@ public class EntityQuery<E extends ArtEntity> {
 	}
 	
 	private static final Logger log = LoggerFactory.getLogger(EntityQuery.class);
-	private static final String DATASOURCENAME = "tmspublicextract";
+	// private static final String DATASOURCENAME = "tmspublicextract";
 	
 	private DataSourceService dataSourceService;
 	
@@ -53,7 +53,7 @@ public class EntityQuery<E extends ArtEntity> {
 		try {
 			try {
 				start = Calendar.getInstance().getTimeInMillis();
-				conn = dataSourceService.getConnection(DATASOURCENAME);
+				conn = dataSourceService.getConnection();
 				if (conn != null) {
 					endGetConn = Calendar.getInstance().getTimeInMillis();
 					q = query.replace("@@", " = ? ");
@@ -76,7 +76,7 @@ public class EntityQuery<E extends ArtEntity> {
 					}
 				}
 				else {
-					throw new SQLException("Could not acquire connection to datasource with name: " + DATASOURCENAME);
+					throw new SQLException("Could not acquire datasource connection to " + dataSourceService.getUrl());
 				}
 			}
 
@@ -118,7 +118,7 @@ public class EntityQuery<E extends ArtEntity> {
 		
 		try {
 			try {
-				conn = dataSourceService.getConnection(DATASOURCENAME);
+				conn = dataSourceService.getConnection();
 				if (conn != null) {
 					st = conn.prepareStatement(query);
 					rs = st.executeQuery();
@@ -130,7 +130,7 @@ public class EntityQuery<E extends ArtEntity> {
 					}
 				}
 				else {
-					throw new SQLException("Could not acquire connection to datasource with name: " + DATASOURCENAME);
+					throw new SQLException("Could not acquire datasource connection to " + dataSourceService.getUrl());
 				}
 			}
 			catch (SQLException se) {
@@ -196,7 +196,7 @@ public class EntityQuery<E extends ArtEntity> {
 		try {
 			try {
 				start = Calendar.getInstance().getTimeInMillis();
-				conn = dataSourceService.getConnection(DATASOURCENAME);
+				conn = dataSourceService.getConnection();
 				if (conn != null) {
 					// we have to split large numbers of IDs into multiple queries 
 					// due to limitations in DB query capabilities and JDBC libraries
@@ -232,7 +232,7 @@ public class EntityQuery<E extends ArtEntity> {
 					}
 				}
 				else {
-					throw new SQLException("Could not acquire connection to datasource with name: " + DATASOURCENAME);
+					throw new SQLException("Could not acquire datasource connection to " + dataSourceService.getUrl());
 				}
 			}
 			finally {

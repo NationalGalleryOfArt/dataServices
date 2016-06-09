@@ -147,7 +147,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         this.dataReady = dataReady;
     }
 
-    protected boolean isDataReady(boolean raiseException) {
+    public boolean isDataReady(boolean raiseException) {
     	if (!dataReady && raiseException)
     		throw new DataNotReadyException("TMS data services are starting up and currently unavailable.");
     	return dataReady;
@@ -911,6 +911,10 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         this.allIndexOfArtistRanges = allIndexOfArtistRanges;
     }
 
+    public List<ArtObject> getArtObjects() {
+    	return CollectionUtils.newArrayList(getArtObjectsRaw().values());
+    }
+    
     public Map<Long, ArtObject> getArtObjectsRaw() {
         return artObjects;
     }
@@ -960,12 +964,12 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         Map<Long, List<T>> imgByObject = CollectionUtils.newHashMap();
         for (T d : newImages) {
         	derivativesByImageID.put(d.getImageID(), d);
-            ArtObject o = (ArtObject)newArtObjects.get(d.getObjectID());
+            ArtObject o = (ArtObject)newArtObjects.get(d.getArtObjectID());
             if ( o != null && o.imageOK(d) ) {
-                List<T> ld = imgByObject.get(d.getObjectID());
+                List<T> ld = imgByObject.get(d.getArtObjectID());
                 if (ld == null) {
                     ld = CollectionUtils.newArrayList();
-                    imgByObject.put(d.getObjectID(), ld);
+                    imgByObject.put(d.getArtObjectID(), ld);
                 }
                 ld.add(d);
             }
@@ -1475,7 +1479,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
                         {
                             if (!width.equals(im.getWidth()) || !height.equals(im.getHeight()))
                             {
-                                log.error("Some images have different sizes for ObjID={} and sequence={} ", im.getObjectID(), seq);
+                                log.error("Some images have different sizes for ObjID={} and sequence={} ", im.getArtObjectID(), seq);
                                 break nextSequence;
                             }
                         }

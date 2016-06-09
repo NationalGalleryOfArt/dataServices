@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.gs.collections.impl.map.mutable.ConcurrentHashMap;
 
-import gov.nga.entities.art.Derivative;
+import gov.nga.imaging.Thumbnail;
 
 public class ImageThumbnailWorker implements Callable<String> {
 	
@@ -20,12 +20,12 @@ public class ImageThumbnailWorker implements Callable<String> {
 	private static Map<Object, String> thumbnailCache = new ConcurrentHashMap<Object, String>();
 	
 	private static final int MAXDIM=400;
-	private Derivative image;
+	private CSpaceImage image;
 	private int width=90;
 	private int height=90;
 	private boolean useBase64IfPossible;
 
-	public ImageThumbnailWorker(Derivative image, int width, int height, boolean useBase64IfPossible) {
+	public ImageThumbnailWorker(CSpaceImage image, int width, int height, boolean useBase64IfPossible) {
 		this.image = image;
 		width = width < 0 ? 0 : ( width > MAXDIM ? MAXDIM : width );
 		height = height < 0 ? 0 : ( height > MAXDIM ? MAXDIM : height );
@@ -41,8 +41,26 @@ public class ImageThumbnailWorker implements Callable<String> {
 	synchronized public static Map<Object, String> getCache() {
 		return thumbnailCache;
 	}
-
+	
 	public String call() {
+		if (image == null)
+			return null;
+
+		// if we have a cached version of the thumbnail already then return that
+		if ( thumbnailCache.containsKey(image) )
+			return thumbnailCache.get(image);
+		
+		// otherwise generate the thumbnail for the image
+		Thumbnail thumb = image.getThumbnail(width, height, MAXDIM, false, useBase64IfPossible, "https");
+		if (thumb == null)
+			return null;
+		String thumbRepresentation = thumb.toString();
+		thumbnailCache.put(image,thumbRepresentation);
+		
+		return thumbRepresentation;
+	}
+
+	public String callold() {
 		
 		boolean base64=useBase64IfPossible;
 		
@@ -55,6 +73,7 @@ public class ImageThumbnailWorker implements Callable<String> {
 			if ( base64 && thumbnailCache.containsKey(image) )
 				return thumbnailCache.get(image);
 
+			
 			// form the proper IIIF URL to resize to a bounding box
 			URI protoRelativeURI = image.getProtocolRelativeiiifURL(null,"!"+width+","+height,null,null);
 			if (protoRelativeURI == null) {

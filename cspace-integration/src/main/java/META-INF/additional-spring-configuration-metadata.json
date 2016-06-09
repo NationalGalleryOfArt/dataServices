@@ -1,0 +1,42 @@
+{"properties": [
+  {
+    "name": "jdbc.driverClassName",
+    "type": "java.lang.String",
+    "description": "A description for 'jdbc.driverClassName'"
+  },
+  {
+    "name": "jdbc.url",
+    "type": "java.lang.String",
+    "description": "A description for 'jdbc.url'"
+  },
+  {
+    "name": "jdbc.username",
+    "type": "java.lang.String",
+    "description": "A description for 'jdbc.username'"
+  },
+  {
+    "name": "jdbc.password",
+    "type": "java.lang.String",
+    "description": "A description for 'jdbc.password'"
+  },
+  {
+    "name": "ngaweb.imagingServerURL",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerURL'"
+  },
+  {
+    "name": "ngaweb.operatingMode",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.operatingMode'"
+  },
+  {
+    "name": "ngaweb.thumbnailWidth",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.thumbnailWidth'"
+  },
+  {
+    "name": "ngaweb.thumbnailHeight",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.thumbnailHeight'"
+  }
+]}

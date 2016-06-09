@@ -62,6 +62,8 @@ public abstract class RecordSearchController {
     	return new ResultsPaginator(skip, limit);
     }
 
+    // read the source from the URL and valid it if present.  If it's not present
+    // return all of the sources supported for the subclass extending us
     protected String[] getSources(HttpServletRequest req) throws APIUsageException {
     	String source = null;
     	Matcher m = getSourcePattern().matcher(req.getRequestURI());

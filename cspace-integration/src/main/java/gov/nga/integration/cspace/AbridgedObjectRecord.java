@@ -9,8 +9,11 @@ import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectConstituent;
 import gov.nga.entities.art.ArtObjectImage;
 import gov.nga.entities.art.Derivative;
+import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
+
+// SEE notes in ObjectRecord for notes about alignment of this representation with Sirma's CS integration services implementation
 
 @JsonPropertyOrder({ "namespace", "source", "id", "accessionNum", "title", "classification", "artistNames", "lastModified", "references" })
 public class AbridgedObjectRecord extends Record implements NamespaceInterface {
@@ -18,8 +21,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 	private static final String defaultNamespace = "cultObj";
 
 	// mandatory fields of the API - source and id are also mandatory and are inherited from the base object Record
-    private String accessionNum;				// optional, but searchable, so including it in results
-	private String title;						// optional, but searchable, so including it in results
+    private String accessionNum;				// mandatory field
+	private String title;						// optional field, but searchable, so including it in abridged object used in search results
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
 
@@ -142,12 +145,15 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		}
 		// then we go through the largest images associated with this work and return them as associated images
 		for (Derivative d : o.getLargestImages()) {
-			AbridgedImageRecord air = new AbridgedImageRecord(d,false);
-			if (ArtObjectImage.isPrimaryView(d)) {
+			if (d == null)
+				break;
+			WebImage wi = WebImage.factory(d);
+			AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
+			if (ArtObjectImage.isPrimaryView(wi)) {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
 			}
 			// we don't want to return cropped images associated with this object
-			else if (!d.isCropped()) {
+			else if (!wi.isCropped()) {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
 			}
 		}

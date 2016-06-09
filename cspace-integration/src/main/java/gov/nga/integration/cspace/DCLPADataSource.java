@@ -15,15 +15,15 @@ import org.springframework.context.annotation.Configuration;
  * @author David Beaudet
  *
  */
-@Configuration(value="nga.jdbc.tms")
-public class TMSDataSource extends DataSourceService {
+@Configuration(value="nga.jdbc.dclpa")
+public class DCLPADataSource extends DataSourceService {
 
-	private static final Logger log = LoggerFactory.getLogger(TMSDataSource.class);
+	private static final Logger log = LoggerFactory.getLogger(DCLPADataSource.class);
 	
-	private static final String dbURL 	= "nga.jdbc.tms.url";
-	private static final String dbUser 	= "nga.jdbc.tms.username";
-	private static final String dbPass	= "nga.jdbc.tms.password";
-	private static final String dbValid = "nga.jdbc.tms.validationQuery";
+	private static final String dbURL 	= "nga.jdbc.dclpa.url";
+	private static final String dbUser 	= "nga.jdbc.dclpa.username";
+	private static final String dbPass	= "nga.jdbc.dclpa.password";
+	private static final String dbValid = "nga.jdbc.dclpa.validationQuery";
 	
 	@Autowired
 	ConfigService config;	// access to application.properties file

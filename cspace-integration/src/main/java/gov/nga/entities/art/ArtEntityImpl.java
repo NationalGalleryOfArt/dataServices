@@ -38,10 +38,6 @@ public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEn
 		return getManager().getDataSourceService();
 	}
 	
-	public OperatingMode getOperatingMod() {
-		return manager.getOperatingMode();
-	}
-
 //	public SortOrder getDefaultSortOrder() {
 //		return noDefaultSort;
 //	}

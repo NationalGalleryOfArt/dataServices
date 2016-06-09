@@ -148,6 +148,14 @@ public class SearchFilter implements CustomHash {
 		return myLong;
 	}
 	
+	public List<String> getStringSearchValues() {
+		return CollectionUtils.newArrayList(strings);
+	}
+	
+	public List<Long> getLongSearchValues() {
+		return CollectionUtils.newArrayList(longs);
+	}
+
 	private boolean lessthanOrEqualTo(Long longLeft, String stringLeft,
 							 Long longRight, String stringRight) {
 

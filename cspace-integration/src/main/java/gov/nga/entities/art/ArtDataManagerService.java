@@ -72,6 +72,7 @@ public interface ArtDataManagerService {
 	public Map<String, String> getAllLocationDescriptionsByRoom();
 
 	public Map<Long, ArtObject> getArtObjectsRaw();
+	public List<ArtObject> getArtObjects();
 	public Map<Long, Constituent> getConstituentsRaw();
     public Map<Long, Location> getLocationsRaw();
     public List<Derivative> getDerivatives();
@@ -86,4 +87,6 @@ public interface ArtDataManagerService {
 
     // the operating mode of the APIs
 	public OperatingMode getOperatingMode();
+
+	public boolean isDataReady(boolean throwExceptionIfNot);
 }

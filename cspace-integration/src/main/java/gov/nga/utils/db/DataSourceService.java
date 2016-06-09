@@ -1,11 +1,16 @@
 package gov.nga.utils.db;
 
-import gov.nga.utils.CollectionUtils;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Map;
 
+import javax.sql.DataSource;
+
+import org.apache.commons.dbcp.ConnectionFactory;
+import org.apache.commons.dbcp.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp.PoolableConnection;
+import org.apache.commons.dbcp.PoolableConnectionFactory;
+import org.apache.commons.dbcp.PoolingDataSource;
+import org.apache.commons.pool.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +21,47 @@ import org.slf4j.LoggerFactory;
 public abstract class DataSourceService {
 	
 	private static final Logger log = LoggerFactory.getLogger(DataSourceService.class);
-    
+	static { log.info("DataSourceService loaded"); }
+	
+	public void init(String url, String username, String password, String validationQuery) {
+		setUrl(url);
+		setUsername(username);
+		setPassword(password);
+
+		// First, we'll create a ConnectionFactory that the pool will use to create Connections.
+		// We'll use the DriverManagerConnectionFactory, using the connect string passed in the command line
+		// arguments.
+		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(getUrl(), getUsername(), getPassword());
+
+		// Now we'll need a ObjectPool that serves as the actual pool of connections.
+		// We'll use a GenericObjectPool instance, although any ObjectPool implementation will suffice.
+		// I should note this is highly configurable and there are many options, but with the exception of
+		// testing connections on borrow, we use the defaults
+		GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<PoolableConnection>();
+		connectionPool.setTestOnBorrow(true);
+
+		// Next we'll create the PoolableConnectionFactory, which wraps the "real" Connections created 
+		// by the ConnectionFactory with the classes that implement the pooling functionality.
+		PoolableConnectionFactory poolableConnectionFactory =
+				new PoolableConnectionFactory(connectionFactory, connectionPool, null, validationQuery, false, true);
+
+		// Set the factory's pool property to the owning pool
+		poolableConnectionFactory.setPool(connectionPool);
+
+		// Finally, we create the PoolingDriver itself,
+		// passing in the object pool we created.
+		PoolingDataSource newDataSource = new PoolingDataSource(connectionPool);
+		setDataSource(newDataSource);
+	}
+	
+	private DataSource dataSource = null;
+	private void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
+	public DataSource getDataSource() {
+		return this.dataSource;
+	}
+
     private String driverClassName;
     public void setDriverClassName(String driverClassName) {
     	this.driverClassName = driverClassName;
@@ -49,45 +94,12 @@ public abstract class DataSourceService {
 		return this.password;
 	}
     
-	// cache of connections
-    Map<String,Connection> connectionMap = CollectionUtils.newHashMap();
-        
-    //TODO potentially add support for multiple names and connection pooling if desired
-    public Connection getConnection(String dataSourceName) throws SQLException {
-    	// check cache and return connection if valid, otherwise generate a new one and replace in cache
-    	
-    	// TODO - make this a pooled connection class and overwrite close so that it isn't closable
-    	Connection c = connectionMap.get(dataSourceName);
-    	if ( (c != null) && (!c.isClosed()) && c.isValid(5) )
-    		return c;
-
-    	try {
-    		Class.forName(getDriverClassName());
-    		c = DriverManager.getConnection(getUrl(), getUsername(), getPassword());
-    		connectionMap.put(dataSourceName, c);
-    	}
-    	catch (ClassNotFoundException ce) {
-    		log.error("Could not acquire class " + getDriverClassName() + " for the specified database driver. " + ce.getMessage());
-    	}
-   		
-        return c;
+    public Connection getConnection() throws SQLException {
+    	return dataSource.getConnection();
     }
     
-    public void closeAll() {
-    	for (String s : connectionMap.keySet()) {
-    		Connection c = connectionMap.get(s);
-    		if (c != null) {
-    			try {
-    				if ( !c.isClosed() )
-    					c.close();
-    			}
-    			catch (SQLException se) {
-    				log.warn("Minor problem detected when closing connection: " + se.getMessage());
-    			}
-    			connectionMap.remove(s);
-    		}
-    	}
-    	log.info("finished closing database connections");
+    public Connection getConnection(String dataSourceName) throws SQLException {
+    	return dataSource.getConnection();
     }
     
 }

@@ -9,7 +9,10 @@ import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
 import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
+import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.utils.CollectionUtils;
+
+// See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
 
 @JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", "references" })
 public class AbridgedImageRecord extends Record implements NamespaceInterface {
@@ -34,22 +37,22 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		};
 	};
 	
-	private String mimetype;
-	private String classification;
-	private String title;
-	private Long width;
-	private Long height;
+	private String mimetype;		// optional field, but will probably be used in search header for NGA so need to include here
+	private String classification;	// mandatory field
+	private String title;			// mandatory field
+	private Long width;				// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
+	private Long height;			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
 	
-	public AbridgedImageRecord(Derivative d) {
+	public AbridgedImageRecord(CSpaceImage d) {
 		this(d,true);
 	}
 	
-	public AbridgedImageRecord(Derivative d, boolean references) {
+	public AbridgedImageRecord(CSpaceImage d, boolean references) {
 		setNamespace("image");
-		setSource("web-images-repository");
+		setSource(d.getSource());
 		setId(d.getImageID());
 		setClassification(defaultClassification);
-		setTitle(d);
+		setTitle(d.getTitle());
 		setWidth(d.getWidth());
 		setHeight(d.getHeight());
 
@@ -70,6 +73,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			setMimetype(imgFormat.getMimetype());
 		}
 		
+		// TODO - might need to diverge here - the catalogued date is not necessarily what we're going for here 
 		setLastModified(d.getCatalogued());
 	}
 	
@@ -113,27 +117,20 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		return title;
 	}
 
-	public void setTitle(Derivative d) {
-		String title = d.getSourceImageURI().toString();
-		if (d.getObject() != null) {
-			title = String.format("%s of %s [%s #%s, %dx%d])", 
-				d.getFormat().getMimetype(), d.getObject().getAccessionNum(), 
-				d.getViewType().getLabel(), d.getSequence(), 
-				d.getWidth(), d.getHeight());
-		}
+	public void setTitle(String title) {
 		this.title = title;
 	}
 	
-	public void setReferences(Derivative primaryDerivative) {
+	public void setReferences(CSpaceImage primaryImage) {
 		List<Reference> rList = CollectionUtils.newArrayList();
 
 		// ART OBJECT RELATIONSHIPS TO THIS IMAGE - WE DON'T CURRENTLY SUPPORT MULTIPLE ASSOCIATIONS BUT WE WILL PROBABLY
 		// HAVE TO AT SOME POINT IN THE FUTURE
-		ArtObject o = primaryDerivative.getObject();
+		ArtObject o = primaryImage.getArtObject();
 		if (o != null) {
 			PREDICATE p = PREDICATE.DEPICTS;
 			// if this image is the primary image for the art object, then it's the primary depiction
-			if (primaryDerivative.equals(o.getZoomImage()))
+			if (primaryImage.equals(o.getZoomImage()))
 				p = PREDICATE.PRIMARILYDEPICTS;
 			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false);
 			rList.add(new Reference(p.getLabel(), aor));
@@ -159,9 +156,12 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 				for (Derivative d : ro.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED))) {
 					// if we're not iterating through the images of the object directly associated with the primary derivative
 					// or if we are then the primary derivative is not the one we're looking at 
-					if (!primaryDerivative.equals(d)) {
-						AbridgedImageRecord air = new AbridgedImageRecord(d,false);
-						rList.add(new Reference(PREDICATE.RELATEDASSET.getLabel(), air));
+					if (!primaryImage.equals(d)) {
+						if (d != null) {
+							WebImage wi = WebImage.factory(d);
+							AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
+							rList.add(new Reference(PREDICATE.RELATEDASSET.getLabel(), air));
+						}
 					}
 				}
 			}

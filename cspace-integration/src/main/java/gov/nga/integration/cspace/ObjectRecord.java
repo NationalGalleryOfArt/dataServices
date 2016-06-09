@@ -15,6 +15,38 @@ import gov.nga.entities.art.Location;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
+/* according to: https://cs-dev.sirmaplatform.com/emf/service/integrations/cms/model
+ * There's a chance this list is different based on classification, but NGA implementation has no instances where a mandatory field
+ * is only available for a particular classification, so we just return all optional fields regardless of classification if they are set
+ * mandatory
+ * 	 cultObj:classification
+ *   cultObj:id
+ *   cultObj:accessionNum
+ *   cultObj:artistNames
+ *   cultObj:source
+ * 
+ * optional
+ * 	 cultObj:title
+ *   cultObj:description
+ *   cultObj:subClassification
+ *   cultObj:displayDate
+ *   cultObj:medium
+ *   cultObj:catalogueRaisonneRef
+ *   cultObj:inscription
+ *   cultObj:markings
+ *   cultObj:dimensions
+ *   cultObj:creditLine
+ *   cultObj:location
+ *   cultObj:provenanceText
+ *   cultObj:portfolio
+ *   cultObj:homeLocation
+ *   cultObj:ownerNames
+ *   cultObj:departmentAbbr
+ *   cultObj:curatorialRemarks
+ *   cultObj:bibliography
+ *   cultObj:watermarks
+ */
+
 @JsonPropertyOrder({ "namespace", 	"source", 			"id", 				"accessionNum", 	"title", 		"classification", 
 					 "artistNames", "lastModified",		"attribution", 		"subClassification", 
 					 "displayDate", "medium",			"dimensions",		"departmentAbbr",
@@ -27,8 +59,8 @@ public class ObjectRecord extends AbridgedObjectRecord {
 	
     // as far as the CSPACE API is concerned the following fields are ALL optional
     // and only appear with the unabridged version of the cultural object record
-    private String attribution;
-	private String subClassification;
+    private String attribution;			// including it regardless of whether part of CS integration or not
+	private String subClassification;	
     private String displayDate;
     private String medium;
     private String dimensions;

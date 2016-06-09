@@ -32,6 +32,7 @@ import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.ArtObject.SORT;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SearchHelper;
@@ -41,7 +42,6 @@ import gov.nga.search.SortHelper;
 import gov.nga.utils.CollectionUtils;
 
 import gov.nga.utils.StringUtils;
-
 
 @RestController
 public class ObjectSearchController extends RecordSearchController {
@@ -104,10 +104,9 @@ public class ObjectSearchController extends RecordSearchController {
 			HttpServletResponse response
 	) throws APIUsageException, InterruptedException, ExecutionException {  	
     	
-    	// validate source if present
-    	String[] requestedSources = getSources(request);
-    	if (requestedSources.length > 1)
-    		throw new APIUsageException("Multiple sources specified, but only one supported");
+    	// getSource validates source if present or returns all supported sources, enabling us to merely invoke searches
+    	// for all of the requested sources which, in this case, is just one of course (tms).
+    	getSources(request);
     	
     	ResultsPaginator paginator = getPaginator(skip, limit);
 
@@ -154,9 +153,12 @@ public class ObjectSearchController extends RecordSearchController {
     					// if for some reason we don't have a zoom image, use the crop
     					if (d == null)
     						d = o.getLargeThumbnail(ImgSearchOpts.FALLBACKTOLARGESTFIT);
-    					Callable<String> thumbWorker = new ImageThumbnailWorker(d,thumbWidth,thumbHeight,base64);
-    					Future<String> future = threadPool.submit(thumbWorker);
-    					thumbnailMap.put(o.getObjectID(), future);
+    					if (d != null) {
+    						WebImage wi = WebImage.factory(d);
+    						Callable<String> thumbWorker = new ImageThumbnailWorker(wi,thumbWidth,thumbHeight,base64);
+    						Future<String> future = threadPool.submit(thumbWorker);
+    						thumbnailMap.put(o.getObjectID(), future);
+    					}
     				}
     			}
     			for (ArtObject o : artObjects) {

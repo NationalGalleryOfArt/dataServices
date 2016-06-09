@@ -14,7 +14,7 @@ import com.gs.collections.impl.map.mutable.ConcurrentHashMap;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
-import gov.nga.integration.cspace.Thumbnail;
+import gov.nga.imaging.Thumbnail;
 
 public class ArtObjectThumbnailWorker implements Callable<String> {
 	

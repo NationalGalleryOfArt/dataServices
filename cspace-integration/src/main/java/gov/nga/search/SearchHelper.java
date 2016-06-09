@@ -126,6 +126,26 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 		filters.add(filter);
 	}
 
+	public Set<SearchFilter> getFilters(Object s, SEARCHOP o) {
+		Set<SearchFilter> filts = CollectionUtils.newTreeSet(getComparator());
+		for (SearchFilter f : getFilters())
+			if (f.getField().equals(s) && f.getOp().equals(o))
+				filts.add(f);
+		return filts;
+	}
+
+	public Set<SearchFilter> getFilters(Object s) {
+		Set<SearchFilter> filts = CollectionUtils.newTreeSet(getComparator());
+		for (SearchFilter f : getFilters())
+			if (f.getField().equals(s))
+				filts.add(f);
+		return filts;
+	}
+	
+	public Set<SearchFilter> getFilters() {
+		return this.filters;
+	}
+
 	public void setFreeTextServicer(FreeTextSearchable<T> searchServicer) {
 		//log.debug("FreeTextSearcher set: " + searchServicer);
 		this.searchServicer = searchServicer;

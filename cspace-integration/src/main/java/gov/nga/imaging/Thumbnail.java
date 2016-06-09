@@ -1,4 +1,4 @@
-package gov.nga.integration.cspace;
+package gov.nga.imaging;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -20,6 +20,11 @@ public class Thumbnail {
 
 	public Thumbnail(URI relativeURI, URL absoluteURL, boolean base64Preferred) {
 		this(relativeURI, absoluteURL,"JPEG",base64Preferred);
+	}
+	
+	public Thumbnail(byte[] bytes) {
+		// we will always use base64 when dealing with blobs rather than URLs
+		this.representation = Base64.encodeBase64String(bytes);
 	}
 	
 	public Thumbnail(URI relativeURI, URL absoluteURL, String encodingFormat, boolean base64Preferred) {
