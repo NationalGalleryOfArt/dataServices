@@ -212,7 +212,7 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 		Set<T> matches = sortH.createAutoSortedSet();
 		
 		for (SearchFilter f : this.filters) {
-			log.info("FILTER: " + f.getOp() + " " + f.getField());
+			log.debug("FILTER: " + f.getOp() + " " + f.getField());
 		}
 
 		perfMonitor.resetSeedTime();

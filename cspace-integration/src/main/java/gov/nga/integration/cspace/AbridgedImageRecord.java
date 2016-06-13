@@ -5,11 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.ArtObjectAssociation;
-import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
-import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
-import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.utils.CollectionUtils;
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
@@ -121,56 +117,58 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		this.title = title;
 	}
 	
-	public void setReferences(CSpaceImage primaryImage) {
+	public void setReferences(CSpaceImage image) {
 		List<Reference> rList = CollectionUtils.newArrayList();
 
 		// ART OBJECT RELATIONSHIPS TO THIS IMAGE - WE DON'T CURRENTLY SUPPORT MULTIPLE ASSOCIATIONS BUT WE WILL PROBABLY
 		// HAVE TO AT SOME POINT IN THE FUTURE
-		ArtObject o = primaryImage.getArtObject();
+		ArtObject o = image.getArtObject();
 		if (o != null) {
 			PREDICATE p = PREDICATE.DEPICTS;
 			// if this image is the primary image for the art object, then it's the primary depiction
-			if (primaryImage.equals(o.getZoomImage()))
+			if (image.equals(o.getZoomImage()))
 				p = PREDICATE.PRIMARILYDEPICTS;
 			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false);
 			rList.add(new Reference(p.getLabel(), aor));
-
-			// RELATED ASSETS WHICH ARE NOT THE PRIMARY DERIVATIVE AND ASSOCIATED WITH THE PRIMARY ART OBJECT OR 
-			// THE PARENT OR CHILD OBJECTS OF THIS ART OBJECT, BUT NOT SIBLINGS
-			List<ArtObject> relatedObjects = CollectionUtils.newArrayList();
-			relatedObjects.add(o);
-			ArtObjectAssociation op = o.getParentAssociation();
-			if (op != null && op.getAssociatedArtObject() != null)
-				relatedObjects.add(op.getAssociatedArtObject());
-
-			List<ArtObjectAssociation> children = o.getChildAssociations();
-			if (children != null) {
-				for (ArtObjectAssociation cp : children) {
-					if (cp != null && cp.getAssociatedArtObject() != null)
-						relatedObjects.add(cp.getAssociatedArtObject());
-				}
-			}
-
-			for (ArtObject ro : relatedObjects) {
-				// OTHER ASSETS RELATED TO THIS OBJECT ARE CONSIDERED TO BE RELATED TO THE PRIMARY DERIVATIVE
-				for (Derivative d : ro.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED))) {
-					// if we're not iterating through the images of the object directly associated with the primary derivative
-					// or if we are then the primary derivative is not the one we're looking at 
-					if (!primaryImage.equals(d)) {
-						if (d != null) {
-							WebImage wi = WebImage.factory(d);
-							AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
-							rList.add(new Reference(PREDICATE.RELATEDASSET.getLabel(), air));
-						}
-					}
-				}
-			}
 		}
 
 		if (rList.isEmpty())
 			rList = null;
 
 		setReferences(rList);
+
+//			ONLY USED FOR TESTING RELATED ASSETS - NGA DOESN'T ACTUALLY HAVE ANY RELATED ASSETS
+
+//			// RELATED ASSETS WHICH ARE NOT THE PRIMARY DERIVATIVE AND ASSOCIATED WITH THE PRIMARY ART OBJECT OR 
+//			// THE PARENT OR CHILD OBJECTS OF THIS ART OBJECT, BUT NOT SIBLINGS
+//			List<ArtObject> relatedObjects = CollectionUtils.newArrayList();
+//			relatedObjects.add(o);
+//			ArtObjectAssociation op = o.getParentAssociation();
+//			if (op != null && op.getAssociatedArtObject() != null)
+//				relatedObjects.add(op.getAssociatedArtObject());
+//
+//			List<ArtObjectAssociation> children = o.getChildAssociations();
+//			if (children != null) {
+//				for (ArtObjectAssociation cp : children) {
+//					if (cp != null && cp.getAssociatedArtObject() != null)
+//						relatedObjects.add(cp.getAssociatedArtObject());
+//				}
+//			}
+//
+//			for (ArtObject ro : relatedObjects) {
+//				// OTHER ASSETS RELATED TO THIS OBJECT ARE CONSIDERED TO BE RELATED TO THE PRIMARY DERIVATIVE
+//				for (Derivative d : ro.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED))) {
+//					// if we're not iterating through the images of the object directly associated with the primary derivative
+//					// or if we are then the primary derivative is not the one we're looking at 
+//					if (!primaryImage.equals(d)) {
+//						if (d != null) {
+//							WebImage wi = WebImage.factory(d);
+//							AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
+//							rList.add(new Reference(PREDICATE.RELATEDASSET.getLabel(), air));
+//						}
+//					}
+//				}
+//			}
 	}
 
 }

@@ -109,8 +109,6 @@ public class ImageRecordController {
 			HttpServletResponse response
 	) throws IOException, APIUsageException, InterruptedException, ExecutionException {
 
-   // 	if (request.get)
-    	
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
     	String [] sourceScope = imageSearchController.getSources(request); 
     	if (sourceScope.length != 1) {

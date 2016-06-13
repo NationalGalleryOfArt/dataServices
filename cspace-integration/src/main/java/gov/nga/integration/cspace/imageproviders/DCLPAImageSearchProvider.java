@@ -174,7 +174,7 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 				ps.close();
 			}
 			tTime = System.currentTimeMillis() - cTime; cTime = System.currentTimeMillis();
-			log.info("************************ END TEMP TABLE: " + tTime + " ************************");
+			log.debug("************************ END TEMP TABLE: " + tTime + " ************************");
 			conn.close();
 		}
     	catch (SQLException se) {

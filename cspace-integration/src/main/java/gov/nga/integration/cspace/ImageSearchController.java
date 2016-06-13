@@ -147,10 +147,6 @@ public class ImageSearchController extends RecordSearchController {
     	else if (imageSearchHelper.getFilterSize() <= 0)
     		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 
-// TODO - remove after this is working
-//    	else if (imageSearchHelper.getFilterSize() > 0)
-//    		artObjects = artDataManager.getArtObjects();
-  
     	List<CSpaceImage> images = searchImages(sourceScope, aoSearchHelper, imageSearchHelper, artObjects);
 		ErrorLoggerController.logSearchResults(request, images.size());
 		
@@ -211,7 +207,7 @@ public class ImageSearchController extends RecordSearchController {
     	// these beans will have already been instantiated and are available for performing services
     	// by default spring will 
     	Map<String, ImageSearchProvider> myBeans = appContext.getBeansOfType(ImageSearchProvider.class);
-    	myBeans.forEach((k,v)->log.info(k + ":" + v.getClass().getName()));
+//    	myBeans.forEach((k,v)->log.info(k + ":" + v.getClass().getName()));
     	for (ImageSearchProvider isp : myBeans.values()) {
     		Collection<CSpaceImage> imageSubSet = null;
     		if ( isp.providesSource(sourceScope) )
