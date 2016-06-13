@@ -86,10 +86,22 @@ public class ImageRecordController {
 		 
 		return new ResponseEntity<RecordContainer>(new RecordContainer(ir), headers, HttpStatus.OK);
 	}
+    
+    // IMAGE CONTENT SERVICE
+    // catch the case where someone requests the content of an image without specifying the source.  We don't redirect in this case, we just
+    // return 400 error
+    @RequestMapping("/media/images/{id:.+}")
+    public ResponseEntity<InputStreamResource> imageContentNoSource(
+    		@PathVariable(value="id") String id,
+			HttpServletRequest request,
+			HttpServletResponse response
+	) throws IOException, APIUsageException, InterruptedException, ExecutionException {
+    	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    }
 
     // IMAGE CONTENT SERVICE
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
-    @RequestMapping("/media/{source}/images/{id}")
+    @RequestMapping("/media/{source}/images/{id:.+}")
     public ResponseEntity<InputStreamResource> imageContent(
     		@PathVariable(value="source") String source,
     		@PathVariable(value="id") String id,
@@ -97,6 +109,8 @@ public class ImageRecordController {
 			HttpServletResponse response
 	) throws IOException, APIUsageException, InterruptedException, ExecutionException {
 
+   // 	if (request.get)
+    	
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
     	String [] sourceScope = imageSearchController.getSources(request); 
     	if (sourceScope.length != 1) {

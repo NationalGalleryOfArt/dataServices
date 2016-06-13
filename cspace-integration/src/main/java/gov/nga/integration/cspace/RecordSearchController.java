@@ -93,7 +93,7 @@ public abstract class RecordSearchController {
     		lm2 = lmList.get(1);
     	
     	// if one of the supplied values is not null, then we can proceed
-    	if (!StringUtils.isNullOrEmpty(lm1) || !StringUtils.isNullOrEmpty(lm1)) {
+    	if (!StringUtils.isNullOrEmpty(lm1) || !StringUtils.isNullOrEmpty(lm2)) {
     		// take the first two
     		try {
     			

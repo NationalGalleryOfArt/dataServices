@@ -263,7 +263,7 @@ public class ObjectSearchController extends RecordSearchController {
     
 	// LASTMODIFIED FIELD
     protected static void processLastModified(SearchHelper<ArtObject> searchHelper, List<String> lastModified, List<String> cultObj_lastModified) throws APIUsageException {
-    	DateTime[] dates = getLastModifiedDates(lastModified,cultObj_lastModified,"1/1/2008");
+    	DateTime[] dates = getLastModifiedDates(lastModified,cultObj_lastModified,"2008-01-01");
     	if (dates != null && dates.length > 1) {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, ArtObject.SEARCH.LASTDETECTEDMODIFICATION, dates[0].toString(), dates[1].toString() ));
     	}
