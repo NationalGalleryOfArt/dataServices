@@ -3,6 +3,7 @@ package gov.nga.integration.cspace;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 //import org.slf4j.Logger;
@@ -53,6 +54,7 @@ import gov.nga.utils.StringUtils;
 					 "location",	"homeLocation",		"ownerNames",  		"creditLine",		"description",	"inscription",
 					 "markings",	"portfolio",		"provenanceText",	"curatorialRemarks","watermarks",	"bibliography",
 					 "catalogueRaisonneRef",			"references" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObjectRecord extends AbridgedObjectRecord {
 
 	//private static final Logger log = LoggerFactory.getLogger(ObjectRecord.class);

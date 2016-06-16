@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
 
 import gov.nga.entities.art.Derivative;
 import gov.nga.imaging.Thumbnail;
@@ -23,9 +22,11 @@ public class WebImage extends CSpaceImage {
     static {log.debug(WebImage.class.getName() + " starting up"); }
 
     public static final String defaultSource = "portfolio-dclpa";
+	private static final String CLASSIFICATION = "publishedImage";
 
 	public WebImage(ArtDataManagerService manager, ResultSet rs) throws SQLException {
 		super(manager, rs);
+		setClassifcation(WebImage.CLASSIFICATION);
 	}
 
     public WebImage factory(ResultSet rs) throws SQLException {
@@ -35,6 +36,7 @@ public class WebImage extends CSpaceImage {
     
     public WebImage(ArtDataManagerService manager) {
     	super(manager);
+    	setClassifcation(WebImage.CLASSIFICATION);
     }
     
     public static WebImage factory(Derivative d) {
@@ -43,13 +45,7 @@ public class WebImage extends CSpaceImage {
     	return newImage;
     }
 
-    public String getTitle() {
-    	ArtObject o = getArtObject();
-    	if (o != null)
-    		return o.getTitle();
-    	return null;
-    }
-    
+    @Override
 	public Thumbnail getThumbnail(int width, int height, int maxdim, boolean exactSizeRequired, boolean preferBase64, String scheme) {
 		URI protoRelativeURI = getProtocolRelativeiiifURL(null,"!"+width+","+height,null,null);
 		// absolute is the URL used for fetching data for base64 encoding

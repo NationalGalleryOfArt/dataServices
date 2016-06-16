@@ -134,7 +134,7 @@ public class ImageSearchController extends RecordSearchController {
 
     	// fetch all of the art objects matching the query and order those objects
     	// according to the specified sort order
-    	List<ArtObject> artObjects = CollectionUtils.newArrayList();
+    	List<ArtObject> artObjects = null;
     	if (aoSearchHelper.getFilterSize() > 0)
     		// execute the search using the prepared search helper if we have art object filter parameters
     		// or consider all images for objects to be in play for other criteria
@@ -202,7 +202,7 @@ public class ImageSearchController extends RecordSearchController {
     
     protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<ArtObject> aoSearchHelper, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws InterruptedException, ExecutionException { 
     	List<CSpaceImage> images = CollectionUtils.newArrayList();
-
+    	
     	// TODO - opportunity exists to multi-thread this search
     	// these beans will have already been instantiated and are available for performing services
     	// by default spring will 

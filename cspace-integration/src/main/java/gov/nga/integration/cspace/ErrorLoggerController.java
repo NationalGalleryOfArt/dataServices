@@ -1,5 +1,7 @@
 package gov.nga.integration.cspace;
 
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -103,7 +105,13 @@ public class ErrorLoggerController {
 		String url = request.getRequestURL().toString();
 		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
 			url += "?" + request.getQueryString();
-		log.info(numSearchResults + " results for " + url);
+		String message = numSearchResults + " results for " + url;
+		if (request.getMethod().equals("POST")) {
+			Map<String, String[]> m = request.getParameterMap();
+			if (m != null)
+				message += " with posted parameters " + request.getParameterMap().toString();
+		}
+		log.info(message);
 	}
 	
 }

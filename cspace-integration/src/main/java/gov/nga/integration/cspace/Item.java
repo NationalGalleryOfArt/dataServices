@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({ "url", "record", "thumbnail" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Item {
 	Record record = null;
 	URL	url = null;
@@ -33,7 +34,6 @@ public class Item {
 		this.url = url;
 	}
 
-	@JsonInclude(JsonInclude.Include.NON_NULL)
 	public String getThumbnail() {
 		return thumbnail;
 	}

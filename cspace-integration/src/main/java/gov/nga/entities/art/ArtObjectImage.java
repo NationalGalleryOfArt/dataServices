@@ -12,6 +12,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.measure.Measure;
+import javax.measure.converter.ConversionException;
+import javax.measure.quantity.Length;
+import javax.measure.unit.SI;
+
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
@@ -96,6 +101,26 @@ public class ArtObjectImage extends Derivative {
     // no facets for art object images... at least not yet
 	public List<String> getFacetValue(Object f) {
 		return CollectionUtils.newArrayList();
+	}
+	
+	public Double getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE dimensionType) {
+		Double subjectMeasurement = null;
+		ArtObject o = getArtObject();
+		if (o != null) {
+			try {
+				Measure<Double, Length> m = o.getDimension(dimensionType);
+				if (m != null) {
+					Double d = m.doubleValue(SI.CENTIMETER);
+					if (d != null && d > 0) {
+						subjectMeasurement = d;
+					}
+				}
+			}
+			catch (ConversionException ce) {
+				log.error(ce.getMessage());
+			}
+		}
+		return subjectMeasurement;
 	}
 	
 }

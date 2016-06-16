@@ -2,6 +2,7 @@ package gov.nga.integration.cspace;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.entities.art.ArtObject;
@@ -16,6 +17,7 @@ import gov.nga.utils.StringUtils;
 // SEE notes in ObjectRecord for notes about alignment of this representation with Sirma's CS integration services implementation
 
 @JsonPropertyOrder({ "namespace", "source", "id", "accessionNum", "title", "classification", "artistNames", "lastModified", "references" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
 	private static final String defaultNamespace = "cultObj";

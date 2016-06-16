@@ -2,15 +2,18 @@ package gov.nga.integration.cspace;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
 import gov.nga.utils.CollectionUtils;
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
 
 @JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", "references" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	
 	public static final String defaultNamespace = "image";
@@ -47,7 +50,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		setNamespace("image");
 		setSource(d.getSource());
 		setId(d.getImageID());
-		setClassification(defaultClassification);
+		setClassification(d.getClassification());
 		setTitle(d.getTitle());
 		setWidth(d.getWidth());
 		setHeight(d.getHeight());
@@ -126,7 +129,8 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		if (o != null) {
 			PREDICATE p = PREDICATE.DEPICTS;
 			// if this image is the primary image for the art object, then it's the primary depiction
-			if (image.equals(o.getZoomImage()))
+			Derivative d = o.getZoomImage();
+			if (d != null && image.getSource().equals(d.getSource()) && image.getImageID().equals(d.getImageID()))
 				p = PREDICATE.PRIMARILYDEPICTS;
 			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false);
 			rList.add(new Reference(p.getLabel(), aor));

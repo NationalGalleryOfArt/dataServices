@@ -53,6 +53,8 @@ public class CSpaceSpringApplicationTest {
     	"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
     	"/art/tms/objects/.json",  		"", 													"400", 			"",
     	
+    	// TODO - add specific fields expected for the various image classifications
+    	
     	// SERVICE #2: search for art objects
     	"/art/tms/objects.json", 	  	"id=1138", 												"200",			"\"total\" : 1", 		"\"thumbnail\" :",							"K05mypvXlSJLHUbaytboTR5", "",
     	"/art/tms/objects.json", 	  	"id=1138&title=mud",									"200",			"\"total\" : 0", 		"",
@@ -78,6 +80,8 @@ public class CSpaceSpringApplicationTest {
         "/art/objects.json",			"number=19&skip=8000&limit=2000&thumbnails=0&references=0",
         																						"200",			"\"total\" : 10",		"\"limit\" : 1000",	"\"skip\" : 8000", "",
         "/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//vm-imgrepo-tdp", "",
+        "/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
+        "/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "09445340-ACEC-48C7-B389-C104B32778FC", "",
         
         // SERVICE #3: IMAGE CONTENT
         "/media/web-images-repository/images/2C5EE199-D447-43F5-BB93-D2896EBB6483", "",			"200",			"image/tiff",			"",
@@ -91,9 +95,22 @@ public class CSpaceSpringApplicationTest {
         "/media/web-images-repository/images/0A78FF5D-1053-47AD-BA3D-D1C2AF4D4ADD.json", "",	"200",			"\"references", "lastModified", "",
         "/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "/media/web-images-repository/images/234234.json",		"",								"404",			"",
+        "/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
+        "/media/portfolio-dclpa/images/5284.json",				"",								"200",			
+        								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate", "\"treatmentPhase", 
+        								"\"spectrum", "\"lightQuality", "\"viewDescription", "\"photographer", "\"creator", "\"captureDevice", "\"subjectWidthCM", "\"subjectHeightCM", 
+        								"\"classification", "\"filename", "\"title", "\"source", "\"id\" : \"5284", "\"lastModified", "\"references", "id\" : \"53587\"", "\"depicts\"", "",
+        "/media/portfolio-dclpa/images/5004.json",				"",								"200",
+        								"!\"references", "!\"subjectWidthCM", "\"originalSource\"", "\"originalSourceInstitution\"", "\"classification\" : \"conservationImage\"", "",
+        "/media/web-images-repository/images/1EA96663-F651-41C0-A35C-5CBF5EE22970.json", "",	"200", "predicate\" : \"primarilyDepicts\"", "viewType\" : \"primary\"", "\"5177\"", "!subjectWidthCM", "",
+        "/media/web-images-repository/images/09445340-ACEC-48C7-B389-C104B32778FC.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
         
         // SERVICE #5: IMAGE RECORD SEARCH
-        "/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "",
+        "/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
+        "/media/images.json",									"id=FEFA3275-D783-4E4D-BB40-6A56AA2F5B39",						
+        																						"200",			"\"references",			"\"thumbnail", "publishedImage", "",
+        "/media/images.json",									"id=FEFA",						
+        																						"200",			"total\" : 0", "",
         "/media/portfolio-dclpa/images.json",					"id=2566",						"200",			"\"references",			"\"thumbnail", "",
         "/media/portfolio-dclpa/images.json",					"image:id=2566",				"200",			"\"references",			"\"thumbnail", "",
         "/media/web-images-repository/images.json", 			"id=2566",						"200",			"!\"references",		"!\"thumbnail", 	"\"total\" : 0", "",

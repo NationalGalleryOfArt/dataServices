@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace.imageproviders;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -31,22 +32,14 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 
 	private static final String[] providesSource = {ArtObjectImage.defaultSource};
 	
-	public List<CSpaceImage> searchImages(
-			SearchHelper<ArtObject> aoSearchHelper, 
-			SearchHelper<CSpaceImage> imageSearchHelper,
-			List<ArtObject> limitToTheseArtObjects) throws InterruptedException, ExecutionException {
+	private List<CSpaceImage> imageCache = null;
+	private Collection<ArtObject> objectMarker = null;
 
+	private List<CSpaceImage> getLargestImagesOfArtObjects(Collection<ArtObject> fromTheseObjects) {
 		List<CSpaceImage> images = CollectionUtils.newArrayList();
-		
-		// if we're not limiting to particular art objects, we still need to
-		// consider ALL art objects when searching for web image repository images since that's the
-		// way we get to the images in the first place
-		if (limitToTheseArtObjects == null)
-			limitToTheseArtObjects = artDataManager.getArtObjects();
-
 		// add the largest images of each type to the results
 		// loop through the list of images once, creating our initial list of Derivatives
-		for (ArtObject ao : limitToTheseArtObjects) {
+		for (ArtObject ao : fromTheseObjects) {
 			// add all images from this object to the list of Derivatives
 			List<Derivative> largest = ao.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED)); 
 			for (Derivative d : largest) {
@@ -56,12 +49,34 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 				}
 			}
 		}
+		return images;
+	}
 
-    	// execute the search across these derivatives for any derivative specific fields - other implementers will have to
+	public List<CSpaceImage> searchImages(
+			SearchHelper<ArtObject> aoSearchHelper, 
+			SearchHelper<CSpaceImage> imageSearchHelper,
+			List<ArtObject> limitToTheseArtObjects) throws InterruptedException, ExecutionException {
+
+		List<CSpaceImage> images = CollectionUtils.newArrayList();
+
+		// if we're not limiting to particular art objects, we still need to
+		// consider ALL art objects when searching for web image repository images since that's the
+		// way we get to the images in the first place
+		if (limitToTheseArtObjects != null)
+			images = getLargestImagesOfArtObjects(limitToTheseArtObjects);
+		else {
+			artDataManager.isDataReady(true);
+			// if we haven't yet cached the list of art objects or the list has changed since we cached it, then refresh it
+			if ( objectMarker == null || !objectMarker.equals(artDataManager.getArtObjectsRaw().values()) ) {
+				objectMarker = artDataManager.getArtObjectsRaw().values();
+				imageCache = getLargestImagesOfArtObjects(objectMarker);
+			}
+			images = imageCache;
+		}
+
+		// execute the search across these derivatives for any derivative specific fields - other implementers will have to
     	// do the same thing - sorting will take place afterwards
-    	images = imageSearchHelper.search(images, (ResultsPaginator) null, null, (SortHelper<Derivative>) null);
-
-    	return images;
+    	return imageSearchHelper.search(images, (ResultsPaginator) null, null, (SortHelper<Derivative>) null);
 	}
 	
 	// default modifier to prevent subclasses and other packages from acquiring an instance

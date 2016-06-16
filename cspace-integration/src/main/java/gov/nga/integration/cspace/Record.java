@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({ "namespace", "id", "source", "lastModifiedOn", "references" })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Record {
 
 	private String namespace;
@@ -13,9 +14,6 @@ public abstract class Record {
 	private String source;
     private String lastModified;
 
-    // if null, don't include it since we have an option in the search APIs to not include references at all - so we don't want to 
-	// make it appear as if there are no references - we just won't include them at all if they are null
-	@JsonInclude(JsonInclude.Include.NON_NULL)
 	private List<Reference> references;
 
 	public String getNamespace() {
