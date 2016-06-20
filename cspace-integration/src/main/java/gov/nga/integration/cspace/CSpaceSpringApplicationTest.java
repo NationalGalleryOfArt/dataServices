@@ -41,7 +41,6 @@ public class CSpaceSpringApplicationTest {
     	}
     }
     
-    static final String hostPort = "http://localhost:8100";
     static final String[] testData = {
     	// url						  	DATA													RETURN CODE		CONTENT VALIDATION #1 (! means is not present)			CONTENT VALIDATION #2, 						END VALIDATIONS WITH EMPTY STRING
     		
@@ -96,8 +95,9 @@ public class CSpaceSpringApplicationTest {
         "/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "/media/web-images-repository/images/234234.json",		"",								"404",			"",
         "/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
+        "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "\"treatmentPhase\"", "",
         "/media/portfolio-dclpa/images/5284.json",				"",								"200",			
-        								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate", "\"treatmentPhase", 
+        								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate",  
         								"\"spectrum", "\"lightQuality", "\"viewDescription", "\"photographer", "\"creator", "\"captureDevice", "\"subjectWidthCM", "\"subjectHeightCM", 
         								"\"classification", "\"filename", "\"title", "\"source", "\"id\" : \"5284", "\"lastModified", "\"references", "id\" : \"53587\"", "\"depicts\"", "",
         "/media/portfolio-dclpa/images/5004.json",				"",								"200",
@@ -137,9 +137,16 @@ public class CSpaceSpringApplicationTest {
     
     };
     
+    public String getHostPort() {
+    	String port = System.getProperty("server.port","");
+    	if (!StringUtils.isNullOrEmpty(port))
+    		port = ":" + port;
+    	return "http://localhost" + port;
+    }
+    
 	@Test
 	public void testServerIsResponding() throws Exception {
-		HttpHeaders headers = tmpl.getForEntity("http://localhost:8100", String.class).getHeaders();
+		HttpHeaders headers = tmpl.getForEntity(getHostPort(), String.class).getHeaders();
 		for (Entry<String,List<String>> e : headers.entrySet()) {
 			String k = e.getKey();
 			for (String s : e.getValue()) {
@@ -151,6 +158,7 @@ public class CSpaceSpringApplicationTest {
 	
 	@Test
 	public void testAPIs() throws Exception {
+		String hostPort = getHostPort();
 		Assert.assertTrue(testData.length > 0);
 		for (int i=0; i<testData.length; i++) {
 
