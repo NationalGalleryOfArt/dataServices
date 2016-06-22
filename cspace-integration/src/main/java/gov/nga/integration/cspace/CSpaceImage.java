@@ -44,7 +44,7 @@ public abstract class CSpaceImage extends ArtObjectImage {
     	ArtObject o = getArtObject();
     	String objectDescription = "";
     	if (o != null)
-    		objectDescription = " of " + o.getAccessionNum();
+    		objectDescription = "of " + o.getAccessionNum();
     	
     	IMGFORMAT f = getFormat();
     	String format = "unrecognized format";

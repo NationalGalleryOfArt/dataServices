@@ -175,9 +175,12 @@ public class ImageSearchController extends RecordSearchController {
     			}
     			for (CSpaceImage d : images) {
     				URL imageURL = null;
-    				String scheme = RecordSearchController.getRequestScheme(request);
+    				String[] parts = RecordSearchController.getRequestingServer(request);
     				try {
-    					imageURL = new URL(scheme,request.getServerName(),request.getServerPort(),"/media/"+d.getSource()+"/images/"+d.getImageID()+".json");
+    					if (parts[2] != null)
+    						imageURL = new URL(parts[0], parts[1], Integer.parseInt(parts[2]),"/media/"+d.getSource()+"/images/"+d.getImageID()+".json");
+    					else
+    						imageURL = new URL(parts[0], parts[1], "/media/"+d.getSource()+"/images/"+d.getImageID()+".json");
     				}
     				catch (MalformedURLException me) {
     					log.error("Problem creating image URL: " + me.getMessage());

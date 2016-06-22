@@ -49,20 +49,42 @@ public class CSpaceArtDataManager extends ArtDataManager {
         
     }
     
+    private Boolean loading=false;
+    synchronized void setLoading(Boolean loading) {
+    	this.loading = loading;
+    }
+    private Boolean isLoading() {
+    	return this.loading;
+    }
+    
     public void run() {
-    	// unload TMS data if already loaded
-    	setArtObjectsList(null);
-    	unload();
-    	// TODO -- having to clear cache manually from here isn't the best design but for only one cache at this level, it's probably fine
-    	// for now.  In future, probably a better pattern would be to implement a resetOnLoad interface and then find all classes implementing it
-    	// and call the rest operation
-        ImageThumbnailWorker.clearCache();
-    	if (!load()) {
-    		// if we are unable to load, then we will try again in one minute
-    		scheduler.schedule(this, 10, TimeUnit.SECONDS); 
+    	synchronized(loading) {
+    		// if we're already loading in another thread, don't re-load
+    		if (isLoading())
+    			return;
+    		setLoading(true);
     	}
-    	else
-    		setArtObjectsList(getArtObjects());
+    	try {
+    		// unload TMS data if already loaded
+    		setArtObjectsList(null);
+    		unload();
+    		// TODO -- having to clear cache manually from here isn't the best design but for only one cache at this level, it's probably fine
+    		// for now.  In future, probably a better pattern would be to implement a resetOnLoad interface and then find all classes implementing it
+    		// and call the rest operation
+    		if (!load()) {
+    			// if we are unable to load, then we will try again in ten seconds
+    			scheduler.schedule(this, 10, TimeUnit.SECONDS); 
+    		}
+    		else
+    			setArtObjectsList(getArtObjects());
+    		ImageThumbnailWorker.clearCache(); 
+    	}
+    	catch (Exception e) {
+    		log.error("Error loading data e",e);
+    	}
+    	finally {
+    		setLoading(false);
+    	}
     }
         
     // we unload all data upon destruction of this component
@@ -76,10 +98,11 @@ public class CSpaceArtDataManager extends ArtDataManager {
     // reload TMS data every 10 minutes
     // TODO merge this cron with an application property
     @Scheduled(cron="0 0 8 * * *")
+//    @Scheduled(cron="0 */2 * * * *") // for testing a problem encountered during refresh under load
     public void refreshData() {
     	// TODO - rework this to support refreshing without unloading the existing data from memory
     	log.info("****************** REFRESH OF TMS DATA RUNNING **********************");
-    	scheduler.schedule(this, 0, TimeUnit.SECONDS);
+    	run();
     }
 
     private List<ArtObject> artObjectsList = null;

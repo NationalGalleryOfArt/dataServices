@@ -26,7 +26,7 @@ import gov.nga.entities.art.ArtObjectDimension;
 @JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", 
 					 "viewType", "sequence", "filename", "description", "subjectWidthCM", "subjectHeightCM", 
 					 "originalSource", "originalSourceType", "originalFilename", "projectDescription", "lightQuality",
-					 "spectrum", "captureDevice", "sourceInstitution", "photographer", "productionDate", "creator", 
+					 "spectrum", "captureDevice", "originalSourceInstitution", "photographer", "productionDate", "creator", 
 					 "viewDescription", "treatmentPhase", "productType", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ImageRecord extends AbridgedImageRecord {

@@ -128,13 +128,29 @@ public abstract class RecordSearchController {
     	return new DateTime[]{};
     }
 
-    public static String getRequestScheme(HttpServletRequest request) {
-		String scheme = request.getHeader("X-Forwarded-Proto");
+    public static String[] getRequestingServer(HttpServletRequest request) {
+    	//if (StringUtils.isNullOrEmpty(request.getHeader("X-Forwarded-Port");
+		//String port = request.getHeader("X-Forwarded-Port");
+		//if (StringUtils.isNullOrEmpty(port)) {
+		//	port = request.getServerPort() + "";
+		//}
+    	String port = null;
+    	String scheme = request.getHeader("X-Forwarded-Proto");
 		if (StringUtils.isNullOrEmpty(scheme)) {
 			String sslOn = request.getHeader("X-Forwarded-SSL");
 			scheme = StringUtils.isNullOrEmpty(sslOn) ? request.getScheme() : "https"; 
 		}
-		return scheme;
+		String host = request.getHeader("X-Forwarded-Host");
+		if (StringUtils.isNullOrEmpty(host)) {
+			host = request.getServerName(); 
+			port = request.getServerPort() + "";
+		}
+		else {
+			host = host.replace("[", "");
+			host = host.replace("]", "");
+		}
+
+		return new String[] {scheme,host,port};
 	}
     
 

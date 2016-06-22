@@ -3,14 +3,12 @@ package gov.nga.integration.cspace.imageproviders;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,13 +95,6 @@ public class DCLPAImage extends CSpaceImage {
     	super(manager);
     }
 
-    private void setCatalogued(Date catalogued) {
-    	if (catalogued != null) {
-    		DateTime dt = new DateTime(catalogued);
-    		setCatalogued(dt.toString());
-    	}
-    }
-  
     private void setTmsObjectID(String objectID) {
     	if (objectID != null) {
     		try {

@@ -163,9 +163,13 @@ public class ObjectSearchController extends RecordSearchController {
     			}
     			for (ArtObject o : artObjects) {
     				URL objectURL = null;
-    				String scheme = RecordSearchController.getRequestScheme(request);
+    				String[] parts = RecordSearchController.getRequestingServer(request);
+    				
     				try {
-    					objectURL = new URL(scheme,request.getServerName(),request.getServerPort(),"/art/tms/objects/"+o.getObjectID()+".json");
+    					if (parts[2] != null)
+    						objectURL = new URL(parts[0], parts[1], Integer.parseInt(parts[2]),"/art/tms/objects/"+o.getObjectID()+".json");
+    					else
+    						objectURL = new URL(parts[0], parts[1], "/art/tms/objects/"+o.getObjectID()+".json");
     				}
     				catch (MalformedURLException me) {
     					log.error("Problem creating object URL: " + me.getMessage());

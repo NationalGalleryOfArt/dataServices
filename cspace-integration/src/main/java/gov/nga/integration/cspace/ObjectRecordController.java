@@ -36,6 +36,8 @@ public class ObjectRecordController {
 	) {
     	return objectRecordSource(null, id, request, response);
     }
+    
+    // TODO - log every request since we're not doing that right now - or since we're searching anyway, log in the search instead
 
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
     @RequestMapping("/art/{source}/objects/{id}.json")

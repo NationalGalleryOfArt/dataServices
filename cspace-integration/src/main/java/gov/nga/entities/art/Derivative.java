@@ -9,10 +9,12 @@ import gov.nga.search.SortOrder;
 import gov.nga.search.Sortable;
 import gov.nga.search.Sorter;
 import gov.nga.utils.CollectionUtils;
+import gov.nga.utils.DateUtils;
 import gov.nga.utils.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -610,6 +612,12 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
     
     public void setCatalogued(String catalogued) {
     	this.catalogued = catalogued;
+    }
+    
+    protected void setCatalogued(Date catalogued) {
+    	if (catalogued != null) {
+    		setCatalogued(DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, catalogued));
+    	}
     }
     
     private String source = null;
