@@ -616,7 +616,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
     
     protected void setCatalogued(Date catalogued) {
     	if (catalogued != null) {
-    		setCatalogued(DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, catalogued));
+    		setCatalogued(DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, catalogued));
     	}
     }
     

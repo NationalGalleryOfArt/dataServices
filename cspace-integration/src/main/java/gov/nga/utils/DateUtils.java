@@ -16,7 +16,9 @@ public class DateUtils {
 	public static final String DATE_FORMAT_MMMMD  = "MMMM d";
 	public static final String DATE_FORMAT_YYYY = "yyyy";
 	public static final String DATE_FORMAT_ISO_8601 = "yyyy-MM-dd";
+	@Deprecated
 	public static final String DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ = "yyyy-MM-dd'T'HH:mm:ssZ";
+	public static final String DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT = "yyyy-MM-dd'T'HH:mm:ssXXX";
 
 	private static final Logger logger = LoggerFactory.getLogger(DateUtils.class); 
 

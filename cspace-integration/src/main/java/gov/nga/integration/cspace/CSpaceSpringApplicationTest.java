@@ -47,6 +47,7 @@ public class CSpaceSpringApplicationTest {
     	// SERVICE #1 : art object record
     	"/art/tms/objects/1138.json", 	"", 													"200", 			"\"artistNames\" : \"Giovanni Bellini (artist);", 		"\"predicate\" : \"hasPrimaryDepiction\"",	"",
     	"/art/tms/objects/999999.json", "", 													"404",			"",
+    	"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2013-04-05T14:59:09-04:00\"", "",
     	"/art/tms2/objects/1138.json", 	"", 													"404",			"",
     	"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
@@ -96,6 +97,7 @@ public class CSpaceSpringApplicationTest {
         "/media/web-images-repository/images/234234.json",		"",								"404",			"",
         "/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
         "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "\"treatmentPhase\"", "",
+        "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"lastModified\" : \"2015-10-26T00:00:00-04:00\"", "",
         "/media/portfolio-dclpa/images/5284.json",				"",								"200",			
         								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate",  
         								"\"spectrum", "\"lightQuality", "\"viewDescription", "\"photographer", "\"creator", "\"captureDevice", "\"subjectWidthCM", "\"subjectHeightCM", 

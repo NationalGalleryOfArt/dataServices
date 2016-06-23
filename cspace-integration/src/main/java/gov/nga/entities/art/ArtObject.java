@@ -248,7 +248,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		watermarks					= rs.getString(38);
 		// TODO consider making below a timestamp rather than a string for faster comparisons
 		// although this will require a number of new filter tests in search filter I think
-		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, rs.getTimestamp(39));
+		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, rs.getTimestamp(39));
 		isPublic					= TypeUtils.getLong(rs, 40);
 	
 		// pre-compute commonly used collation keys to speed up sort routines

@@ -81,7 +81,7 @@ public class ArtObjectImage extends Derivative {
                 manager, 
                 rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4),
                 TypeUtils.getLong(rs, 5), TypeUtils.getLong(rs, 6), TypeUtils.getLong(rs, 7), TypeUtils.getLong(rs, 8), 
-                rs.getString(9), rs.getString(10), TypeUtils.getLong(rs, 11), DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ, rs.getTimestamp(12))
+                rs.getString(9), rs.getString(10), TypeUtils.getLong(rs, 11), DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, rs.getTimestamp(12))
         );
     }
 
