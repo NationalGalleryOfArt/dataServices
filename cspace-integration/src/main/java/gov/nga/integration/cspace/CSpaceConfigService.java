@@ -3,17 +3,21 @@ package gov.nga.integration.cspace;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import gov.nga.utils.ConfigService;
 
 @Configuration
-@Component
-public class CSpaceConfigService implements ConfigService {
+@Service
+public class CSpaceConfigService implements ConfigService, CSpaceTestModeService {
 	
 	public static final String thumbnailWidthProperty 	= "thumbnailWidth";
 	public static final String thumbnailHeightProperty 	= "thumbnailHeight";
-
+	
+	public static final String multiTenancyTestMode = "testMode";
+	public static final String multiTenancyTestModeHalfObjects = "halfObjects";
+	public static final String multiTenancyTestModeOtherHalfObjects = "otherHalfObjectsWithOntologyChanges";
+	
 	@Autowired
 	private Environment env;
 	
@@ -31,6 +35,15 @@ public class CSpaceConfigService implements ConfigService {
 		
 		return env.getProperty("ngaweb."+propertyName, Integer.class);
 	}
-
+	
+	public boolean isTestModeHalfObjects() {
+		String testmode = getString(multiTenancyTestMode);
+		return testmode != null && testmode.equals(multiTenancyTestModeHalfObjects);
+	}
+	
+	public boolean isTestModeOtherHalfObjects() {
+		String testmode = getString(multiTenancyTestMode);
+		return testmode != null && testmode.equals(multiTenancyTestModeOtherHalfObjects);
+	}
 
 }

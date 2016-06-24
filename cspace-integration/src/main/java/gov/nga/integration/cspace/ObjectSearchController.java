@@ -68,6 +68,9 @@ public class ObjectSearchController extends RecordSearchController {
 	    
     @Autowired
     private ArtDataManagerService artDataManager;
+    
+    @Autowired
+    private CSpaceTestModeService ts;
 
     @RequestMapping(value={"/art/objects.json","/art/{source}/objects.json"})
     public ResponseEntity<Items> objectRecordsSource (
@@ -144,6 +147,9 @@ public class ObjectSearchController extends RecordSearchController {
     			Map<Long,Future<String>> thumbnailMap = CollectionUtils.newHashMap();
     			if (thumbnails) {
     				
+    				if (ts.isTestModeOtherHalfObjects())
+    					base64 = false;
+    				
     				int thumbWidth = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailWidthProperty);
     				int thumbHeight = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailHeightProperty);
     				// submit the work to fetch thumbnails and compute base64 values of them
@@ -154,7 +160,7 @@ public class ObjectSearchController extends RecordSearchController {
     					if (d == null)
     						d = o.getLargeThumbnail(ImgSearchOpts.FALLBACKTOLARGESTFIT);
     					if (d != null) {
-    						WebImage wi = WebImage.factory(d);
+    						WebImage wi = WebImage.factory(d,ts);
     						Callable<String> thumbWorker = new ImageThumbnailWorker(wi,thumbWidth,thumbHeight,base64);
     						Future<String> future = threadPool.submit(thumbWorker);
     						thumbnailMap.put(o.getObjectID(), future);
@@ -174,7 +180,7 @@ public class ObjectSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating object URL: " + me.getMessage());
     				}
-    				Record objectRecord = new AbridgedObjectRecord(o, references);
+    				Record objectRecord = new AbridgedObjectRecord(o, references, ts);
     				Future<String> thumb = thumbnailMap.get(o.getObjectID());
     				String thumbVal = (thumb == null ? null : thumb.get());
     				partialResults.add(new Item(objectURL, thumbVal, objectRecord));

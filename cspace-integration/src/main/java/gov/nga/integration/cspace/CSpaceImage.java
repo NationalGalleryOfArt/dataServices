@@ -17,12 +17,12 @@ public abstract class CSpaceImage extends ArtObjectImage {
     private static final String CLASSIFICATION = "image";
 	public CSpaceImage(ArtDataManagerService manager) {
         super(manager);
-        setClassifcation(CSpaceImage.CLASSIFICATION);
+        setClassification(CSpaceImage.CLASSIFICATION);
     }
     
     public CSpaceImage(ArtDataManagerService manager, ResultSet rs) throws SQLException  {
         super(manager, rs); 
-        setClassifcation(CSpaceImage.CLASSIFICATION);
+        setClassification(CSpaceImage.CLASSIFICATION);
     }
 
     // return a thumbnail as close as possible to the desired size (or exact size only if an exact size is required
@@ -35,7 +35,7 @@ public abstract class CSpaceImage extends ArtObjectImage {
 	public String getClassification() {
 		return classification;
 	}
-	public void setClassifcation(String classification) {
+	public void setClassification(String classification) {
 		this.classification=classification;
 	}
     

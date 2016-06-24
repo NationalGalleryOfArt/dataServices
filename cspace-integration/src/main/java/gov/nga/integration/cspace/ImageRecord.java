@@ -24,7 +24,7 @@ import gov.nga.entities.art.ArtObjectDimension;
 
 	 
 @JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", 
-					 "viewType", "sequence", "filename", "description", "subjectWidthCM", "subjectHeightCM", 
+					 "viewType", "partner2ViewType", "sequence", "filename", "description", "subjectWidthCM", "subjectHeightCM", 
 					 "originalSource", "originalSourceType", "originalFilename", "projectDescription", "lightQuality",
 					 "spectrum", "captureDevice", "originalSourceInstitution", "photographer", "productionDate", "creator", 
 					 "viewDescription", "treatmentPhase", "productType", "references" })
@@ -38,6 +38,7 @@ public class ImageRecord extends AbridgedImageRecord {
 	private String
 		sequence,
 		viewType,
+		partner2ViewType,
 		filename,				// we should have this for the most part
 		description,			// not clear what this would be used for, but listed as optional in CS integration spec - perhaps portfolio?
 		subjectWidthCM,
@@ -57,18 +58,18 @@ public class ImageRecord extends AbridgedImageRecord {
 		productionDate,
 		productType;
     
-    public ImageRecord(CSpaceImage d) {
-    	this(d, true);
-    }
-       
-    public ImageRecord(CSpaceImage d, boolean references) {
-    	super(d,references);
+    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts) {
+    	super(d,references,ts);
     	if (d == null)
     		return;
     	BeanUtils.copyProperties(d, this);
     	setSequence(d.getSequence());
-    	if (d.getViewType() != null)
-    		setViewType(d.getViewType().getLabel());
+    	if (d.getViewType() != null) {
+    		if (ts.isTestModeOtherHalfObjects())
+    			partner2ViewType = d.getViewType().getLabel();
+    		else
+    			setViewType(d.getViewType().getLabel());
+    	}
     	setFilename(d.getFilename());
     	setDescription(null);			// no description for this type of image record
     	setSubjectWidthCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.WIDTH));
@@ -81,6 +82,10 @@ public class ImageRecord extends AbridgedImageRecord {
 
 	private void setSequence(String sequence) {
 		this.sequence = sequence;
+	}
+	
+	public String getPartner2ViewType() {
+		return partner2ViewType;
 	}
 
 	public String getViewType() {

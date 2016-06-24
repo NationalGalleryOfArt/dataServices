@@ -181,7 +181,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		super(manager);
 	}
 
-	protected static final String fetchAllObjectsQuery = 
+	public static String fetchAllObjectsQuery = 
 			"SELECT fingerprint, objectID, accessioned, accessionNum, locationID, " +
 					"       title, displayDate, beginYear, endYear, visualBrowserTimespan, " +
 					"       attributionInverted, attribution," +
@@ -1706,6 +1706,9 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 	}
 
 	private String title = null;
+	public void setTitle(String title) {
+		this.title = title;
+	}
 	public String getTitle() {
 		return title;
 	}
@@ -2094,6 +2097,9 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 	}
 
 	private String lastDetectedModification=null;
+	public void setLastDetectedModification(String lastDetectedModification) {
+		this.lastDetectedModification = lastDetectedModification;
+	}
 	public String getLastDetectedModification() {
 		return lastDetectedModification;
 	}

@@ -15,6 +15,7 @@ import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.Derivative;
 import gov.nga.imaging.Thumbnail;
 import gov.nga.integration.cspace.CSpaceImage;
+import gov.nga.integration.cspace.CSpaceTestModeService;
 
 public class WebImage extends CSpaceImage {
 	
@@ -23,30 +24,37 @@ public class WebImage extends CSpaceImage {
 
     public static final String defaultSource = "portfolio-dclpa";
 	private static final String CLASSIFICATION = "publishedImage";
-
-	public WebImage(ArtDataManagerService manager, ResultSet rs) throws SQLException {
+	
+	public WebImage(ArtDataManagerService manager, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
 		super(manager, rs);
-		setClassifcation(WebImage.CLASSIFICATION);
+		if ( ts.isTestModeOtherHalfObjects() )
+			setClassification("partner2" + WebImage.CLASSIFICATION);
+		else
+			setClassification(WebImage.CLASSIFICATION);
 	}
 
-    public WebImage factory(ResultSet rs) throws SQLException {
-        WebImage d = new WebImage(getManager(),rs);
-        return d; 
-    }
+//    public WebImage factory(ResultSet rs, CSpaceTestModeService ts) throws SQLException {
+//        WebImage d = new WebImage(getManager(),rs, ts);
+//        return d; 
+//    }
     
-    public WebImage(ArtDataManagerService manager) {
+    public WebImage(ArtDataManagerService manager, CSpaceTestModeService ts) {
     	super(manager);
-    	setClassifcation(WebImage.CLASSIFICATION);
+		if ( ts.isTestModeOtherHalfObjects() )
+			setClassification("partner2" + WebImage.CLASSIFICATION);
+		else
+			setClassification(WebImage.CLASSIFICATION);
     }
     
-    public static WebImage factory(Derivative d) {
-    	WebImage newImage = new WebImage(d.getManager());
+    public static WebImage factory(Derivative d, CSpaceTestModeService ts) {
+    	WebImage newImage = new WebImage(d.getManager(), ts);
     	BeanUtils.copyProperties(d, newImage);
     	return newImage;
     }
 
     @Override
 	public Thumbnail getThumbnail(int width, int height, int maxdim, boolean exactSizeRequired, boolean preferBase64, String scheme) {
+    	
 		URI protoRelativeURI = getProtocolRelativeiiifURL(null,"!"+width+","+height,null,null);
 		// absolute is the URL used for fetching data for base64 encoding
 		URL absoluteURL = null;

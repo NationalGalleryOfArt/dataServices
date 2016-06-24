@@ -16,6 +16,7 @@ import gov.nga.entities.art.ArtDataManagerService;
 
 import gov.nga.imaging.Thumbnail;
 import gov.nga.integration.cspace.CSpaceImage;
+import gov.nga.integration.cspace.CSpaceTestModeService;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.db.DataSourceService;
 
@@ -42,16 +43,19 @@ public class DCLPAImage extends CSpaceImage {
     	return fetchAllImagesQuery;
     }
 
-	public DCLPAImage(ArtDataManagerService manager, ResultSet rs, DataSourceService dclpaDS) throws SQLException {
-		this(manager,rs);
+	public DCLPAImage(ArtDataManagerService manager, ResultSet rs, DataSourceService dclpaDS, CSpaceTestModeService ts) throws SQLException {
+		this(manager,rs,ts);
 		this.dclpaDS = dclpaDS;
 	}
 
-	public DCLPAImage(ArtDataManagerService manager, ResultSet rs) throws SQLException {
+	public DCLPAImage(ArtDataManagerService manager, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
 		super(manager);
 		
 		setSource(defaultSource);
-		setClassifcation(DCLPAImage.CLASSIFICATION);
+		if (ts.isTestModeOtherHalfObjects())
+			setClassification("partner2" + DCLPAImage.CLASSIFICATION);
+		else
+			setClassification(DCLPAImage.CLASSIFICATION);
 		int i = 1;
 		
 		setImageID(rs.getString(i++));
@@ -86,10 +90,10 @@ public class DCLPAImage extends CSpaceImage {
 		setProductType(			rs.getString(i++));
 	}
 
-    public DCLPAImage factory(ResultSet rs) throws SQLException {
-        DCLPAImage d = new DCLPAImage(getManager(),rs);
-        return d; 
-    }
+//    public DCLPAImage factory(ResultSet rs, CS) throws SQLException {
+//        DCLPAImage d = new DCLPAImage(getManager(),rs, ts);
+//        return d; 
+//    }
     
     public DCLPAImage(ArtDataManagerService manager) {
     	super(manager);

@@ -23,6 +23,7 @@ import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.integration.cspace.CSpaceImage;
+import gov.nga.integration.cspace.CSpaceTestModeService;
 import gov.nga.search.SearchFilter;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SearchHelper.SEARCHOP;
@@ -50,6 +51,9 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 	
 	@Autowired
 	private ArtDataManagerService artDataManager;
+	
+	@Autowired
+	CSpaceTestModeService ts;
 
 	// TODO the image record controller should be modified to use search with a specific source rather than a dedicated fetch
 	public List<CSpaceImage> searchImages(
@@ -165,7 +169,7 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 						while (rs.next()) {
 							// TODO - done already? I think the approach here should be to create a fully populated image (without all of the references, etc.) and then
 							// dumb it down to create the abridged images in the overall response
-							DCLPAImage image = new DCLPAImage(artDataManager,rs,dclpaDataSource);
+							DCLPAImage image = new DCLPAImage(artDataManager,rs,dclpaDataSource,ts);
 							imageHitList.add(image);
 						}
 					}

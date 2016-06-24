@@ -31,6 +31,9 @@ public class ImageRecordController {
 	
 	@Autowired
 	ImageSearchController imageSearchController;
+	
+	@Autowired
+	CSpaceTestModeService ts;
 
 	private static final Logger log = LoggerFactory.getLogger(ImageRecordController.class);
     
@@ -80,7 +83,7 @@ public class ImageRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the unique image and can construct an appropriate response
-    	ImageRecord ir = new ImageRecord(images.get(0));
+    	ImageRecord ir = new ImageRecord(images.get(0), true, ts);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		 

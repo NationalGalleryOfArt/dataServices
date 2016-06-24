@@ -27,6 +27,9 @@ public class ObjectRecordController {
     
     @Autowired
     private ArtDataManagerService artDataManager;
+    
+    @Autowired
+    private CSpaceTestModeService ts;
 
     @RequestMapping("/art/objects/{id}.json")
     public ResponseEntity<RecordContainer> objectRecordNoSource(
@@ -77,7 +80,7 @@ public class ObjectRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the art object and can construct a response
-    	ObjectRecord or = new ObjectRecord(o,artDataManager.getLocationsRaw());
+    	ObjectRecord or = new ObjectRecord(o,artDataManager.getLocationsRaw(),ts);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		 

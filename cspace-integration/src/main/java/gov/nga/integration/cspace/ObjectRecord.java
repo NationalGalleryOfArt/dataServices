@@ -67,6 +67,7 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String medium;
     private String dimensions;
     private String departmentAbbr;
+    private String partner2departmentAbbr;
     private List<String> location;
     private List<String> homeLocation;
     private String ownerNames;
@@ -81,15 +82,16 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String bibliography;
     private String catalogueRaisonneRef;
     
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs) {
-    	this(o,locs,true);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts) {
+    	this(o,locs,true, ts);
     }
        
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references) {
-    	super(o,references);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts) {
+    	super(o,references, ts);
     	if (o == null)
     		return;
-        setSubClassification(o.getSubClassification());
+    	if (!ts.isTestModeOtherHalfObjects())
+    		setSubClassification(o.getSubClassification());
         this.ownerNames = constituentNames(o.getOwners());
         setAttribution(o.getAttribution());
         setBibliography(o.getBibliography());
@@ -101,7 +103,10 @@ public class ObjectRecord extends AbridgedObjectRecord {
         setPortfolio(o.getPortfolio());
         setDimensions(o.getDimensions());
         setProvenanceText(StringUtils.removeOnlyHTMLAndFormatting(o.getProvenanceText()));
-        setDepartmentAbbr(o.getDepartmentAbbr());
+        if (ts.isTestModeOtherHalfObjects())
+        	partner2departmentAbbr = o.getDepartmentAbbr();
+        else
+        	setDepartmentAbbr(o.getDepartmentAbbr());
         setDescription(StringUtils.removeOnlyHTMLAndFormatting(o.getDescription()));
         setCuratorialRemarks(StringUtils.removeOnlyHTMLAndFormatting(o.getCuratorialRemarks()));
         setWatermarks(o.getWatermarks());
@@ -232,6 +237,10 @@ public class ObjectRecord extends AbridgedObjectRecord {
 
 	public String getDepartmentAbbr() {
 		return departmentAbbr;
+	}
+
+	public String getPartner2departmentAbbr() {
+		return partner2departmentAbbr;
 	}
 
 	public void setDepartmentAbbr(String departmentAbbr) {

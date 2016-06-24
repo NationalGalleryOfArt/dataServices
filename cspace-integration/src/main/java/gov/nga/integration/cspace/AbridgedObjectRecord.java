@@ -27,6 +27,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 	private String title;						// optional field, but searchable, so including it in abridged object used in search results
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
+    
+    private static boolean testmode = false;
 
 	public enum PREDICATE {
 		HASPARENT("hasParent"),
@@ -35,6 +37,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
 		private String label;
 		public String getLabel() {
+			if (testmode)
+				return "partner2" + label;
 			return label;
 		}
 
@@ -43,12 +47,14 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		};
 	};
 
-	public AbridgedObjectRecord(ArtObject o, boolean references) {
+	public AbridgedObjectRecord(ArtObject o, boolean references, CSpaceTestModeService ts) {
 		if (o == null)
 			return;
-		
+
+		testmode = ts.isTestModeOtherHalfObjects();
+
 		if (references)
-			setReferences(o);
+			setReferences(o, ts);
 		setNamespace(defaultNamespace);
 		setSource("tms");
 		setId(o.getObjectID().toString());
@@ -118,20 +124,19 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		return cNames;
 	}
 	
-	public void setReferences(ArtObject o) {
-
+	public void setReferences(ArtObject o, CSpaceTestModeService ts) {
 		List<Reference> rList = CollectionUtils.newArrayList();
 		// first we go through the related objects
 		ArtObjectAssociation aop = o.getParentAssociation();
 		if (aop != null) {
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(),false);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(),false,ts);
 			rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASPARENT.getLabel(), aor));
 		}
 		List<ArtObjectAssociation> l = o.getChildAssociations();
 		if (l != null) {
 			for (ArtObjectAssociation aoc : l) {
 				if (aoc != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(),false);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(),false,ts);
 					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASCHILD.getLabel(), aor));
 				}
 			}
@@ -140,7 +145,7 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		if (l!= null) {
 			for (ArtObjectAssociation aos : l) {
 				if (aos != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(),false);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(),false,ts);
 					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASSIBLING.getLabel(), aor));
 				}
 			}		
@@ -149,8 +154,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		for (Derivative d : o.getLargestImages()) {
 			if (d == null)
 				break;
-			WebImage wi = WebImage.factory(d);
-			AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
+			WebImage wi = WebImage.factory(d, ts);
+			AbridgedImageRecord air = new AbridgedImageRecord(wi,false,ts);
 			if (ArtObjectImage.isPrimaryView(wi)) {
 				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
 			}

@@ -18,6 +18,8 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	
 	public static final String defaultNamespace = "image";
 	public static final String defaultClassification = "image";
+	
+	private static boolean testmode = false;
 
 	public enum PREDICATE {
 		HASPRIMARYDEPICTION("hasPrimaryDepiction"),
@@ -28,6 +30,8 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		
 		private String label;
 		public String getLabel() {
+			if (testmode)
+				return "partner2" + label;
 			return label;
 		}
 		
@@ -42,11 +46,12 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	private Long width;				// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
 	private Long height;			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
 	
-	public AbridgedImageRecord(CSpaceImage d) {
-		this(d,true);
-	}
+//	public AbridgedImageRecord(CSpaceImage d) {
+//		this(d,true);
+//	}
 	
-	public AbridgedImageRecord(CSpaceImage d, boolean references) {
+	public AbridgedImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts) {
+		testmode = ts.isTestModeOtherHalfObjects();
 		setNamespace("image");
 		setSource(d.getSource());
 		setId(d.getImageID());
@@ -56,7 +61,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		setHeight(d.getHeight());
 
 		if (references)
-			setReferences(d);
+			setReferences(d,ts);
 		
 		// A BETTER WAY OF DETERMINING MIME-TYPES
 		// String mimeType = Magic.getMagicMatch(file, false).getMimeType(); from the jMimeMagic library
@@ -120,7 +125,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		this.title = title;
 	}
 	
-	public void setReferences(CSpaceImage image) {
+	public void setReferences(CSpaceImage image, CSpaceTestModeService ts) {
 		List<Reference> rList = CollectionUtils.newArrayList();
 
 		// ART OBJECT RELATIONSHIPS TO THIS IMAGE - WE DON'T CURRENTLY SUPPORT MULTIPLE ASSOCIATIONS BUT WE WILL PROBABLY
@@ -132,7 +137,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			Derivative d = o.getZoomImage();
 			if (d != null && image.getSource().equals(d.getSource()) && image.getImageID().equals(d.getImageID()))
 				p = PREDICATE.PRIMARILYDEPICTS;
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false,ts);
 			rList.add(new Reference(p.getLabel(), aor));
 		}
 

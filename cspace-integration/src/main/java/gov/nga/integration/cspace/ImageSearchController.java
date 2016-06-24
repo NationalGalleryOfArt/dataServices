@@ -79,6 +79,12 @@ public class ImageSearchController extends RecordSearchController {
     
     @Autowired
     private ApplicationContext appContext;
+    
+    @Autowired 
+    private CSpaceConfigService cs;
+    
+    @Autowired
+    private CSpaceTestModeService ts;
 
     @RequestMapping(value={"/media/images.json","/media/{source}/images.json"})
     public ResponseEntity<Items> imageRecordsSource (
@@ -166,6 +172,10 @@ public class ImageSearchController extends RecordSearchController {
     			// Map used to accumulate the thumbnail computations from Futures
     			Map<Object,Future<String>> thumbnailMap = CollectionUtils.newHashMap();
     			if (thumbnails) {
+    				
+    				if (cs.isTestModeOtherHalfObjects())
+    					base64 = false;
+    				
     				// submit the work to fetch thumbnails and compute base64 values of them
     				for (CSpaceImage d : images) {
     					Callable<String> thumbWorker = new ImageThumbnailWorker(d,thumbWidth,thumbHeight,base64);
@@ -185,7 +195,7 @@ public class ImageSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating image URL: " + me.getMessage());
     				}
-    				Record imageRecord = new AbridgedImageRecord(d, references);
+    				Record imageRecord = new AbridgedImageRecord(d, references, ts);
     				Future<String> thumb = thumbnailMap.get(d);
     				String thumbVal = (thumb == null ? null : thumb.get());
     				resultPage.add(new Item(imageURL, thumbVal, imageRecord));

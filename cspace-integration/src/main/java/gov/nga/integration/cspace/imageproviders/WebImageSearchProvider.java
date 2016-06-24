@@ -15,6 +15,7 @@ import gov.nga.entities.art.ArtObjectImage;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
 import gov.nga.integration.cspace.CSpaceImage;
+import gov.nga.integration.cspace.CSpaceTestModeService;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SortHelper;
@@ -29,6 +30,9 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 	
 	@Autowired
 	ArtDataManager artDataManager;
+	
+	@Autowired
+	CSpaceTestModeService ts;
 
 	private static final String[] providesSource = {ArtObjectImage.defaultSource};
 	
@@ -44,7 +48,7 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 			List<Derivative> largest = ao.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED)); 
 			for (Derivative d : largest) {
 				if (d != null) {
-					WebImage w = WebImage.factory(d); 	// create a copy of the Derivative as a WebImage instead
+					WebImage w = WebImage.factory(d, ts); 	// create a copy of the Derivative as a WebImage instead
 					images.add(w);
 				}
 			}
