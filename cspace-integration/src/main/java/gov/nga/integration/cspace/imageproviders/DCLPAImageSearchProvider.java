@@ -57,7 +57,7 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 
 	// TODO the image record controller should be modified to use search with a specific source rather than a dedicated fetch
 	public List<CSpaceImage> searchImages(
-			SearchHelper<ArtObject> aoSearchHelper, 
+//			SearchHelper<ArtObject> aoSearchHelper, 
 			SearchHelper<CSpaceImage> imageSearchHelper,
 			List<ArtObject> limitToTheseArtObjects) {
 
@@ -135,7 +135,10 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 		try ( Connection conn = dclpaDataSource.getConnection() ) {
 			
 			// PACK THE OBJECT IDS INTO A DENSE ARRAY OF BINARY DATA TO SEND TO A STORED PROCEDURE THAT PARSES THEM
-			if (limitToTheseObjects != null && limitToTheseObjects.size() > 0) {
+			if (limitToTheseObjects != null) {
+				// return no images if there was a constraint on the objects but no objects were returned in the search
+				if (limitToTheseObjects.size() < 1)
+					return imageHitList;
 				limit = true;
 				int size = limitToTheseObjects.size();
 				byte[] bytes = new byte[(Integer.SIZE/8)*size];

@@ -30,11 +30,11 @@ import gov.nga.utils.StringUtils;
 public class ImageRecordController {
 	
 	@Autowired
-	ImageSearchController imageSearchController;
+	private ImageSearchController imgCtrl;
 	
 	@Autowired
-	CSpaceTestModeService ts;
-
+	private CSpaceTestModeService ts;
+	
 	private static final Logger log = LoggerFactory.getLogger(ImageRecordController.class);
     
     @RequestMapping("/media/images/{id}.json")
@@ -59,7 +59,7 @@ public class ImageRecordController {
     	log.debug("SOURCE: " + source);
     	
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
-    	String [] sourceScope = imageSearchController.getSources(request); 
+    	String [] sourceScope = imgCtrl.getSources(request); 
     	if (sourceScope.length != 1) {
     		try {
     			return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(new URI(response.encodeRedirectURL("/media/images.json?id="+id))).body(null);
@@ -77,15 +77,17 @@ public class ImageRecordController {
     	// search the specified image source to find the record we're interested in 
     	SearchHelper<CSpaceImage> dSearchHelper = new SearchHelper<CSpaceImage>();
     	dSearchHelper.addFilter(Derivative.SEARCH.IMAGEID, SEARCHOP.EQUALS, id);
-    	List<CSpaceImage> images = imageSearchController.searchImages(sourceScope, null, dSearchHelper, null);
+    	List<CSpaceImage> images = imgCtrl.searchImages(sourceScope, dSearchHelper, null);
 
     	if (images == null || images.size() != 1)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the unique image and can construct an appropriate response
-    	ImageRecord ir = new ImageRecord(images.get(0), true, ts);
+    	ImageRecord ir = new ImageRecord(images.get(0), true, ts, imgCtrl);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		RecordSearchController.logSearchResults(request, 1);
 		 
 		return new ResponseEntity<RecordContainer>(new RecordContainer(ir), headers, HttpStatus.OK);
 	}
@@ -113,7 +115,7 @@ public class ImageRecordController {
 	) throws IOException, APIUsageException, InterruptedException, ExecutionException {
 
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
-    	String [] sourceScope = imageSearchController.getSources(request); 
+    	String [] sourceScope = imgCtrl.getSources(request); 
     	if (sourceScope.length != 1) {
    			log.error("A single source must be specified in the URL for image content: ");
    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -125,7 +127,9 @@ public class ImageRecordController {
     	// search the specified image source to find the record we're interested in 
     	SearchHelper<CSpaceImage> dSearchHelper = new SearchHelper<CSpaceImage>();
     	dSearchHelper.addFilter(Derivative.SEARCH.IMAGEID, SEARCHOP.EQUALS, id);
-    	List<CSpaceImage> images = imageSearchController.searchImages(sourceScope, null, dSearchHelper, null);
+    	List<CSpaceImage> images = imgCtrl.searchImages(sourceScope, dSearchHelper, null);
+    	
+    	// TODO - enhance logging of all queries since requests for records is not being logged in the integration log currently
 
     	if (images == null || images.size() != 1)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -133,6 +137,9 @@ public class ImageRecordController {
     	CSpaceImage d = images.get(0);
     	URL imageURL = null;
 		imageURL = new URL("https:" + d.getSourceImageURI().toString());
+		
+		RecordSearchController.logSearchResults(request, 1);
+		
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(d.getFormat().getMimetype()))
                 .body(new InputStreamResource(imageURL.openStream()));

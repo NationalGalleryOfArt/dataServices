@@ -1,6 +1,7 @@
 package gov.nga.integration.cspace;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,7 +13,7 @@ import gov.nga.utils.CollectionUtils;
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
 
-@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", "references" })
+@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "viewType", "partner2ViewType", "width", "height", "title", "lastModified", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	
@@ -40,18 +41,29 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		};
 	};
 	
+	// TODO I really need to refactor all this so it works with the native objects rather than copy container
 	private String mimetype;		// optional field, but will probably be used in search header for NGA so need to include here
 	private String classification;	// mandatory field
 	private String title;			// mandatory field
 	private Long width;				// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
 	private Long height;			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
+	private String viewType;		// mandatory for publishedImages only - 
+	private String partner2ViewType;
 	
 //	public AbridgedImageRecord(CSpaceImage d) {
 //		this(d,true);
 //	}
 	
-	public AbridgedImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts) {
+	public AbridgedImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
 		testmode = ts.isTestModeOtherHalfObjects();
+		
+    	if (d.getViewType() != null) {
+    		if (ts.isTestModeOtherHalfObjects())
+    			partner2ViewType = d.getViewType().getLabel();
+    		else
+    			setViewType(d.getViewType().getLabel());
+    	}
+
 		setNamespace("image");
 		setSource(d.getSource());
 		setId(d.getImageID());
@@ -61,7 +73,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		setHeight(d.getHeight());
 
 		if (references)
-			setReferences(d,ts);
+			setReferences(d,ts,imgCtrl);
 		
 		// A BETTER WAY OF DETERMINING MIME-TYPES
 		// String mimeType = Magic.getMagicMatch(file, false).getMimeType(); from the jMimeMagic library
@@ -79,6 +91,18 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		
 		// TODO - might need to diverge here - the catalogued date is not necessarily what we're going for here 
 		setLastModified(d.getCatalogued());
+	}
+	
+	public String getPartner2ViewType() {
+		return partner2ViewType;
+	}
+
+	public String getViewType() {
+		return viewType;
+	}
+
+	private void setViewType(String viewType) {
+		this.viewType = viewType;
 	}
 	
 	public static String getDefaultNamespace() {
@@ -125,7 +149,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		this.title = title;
 	}
 	
-	public void setReferences(CSpaceImage image, CSpaceTestModeService ts) {
+	public void setReferences(CSpaceImage image, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
 		List<Reference> rList = CollectionUtils.newArrayList();
 
 		// ART OBJECT RELATIONSHIPS TO THIS IMAGE - WE DON'T CURRENTLY SUPPORT MULTIPLE ASSOCIATIONS BUT WE WILL PROBABLY
@@ -137,7 +161,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			Derivative d = o.getZoomImage();
 			if (d != null && image.getSource().equals(d.getSource()) && image.getImageID().equals(d.getImageID()))
 				p = PREDICATE.PRIMARILYDEPICTS;
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false,ts);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false,ts,imgCtrl);
 			rList.add(new Reference(p.getLabel(), aor));
 		}
 

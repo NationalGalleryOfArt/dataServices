@@ -57,7 +57,7 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 	}
 
 	public List<CSpaceImage> searchImages(
-			SearchHelper<ArtObject> aoSearchHelper, 
+//			SearchHelper<ArtObject> aoSearchHelper, 
 			SearchHelper<CSpaceImage> imageSearchHelper,
 			List<ArtObject> limitToTheseArtObjects) throws InterruptedException, ExecutionException {
 

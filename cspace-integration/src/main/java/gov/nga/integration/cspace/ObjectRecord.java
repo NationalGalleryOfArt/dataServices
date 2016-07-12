@@ -2,6 +2,7 @@ package gov.nga.integration.cspace;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -82,12 +83,12 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String bibliography;
     private String catalogueRaisonneRef;
     
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts) {
-    	this(o,locs,true, ts);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+    	this(o,locs,true, ts, imgCtrl);
     }
        
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts) {
-    	super(o,references, ts);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+    	super(o, references, ts, imgCtrl);
     	if (o == null)
     		return;
     	if (!ts.isTestModeOtherHalfObjects())

@@ -9,7 +9,7 @@ import gov.nga.search.SearchHelper;
 public interface ImageSearchProvider {
 	
 	public abstract List<CSpaceImage> searchImages(
-			SearchHelper<ArtObject> aoSearchHelper, 
+//			SearchHelper<ArtObject> aoSearchHelper, 
 			SearchHelper<CSpaceImage> derivativeSearchHelper,	
 			List<ArtObject> limitToTheseArtObjects) throws InterruptedException, ExecutionException;
 	

@@ -1,12 +1,15 @@
 package gov.nga.integration.cspace;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import gov.nga.search.ResultsPaginator;
 import gov.nga.utils.CollectionUtils;
@@ -16,6 +19,8 @@ public abstract class RecordSearchController {
 
 	public abstract Pattern getSourcePattern();
 	public abstract String[] getSupportedSources();
+	
+	private static final Logger log = LoggerFactory.getLogger(RecordSearchController.class);
 
     // Spring REST will automatically parse values that are separated with a comma into an array
     // and will pass the individual values
@@ -80,6 +85,19 @@ public abstract class RecordSearchController {
     	return new String[]{source};
     }
 
+	public static void logSearchResults(HttpServletRequest request, int numSearchResults) {
+		String url = request.getRequestURL().toString();
+		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
+			url += "?" + request.getQueryString();
+		String message = numSearchResults + " results for " + url;
+		if (request.getMethod().equals("POST")) {
+			Map<String, String[]> m = request.getParameterMap();
+			if (m != null)
+				message += " with posted parameters " + request.getParameterMap().toString();
+		}
+		log.info(message);
+	}
+	
 	// LASTMODIFIED FIELD
     protected static DateTime[] getLastModifiedDates(List<String> lastModified, List<String> ns_lastModified, String defaultEarliestDate) throws APIUsageException {
     	List<String> lmList = CollectionUtils.newArrayList(lastModified, ns_lastModified);
@@ -129,11 +147,6 @@ public abstract class RecordSearchController {
     }
 
     public static String[] getRequestingServer(HttpServletRequest request) {
-    	//if (StringUtils.isNullOrEmpty(request.getHeader("X-Forwarded-Port");
-		//String port = request.getHeader("X-Forwarded-Port");
-		//if (StringUtils.isNullOrEmpty(port)) {
-		//	port = request.getServerPort() + "";
-		//}
     	String port = null;
     	String scheme = request.getHeader("X-Forwarded-Proto");
 		if (StringUtils.isNullOrEmpty(scheme)) {
@@ -146,8 +159,11 @@ public abstract class RecordSearchController {
 			port = request.getServerPort() + "";
 		}
 		else {
-			host = host.replace("[", "");
-			host = host.replace("]", "");
+			// parse the port from the server name
+			String[] parts = host.split(":");
+			host = parts[0];
+			if (parts.length > 1)
+				port = parts[1];
 		}
 
 		return new String[] {scheme,host,port};

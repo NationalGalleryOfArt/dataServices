@@ -1,5 +1,7 @@
 package gov.nga.integration.cspace;
 
+import java.util.concurrent.ExecutionException;
+
 import org.springframework.beans.BeanUtils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -37,8 +39,6 @@ public class ImageRecord extends AbridgedImageRecord {
     // and only appear with the unabridged version of the cultural object record
 	private String
 		sequence,
-		viewType,
-		partner2ViewType,
 		filename,				// we should have this for the most part
 		description,			// not clear what this would be used for, but listed as optional in CS integration spec - perhaps portfolio?
 		subjectWidthCM,
@@ -58,18 +58,12 @@ public class ImageRecord extends AbridgedImageRecord {
 		productionDate,
 		productType;
     
-    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts) {
-    	super(d,references,ts);
+    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+    	super(d,references,ts,imgCtrl);
     	if (d == null)
     		return;
     	BeanUtils.copyProperties(d, this);
     	setSequence(d.getSequence());
-    	if (d.getViewType() != null) {
-    		if (ts.isTestModeOtherHalfObjects())
-    			partner2ViewType = d.getViewType().getLabel();
-    		else
-    			setViewType(d.getViewType().getLabel());
-    	}
     	setFilename(d.getFilename());
     	setDescription(null);			// no description for this type of image record
     	setSubjectWidthCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.WIDTH));
@@ -84,18 +78,6 @@ public class ImageRecord extends AbridgedImageRecord {
 		this.sequence = sequence;
 	}
 	
-	public String getPartner2ViewType() {
-		return partner2ViewType;
-	}
-
-	public String getViewType() {
-		return viewType;
-	}
-
-	private void setViewType(String viewType) {
-		this.viewType = viewType;
-	}
-
 	public String getFilename() {
 		return filename;
 	}

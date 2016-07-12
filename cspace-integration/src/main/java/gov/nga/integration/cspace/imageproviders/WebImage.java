@@ -54,8 +54,23 @@ public class WebImage extends CSpaceImage {
 
     @Override
 	public Thumbnail getThumbnail(int width, int height, int maxdim, boolean exactSizeRequired, boolean preferBase64, String scheme) {
-    	
+    	// first, we try to get a IIIF URL so we can get the right size thumbnail
 		URI protoRelativeURI = getProtocolRelativeiiifURL(null,"!"+width+","+height,null,null);
+		
+		// no luck at getting a IIIF URL
+		if (protoRelativeURI == null) {
+			
+			// if caller needs the exact size and we don't have the exact size then they don't get a thumbnail
+			if (exactSizeRequired && ( getWidth() != width || getHeight() != height) )
+				return null;
+			// if we are too large to serve as a good thumbnail, then don't return a thumbnail
+			if (getWidth() > maxdim || getHeight() > maxdim)
+				return null;
+			
+			// otherwise, we'll use what we've got
+			protoRelativeURI = getSourceImageURI();
+		}
+		
 		// absolute is the URL used for fetching data for base64 encoding
 		URL absoluteURL = null;
 		try {
@@ -66,7 +81,5 @@ public class WebImage extends CSpaceImage {
 		}
 		return new Thumbnail(protoRelativeURI, absoluteURL, preferBase64);
 	}
-	
-
 	
 }

@@ -65,7 +65,8 @@ public class SortHelper<E extends Sortable> extends Sorter {
 	// to a third art object (the base object) and to rank the ordering based 
 	// on that score and if that score is the same, then we rank by comparing
 	// just the two objects themselves
-	private Comparator<E> getComparator() {
+	// todo make private again
+	public Comparator<E> getComparator() {
 		return new Comparator<E>() {
 			public int compare(E a, E b) {
 

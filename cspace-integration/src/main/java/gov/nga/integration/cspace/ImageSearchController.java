@@ -153,8 +153,8 @@ public class ImageSearchController extends RecordSearchController {
     	else if (imageSearchHelper.getFilterSize() <= 0)
     		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 
-    	List<CSpaceImage> images = searchImages(sourceScope, aoSearchHelper, imageSearchHelper, artObjects);
-		ErrorLoggerController.logSearchResults(request, images.size());
+    	List<CSpaceImage> images = searchImages(sourceScope, imageSearchHelper, artObjects);
+		logSearchResults(request, images.size());
 		
 		// now that we have the full list of images, but before we grab thumbnails and assemble the results, we have
 		// to sort and then clip the results as per the paging specified by the caller
@@ -195,7 +195,7 @@ public class ImageSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating image URL: " + me.getMessage());
     				}
-    				Record imageRecord = new AbridgedImageRecord(d, references, ts);
+    				Record imageRecord = new AbridgedImageRecord(d, references, ts, this);
     				Future<String> thumb = thumbnailMap.get(d);
     				String thumbVal = (thumb == null ? null : thumb.get());
     				resultPage.add(new Item(imageURL, thumbVal, imageRecord));
@@ -213,9 +213,11 @@ public class ImageSearchController extends RecordSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 	}
     
-    protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<ArtObject> aoSearchHelper, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws InterruptedException, ExecutionException { 
+    protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws InterruptedException, ExecutionException { 
     	List<CSpaceImage> images = CollectionUtils.newArrayList();
     	
+    	if (sourceScope == null)
+    		sourceScope = getSupportedSources();
     	// TODO - opportunity exists to multi-thread this search
     	// these beans will have already been instantiated and are available for performing services
     	// by default spring will 
@@ -224,7 +226,7 @@ public class ImageSearchController extends RecordSearchController {
     	for (ImageSearchProvider isp : myBeans.values()) {
     		Collection<CSpaceImage> imageSubSet = null;
     		if ( isp.providesSource(sourceScope) )
-    			imageSubSet = isp.searchImages(aoSearchHelper, imageSearchHelper, artObjects);
+    			imageSubSet = isp.searchImages(imageSearchHelper, artObjects);
     		if (imageSubSet != null && imageSubSet.size() > 0)
     			images.addAll(imageSubSet);
     	}

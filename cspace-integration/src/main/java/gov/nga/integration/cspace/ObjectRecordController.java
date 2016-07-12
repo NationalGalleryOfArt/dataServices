@@ -1,6 +1,7 @@
 package gov.nga.integration.cspace;
 
 import java.net.URI;
+import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,13 +31,16 @@ public class ObjectRecordController {
     
     @Autowired
     private CSpaceTestModeService ts;
+    
+	@Autowired
+	private ImageSearchController imgCtrl;
 
     @RequestMapping("/art/objects/{id}.json")
     public ResponseEntity<RecordContainer> objectRecordNoSource(
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) {
+	) throws InterruptedException, ExecutionException {
     	return objectRecordSource(null, id, request, response);
     }
     
@@ -49,7 +53,7 @@ public class ObjectRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) {
+	) throws InterruptedException, ExecutionException {
     	
     	log.debug("SOURCE: " + source);
     	// not implemented if the source is not specified OR (preferably) a redirect to the generic search for object records
@@ -80,9 +84,11 @@ public class ObjectRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the art object and can construct a response
-    	ObjectRecord or = new ObjectRecord(o,artDataManager.getLocationsRaw(),ts);
+    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), ts, imgCtrl);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		
+		RecordSearchController.logSearchResults(request, 1);
 		 
 		return new ResponseEntity<RecordContainer>(new RecordContainer(or), headers, HttpStatus.OK);
 	}

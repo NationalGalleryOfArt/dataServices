@@ -56,7 +56,7 @@ public abstract class CSpaceImage extends ArtObjectImage {
     	if (vt != null) {
     		view = vt.getLabel();
     		if (getSequence() != null)
-    			view += "#" + getSequence();
+    			view += " #" + getSequence();
     	}
     	
     	Long w = getWidth();

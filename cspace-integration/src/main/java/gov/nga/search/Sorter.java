@@ -13,7 +13,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 public class Sorter implements CustomHash { 
 
 	private SortOrder sortOrder = null;
-	public static final int NULL=99;
+	public static final int NULL=999999999;
 	
 	public long customHash() {
 		HashCodeBuilder hcb = new HashCodeBuilder(5,7);

@@ -128,7 +128,8 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
         DOCX(	new String[]{".docx"}, 			"DOCX",	"application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
         PPTX(	new String[]{".pptx"}, 			"PPTX",	"application/vnd.openxmlformats-officedocument.presentationml.presentation"),
         PDF(	new String[]{".pdf"}, 			"PDF", 	"application/pdf"),
-    	PSD(	new String[]{".psd"},			"PSD",	"application/photoshop");
+    	PSD(	new String[]{".psd"},			"PSD",	"application/photoshop"),
+    	XMP(	new String[]{".xmp"},			"XMP",	"application/rdf+xml");
     	
         private String label;
         private String preferredExtension;
@@ -221,11 +222,16 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 			}
 		}
 		else if ( order instanceof ArtObject.SORT) {
-			ArtObject o = getArtObject();
-			if (o == null)
-				o = d.getArtObject();
-			if (o != null)
-				return o.aspectScore(d.getArtObject(), order, matchString);
+			ArtObject o1 = getArtObject();
+			ArtObject o2 = d.getArtObject();
+			// if objects are null or the same object
+			if (o1 == o2)
+				return Sorter.NULL;
+			if (o1 == null)
+				return 1;
+			if (o2 == null)
+				return -1;
+			return o1.aspectScore(o2, order, matchString);
 		}
 
 		return Sorter.NULL;
@@ -558,7 +564,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
     }
 
     public Boolean isCropped() {
-        return getViewType().equals(IMGVIEWTYPE.CROPPED);
+    	return getViewType() != null ? getViewType().equals(IMGVIEWTYPE.CROPPED) : false;
     }
 
     private Long width = null;

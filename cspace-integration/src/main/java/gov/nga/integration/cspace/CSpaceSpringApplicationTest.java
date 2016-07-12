@@ -52,6 +52,7 @@ public class CSpaceSpringApplicationTest {
     	"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
     	"/art/tms/objects/.json",  		"", 													"400", 			"",
+    	"/art/tms/objects/93013.json", 	"",														"200",			"hasDepiction", "hasPrimaryDepiction", "id\" : \"6799", "",
     	
     	// TODO - add specific fields expected for the various image classifications
     	
@@ -82,6 +83,8 @@ public class CSpaceSpringApplicationTest {
         "/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//vm-imgrepo-tdp", "",
         "/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
         "/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "09445340-ACEC-48C7-B389-C104B32778FC", "",
+    	"/art/objects.json",			"id=93013", 											"200",			"hasDepiction",  "hasPrimaryDepiction", "id\" : \"6799", 	"!://[",	"",
+
         
         // SERVICE #3: IMAGE CONTENT
         "/media/web-images-repository/images/2C5EE199-D447-43F5-BB93-D2896EBB6483", "",			"200",			"image/tiff",			"",
@@ -110,7 +113,7 @@ public class CSpaceSpringApplicationTest {
         // SERVICE #5: IMAGE RECORD SEARCH
         "/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
         "/media/images.json",									"id=FEFA3275-D783-4E4D-BB40-6A56AA2F5B39",						
-        																						"200",			"\"references",			"\"thumbnail", "publishedImage", "",
+        																						"200",			"\"references",			"\"thumbnail", "publishedImage", "\"viewType\"", "",
         "/media/images.json",									"id=FEFA",						
         																						"200",			"total\" : 0", "",
         "/media/portfolio-dclpa/images.json",					"id=2566",						"200",			"\"references",			"\"thumbnail", "",
@@ -132,6 +135,8 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
         "/media/images.json", 									"cultObj:artistNames=gogh&skip=27&limit=25&references=false&thumbnails=false&order=image:id",
         																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "F655F232-ACFD-4D2B-8CDE-43BD6C78B425", "!E7F34278-89BC-4120-BB15-8980561AEC6A", "!0B839226-9EC8-4DAE-945D-7330736FEB0A", "",
+        "/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026",
+        																						"200", "image/jpeg\"", "",
         
         // SERvICE #6: ERROR LOGGER
         "/system/logger.json",			"severity=error&origin=someurl&summary=maximum value for pageSize&details=The limit for page size is 25",

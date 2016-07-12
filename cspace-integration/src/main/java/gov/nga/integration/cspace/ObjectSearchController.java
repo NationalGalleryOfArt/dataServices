@@ -71,6 +71,9 @@ public class ObjectSearchController extends RecordSearchController {
     
     @Autowired
     private CSpaceTestModeService ts;
+    
+    @Autowired
+    ImageSearchController imgCtrl;
 
     @RequestMapping(value={"/art/objects.json","/art/{source}/objects.json"})
     public ResponseEntity<Items> objectRecordsSource (
@@ -137,7 +140,7 @@ public class ObjectSearchController extends RecordSearchController {
 		if (searchHelper.getFilterSize() > 0)
 			artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
     	
-    	ErrorLoggerController.logSearchResults(request, artObjects.size());
+    	logSearchResults(request, artObjects.size());
     	if (artObjects.size() > 0) {
     		
     		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
@@ -180,7 +183,7 @@ public class ObjectSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating object URL: " + me.getMessage());
     				}
-    				Record objectRecord = new AbridgedObjectRecord(o, references, ts);
+    				Record objectRecord = new AbridgedObjectRecord(o, references, ts, imgCtrl);
     				Future<String> thumb = thumbnailMap.get(o.getObjectID());
     				String thumbVal = (thumb == null ? null : thumb.get());
     				partialResults.add(new Item(objectURL, thumbVal, objectRecord));

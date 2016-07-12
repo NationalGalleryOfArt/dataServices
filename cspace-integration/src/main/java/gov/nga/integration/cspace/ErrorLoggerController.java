@@ -1,9 +1,5 @@
 package gov.nga.integration.cspace;
 
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -14,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import gov.nga.utils.StringUtils;
-
 
 // all authorization will be handled by the Apache Server configured as a proxy server for this service
 // alternatively, as time permits, we might build authentication into this application via Spring
@@ -23,7 +17,7 @@ import gov.nga.utils.StringUtils;
 @RestController
 public class ErrorLoggerController {
 
-	private static final Logger log = LoggerFactory.getLogger(ErrorLoggerController.class);
+	static final Logger log = LoggerFactory.getLogger(ErrorLoggerController.class);
 
 	/*  SPRING REST CONTROLLER NOTES
 	 @RequestMapping(value = "/matches/{matchId}", produces = "application/json")
@@ -99,19 +93,6 @@ public class ErrorLoggerController {
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		ErrorLoggerResponse er = new ErrorLoggerResponse(severity, origin, summary, details); 
 		return new ResponseEntity<ErrorLoggerResponse>(er, headers, HttpStatus.OK);
-	}
-
-	public static void logSearchResults(HttpServletRequest request, int numSearchResults) {
-		String url = request.getRequestURL().toString();
-		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
-			url += "?" + request.getQueryString();
-		String message = numSearchResults + " results for " + url;
-		if (request.getMethod().equals("POST")) {
-			Map<String, String[]> m = request.getParameterMap();
-			if (m != null)
-				message += " with posted parameters " + request.getParameterMap().toString();
-		}
-		log.info(message);
 	}
 	
 }
