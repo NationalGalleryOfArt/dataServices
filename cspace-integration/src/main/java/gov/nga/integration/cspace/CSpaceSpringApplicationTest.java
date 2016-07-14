@@ -92,6 +92,7 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
         "/media/images/2566",									"",								"400",			"",
         "/media/portfolio-dclpa/images/2774",					"",								"200",			"image/x-adobe-dng", "", // has space in the file name
+        "/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "", 
         
         // SERVICE #4: IMAGE RECORD
         "/media/images/2556.json", 								"",								"308",			"Location", "media/images.json?id=2556", "",

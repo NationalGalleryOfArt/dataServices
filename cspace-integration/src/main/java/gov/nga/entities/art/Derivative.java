@@ -129,7 +129,8 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
         PPTX(	new String[]{".pptx"}, 			"PPTX",	"application/vnd.openxmlformats-officedocument.presentationml.presentation"),
         PDF(	new String[]{".pdf"}, 			"PDF", 	"application/pdf"),
     	PSD(	new String[]{".psd"},			"PSD",	"application/photoshop"),
-    	XMP(	new String[]{".xmp"},			"XMP",	"application/rdf+xml");
+    	XMP(	new String[]{".xmp"},			"XMP",	"application/rdf+xml"),
+    	BIN(	new String[]{".bin"},			"BIN",	"application/octet-stream");
     	
         private String label;
         private String preferredExtension;
@@ -167,7 +168,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
         				return f;
         		}
         	}
-        	return null;
+        	return IMGFORMAT.BIN;	// use a generic binary format as the default when one cannot be found
         }
 
     }
