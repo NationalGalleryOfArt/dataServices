@@ -2,7 +2,7 @@ package gov.nga.integration.cspace;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -112,7 +112,7 @@ public class ImageRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws IOException, APIUsageException, InterruptedException, ExecutionException {
+	) throws IOException, APIUsageException, InterruptedException, ExecutionException, URISyntaxException {
 
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
     	String [] sourceScope = imgCtrl.getSources(request); 
@@ -135,14 +135,13 @@ public class ImageRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
     	CSpaceImage d = images.get(0);
-    	URL imageURL = null;
-		imageURL = new URL("https:" + d.getSourceImageURI().toString());
-		
+    	URI imageURI = d.getSourceImageURI("https");
+    	
 		RecordSearchController.logSearchResults(request, 1);
 		
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(d.getFormat().getMimetype()))
-                .body(new InputStreamResource(imageURL.openStream()));
+                .body(new InputStreamResource(imageURI.toURL().openStream()));
 		
 	}
 

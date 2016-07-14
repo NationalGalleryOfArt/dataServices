@@ -442,9 +442,9 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
     	return l;
     }
 
-    protected static URI getSourceImageURI(String spec) {
+    protected static URI createURI(String scheme, String ssp) {
         try {
-            return new URI(spec);
+            return new URI(scheme,ssp,null);
         }
         catch (URISyntaxException ue) {
             log.error("URISyntaxException when creating source image URL: ", ue);
@@ -452,16 +452,28 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
         }
     }
 
+    protected static URI createURI(String ssp) {
+    	return createURI(null, ssp);
+    }
+
     public URI getSourceImageURI() {
-        return getSourceImageURI(
-                getManager().getConfig().getString(imagingServerURLPropertyName) + getRelativeSourceImageURI()
-        );
+    	return getSourceImageURI(null);
+    }
+
+    public URI getSourceImageURI(String forceScheme) {
+        return 	createURI(
+        			forceScheme, 
+        			getManager().getConfig().getString(imagingServerURLPropertyName) + this.getImgVolumePath() + this.getFilename() 
+        		);
     }
 
     public URI getRelativeSourceImageURI() {
-        return getSourceImageURI(this.getImgVolumePath() + this.getFilename());
+        return 	createURI(
+        			null, 											// no scheme 
+        			this.getImgVolumePath() + this.getFilename()	// and no host - only relative path
+        		);
     }
- 
+
     public URI getProtocolRelativeiiifURL(String region, String size, String rotation, String quality) {
     	// iiif URLs are only valid for PTIF files that are on a IIIF enabled server
     	if (format != IMGFORMAT.PTIF)
