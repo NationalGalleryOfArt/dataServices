@@ -48,7 +48,7 @@ public class PerformanceMonitor
     public long logElapseTimeFromSeed(String text)
     {
         long time = getElapseTimeFromSeed();
-        log.debug(text + " = " + time + "ms");
+        log.trace(text + " = " + time + "ms");
         return time;
     }
     
@@ -68,7 +68,7 @@ public class PerformanceMonitor
     public long logElapseTimeFromLastReport(String text)
     {
         long time = getElapseTimeFromLastReport();
-        log.debug(text + " = " + time + "ms");
+        log.trace(text + " = " + time + "ms");
         return time;
     }
 	

@@ -61,6 +61,18 @@ public class CollectionUtils {
 		return all;
 	}
 
+	@SafeVarargs
+	public static <T1> List<T1> newArrayList(T1[]... arrays) {
+		if (arrays == null)
+			return null;
+		List<T1> all = CollectionUtils.newArrayList();
+		for (T1[] l : arrays) {
+			if ( l != null )
+				all.addAll(Arrays.asList(l));
+		}
+		return all;
+	}
+
 	public static <T1> List<T1> newArrayList(List<T1> aList) {
 		if (aList == null)
 			return null;

@@ -212,7 +212,7 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 		Set<T> matches = sortH.createAutoSortedSet();
 		
 		for (SearchFilter f : this.filters) {
-			log.debug("FILTER: " + f.getOp() + " " + f.getField());
+			log.trace("FILTER: " + f.getOp() + " " + f.getField());
 		}
 
 		perfMonitor.resetSeedTime();
@@ -266,10 +266,10 @@ public class SearchHelper <T extends Faceted & Searchable & Sortable> implements
 
 		// copy the Set into a List (hopefully the order will be retained)
 		list = CollectionUtils.newArrayList(matches);
-		log.debug("Total results found: " + matches.size());
+		log.trace("Total results found: " + matches.size());
 		// and now we count facets if the facethelper is not null
 		// we we send them back to the caller
-		log.debug("Process facets: " + fn);
+		log.trace("Process facets: " + fn);
 		if (fn != null) {
 			perfMonitor.logElapseTimeFromLastReport("Starting work on facets");
 			// we cast the List as a list of Faceted objects here because that's

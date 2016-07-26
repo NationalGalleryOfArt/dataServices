@@ -65,6 +65,19 @@ public class ErrorLoggerController {
 	 	
 	 */
 
+	private boolean logMess(String severity, String message) {
+		switch (severity.toLowerCase()) {
+		case "fatal" : log.error("FATAL ERROR:"+message); break;
+		case "error" : log.error(message); break;
+		case "warn"  : log.warn(message);  break;
+		case "info"  : log.info(message);  break;
+		case "debug" : log.debug(message); break;
+		case "trace" : log.trace(message); break;
+		default 	 : return false;
+		}
+		return true;
+	}
+	
 	@RequestMapping("/system/logger.json")
 	public ResponseEntity<ErrorLoggerResponse> logger(
 			@RequestParam(value="severity", required=true) String severity,
@@ -76,18 +89,15 @@ public class ErrorLoggerController {
 		if (severity == null || origin == null || summary == null || details == null)
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		
-		String message = summary + ": " + details + " (" + origin + ")";
+		severity	= severity.replaceAll("\n", "");
+		origin 		= origin.replaceAll("\n", "");
+		summary		= summary.replaceAll("\n", "");
+		details		= details.replaceAll("\n", "");
 		
-		switch (severity.toLowerCase()) {
-			case "fatal" : log.error("FATAL ERROR:"+message); break;
-			case "error" : log.error(message); break;
-			case "warn"  : log.warn(message);  break;
-			case "info"  : log.info(message);  break;
-			case "debug" : log.debug(message); break;
-			case "trace" : log.trace(message); break;
-			default 	 : return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		if ( 	!logMess(severity, "Client Error Using: " + origin + "; " + summary) || !logMess("debug", "Client Error Details:" + details) ) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
-
+		
 		// assemble a well formed response
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);

@@ -3,6 +3,8 @@ package gov.nga.integration.cspace;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.springframework.beans.BeanUtils;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -13,7 +15,11 @@ import gov.nga.utils.CollectionUtils;
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
 
-@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "viewType", "partner2ViewType", "width", "height", "title", "lastModified", "references" })
+@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "viewType", "partner2ViewType", 
+					 "width", "height", "title", "lastModified", "sequence", "filename", "description", 
+					 "lightQuality", "spectrum", "productionDate", "viewDescription", "treatmentPhase", 
+					 "references" })
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	
@@ -42,21 +48,30 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 	};
 	
 	// TODO I really need to refactor all this so it works with the native objects rather than copy container
-	private String mimetype;		// optional field, but will probably be used in search header for NGA so need to include here
-	private String classification;	// mandatory field
-	private String title;			// mandatory field
-	private Long width;				// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
-	private Long height;			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
-	private String viewType;		// mandatory for publishedImages only - 
-	private String partner2ViewType;
+	private String 
+		mimetype,		// optional field, but will probably be used in search header for NGA so need to include here
+		classification,	// mandatory field
+		title,			// mandatory field
+		viewType,		// mandatory for publishedImages only - 
+		partner2ViewType,
+		treatmentPhase,
+		spectrum,
+		lightQuality,
+		viewDescription,
+		productionDate,
+		description,
+		filename;		// we should have this for the most part
+
+	private Long 
+		width,			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
+		height;			// not specified in CS model, but probably will and would be used in search header for NGA so need to include here
+
 	
-//	public AbridgedImageRecord(CSpaceImage d) {
-//		this(d,true);
-//	}
-	
-	public AbridgedImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+	public AbridgedImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts) throws InterruptedException, ExecutionException {
 		testmode = ts.isTestModeOtherHalfObjects();
-		
+
+    	BeanUtils.copyProperties(d, this);
+
     	if (d.getViewType() != null) {
     		if (ts.isTestModeOtherHalfObjects())
     			partner2ViewType = d.getViewType().getLabel();
@@ -73,7 +88,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		setHeight(d.getHeight());
 
 		if (references)
-			setReferences(d,ts,imgCtrl);
+			setReferences(d,ts);
 		
 		// A BETTER WAY OF DETERMINING MIME-TYPES
 		// String mimeType = Magic.getMagicMatch(file, false).getMimeType(); from the jMimeMagic library
@@ -89,7 +104,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			setMimetype(imgFormat.getMimetype());
 		}
 		
-		// TODO - might need to diverge here - the catalogued date is not necessarily what we're going for here 
+		// TODO - might need to diverge here - the cataloged date is not necessarily what we're going for here 
 		setLastModified(d.getCatalogued());
 	}
 	
@@ -149,7 +164,63 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		this.title = title;
 	}
 	
-	public void setReferences(CSpaceImage image, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+	public String getFilename() {
+		return filename;
+	}
+
+	public void setFilename(String filename) {
+		this.filename = filename;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getViewDescription() {
+		return viewDescription;
+	}
+
+	public void setViewDescription(String viewDescription) {
+		this.viewDescription = viewDescription;
+	}
+
+	public String getLightQuality() {
+		return lightQuality;
+	}
+
+	public void setLightQuality(String lightQuality) {
+		this.lightQuality = lightQuality;
+	}
+
+	public String getSpectrum() {
+		return spectrum;
+	}
+
+	public void setSpectrum(String spectrum) {
+		this.spectrum = spectrum;
+	}
+
+	public String getTreatmentPhase() {
+		return treatmentPhase;
+	}
+
+	public void setTreatmentPhase(String treatmentPhase) {
+		this.treatmentPhase = treatmentPhase;
+	}
+
+	public String getProductionDate() {
+		return productionDate;
+	}
+
+	public void setProductionDate(String productionDate) {
+		this.productionDate = productionDate;
+	}
+
+	public void setReferences(CSpaceImage image, CSpaceTestModeService ts) throws InterruptedException, ExecutionException {
 		List<Reference> rList = CollectionUtils.newArrayList();
 
 		// ART OBJECT RELATIONSHIPS TO THIS IMAGE - WE DON'T CURRENTLY SUPPORT MULTIPLE ASSOCIATIONS BUT WE WILL PROBABLY
@@ -161,7 +232,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			Derivative d = o.getZoomImage();
 			if (d != null && image.getSource().equals(d.getSource()) && image.getImageID().equals(d.getImageID()))
 				p = PREDICATE.PRIMARILYDEPICTS;
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,false,ts,imgCtrl);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(o,ts);
 			rList.add(new Reference(p.getLabel(), aor));
 		}
 
@@ -169,39 +240,6 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 			rList = null;
 
 		setReferences(rList);
-
-//			ONLY USED FOR TESTING RELATED ASSETS - NGA DOESN'T ACTUALLY HAVE ANY RELATED ASSETS
-
-//			// RELATED ASSETS WHICH ARE NOT THE PRIMARY DERIVATIVE AND ASSOCIATED WITH THE PRIMARY ART OBJECT OR 
-//			// THE PARENT OR CHILD OBJECTS OF THIS ART OBJECT, BUT NOT SIBLINGS
-//			List<ArtObject> relatedObjects = CollectionUtils.newArrayList();
-//			relatedObjects.add(o);
-//			ArtObjectAssociation op = o.getParentAssociation();
-//			if (op != null && op.getAssociatedArtObject() != null)
-//				relatedObjects.add(op.getAssociatedArtObject());
-//
-//			List<ArtObjectAssociation> children = o.getChildAssociations();
-//			if (children != null) {
-//				for (ArtObjectAssociation cp : children) {
-//					if (cp != null && cp.getAssociatedArtObject() != null)
-//						relatedObjects.add(cp.getAssociatedArtObject());
-//				}
-//			}
-//
-//			for (ArtObject ro : relatedObjects) {
-//				// OTHER ASSETS RELATED TO THIS OBJECT ARE CONSIDERED TO BE RELATED TO THE PRIMARY DERIVATIVE
-//				for (Derivative d : ro.getLargestImages(IMGVIEWTYPE.allViewTypesExcept(IMGVIEWTYPE.CROPPED))) {
-//					// if we're not iterating through the images of the object directly associated with the primary derivative
-//					// or if we are then the primary derivative is not the one we're looking at 
-//					if (!primaryImage.equals(d)) {
-//						if (d != null) {
-//							WebImage wi = WebImage.factory(d);
-//							AbridgedImageRecord air = new AbridgedImageRecord(wi,false);
-//							rList.add(new Reference(PREDICATE.RELATEDASSET.getLabel(), air));
-//						}
-//					}
-//				}
-//			}
 	}
 
 }

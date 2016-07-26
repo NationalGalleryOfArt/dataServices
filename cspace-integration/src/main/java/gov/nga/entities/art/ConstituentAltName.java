@@ -26,7 +26,7 @@ public class ConstituentAltName extends ArtEntityImpl {
 	
 	protected static final String fetchAllConstituentAltNamessQuery =
 		"SELECT a.fingerprint, a.altNameID, a.constituentID, " + 
-		"       a.lastName, a.displayName, a.nameType " +
+		"       a.lastName, a.displayName, a.forwardDisplayName, a.nameType " +
 		"FROM data.constituents_altnames a " +
 		"WHERE nameType NOT IN ('Preferred Name', 'Variant Index Name') ";
 
@@ -39,7 +39,8 @@ public class ConstituentAltName extends ArtEntityImpl {
 		constituentID 	= TypeUtils.getLong(rs, 3);
 		lastName 		= rs.getString(4);
 		displayName 	= rs.getString(5);
-		nameType 		= rs.getString(6);
+		forwardDisplayName 	= rs.getString(6);
+		nameType 		= rs.getString(7);
 	}
 	
 	public ConstituentAltName factory(ResultSet rs) throws SQLException {
@@ -66,6 +67,11 @@ public class ConstituentAltName extends ArtEntityImpl {
 	private String displayName = null;
 	public String getDisplayName() {
 		return displayName;
+	}
+
+	private String forwardDisplayName = null;
+	public String getForwardDisplayName() {
+		return forwardDisplayName;
 	}
 
 	private String nameType = null;

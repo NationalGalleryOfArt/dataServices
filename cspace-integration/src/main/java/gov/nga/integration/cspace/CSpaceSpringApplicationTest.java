@@ -74,8 +74,8 @@ public class CSpaceSpringApplicationTest {
     	"/art/objects.json", 	  		"number=1992.51.9&references=0&thumbnails=0",			"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"!references",				"!thumbnail",	"",
     	"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
     	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"206294",	 						"",
-    	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 62", 		"",
-    	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 62", 		"\"title\" : \"Toy Bank: Frog\"",			"jcSOv616NXD/EnT7YafDqbbhLvETY6EYY5/T/OKLG1GSUt",	"",
+    	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 59", 		"",
+    	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 59", 		"\"title\" : \"Toy Bank: Frog\"",			"jcSOv616NXD/EnT7YafDqbbhLvETY6EYY5/T/OKLG1GSUt",	"",
     	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		
     																							"200",			"\"total\" : 10", 		"\"accessionNum\" : \"X.12827\"",					"!\"thumbnail\"",	"",
         "/art/objects.json",			"number=19&skip=8000&limit=2000&thumbnails=0&references=0",
@@ -84,6 +84,7 @@ public class CSpaceSpringApplicationTest {
         "/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
         "/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "09445340-ACEC-48C7-B389-C104B32778FC", "",
     	"/art/objects.json",			"id=93013", 											"200",			"hasDepiction",  "hasPrimaryDepiction", "id\" : \"6799", 	"!://[",	"",
+    	"/art/objects.json", 			"artistNames=Hopper, Edward",							"200",			"total\" : 190",	"",		
 
         
         // SERVICE #3: IMAGE CONTENT
@@ -137,9 +138,19 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
         "/media/images.json", 									"cultObj:artistNames=gogh&skip=27&limit=25&references=false&thumbnails=false&order=image:id",
         																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "F655F232-ACFD-4D2B-8CDE-43BD6C78B425", "!E7F34278-89BC-4120-BB15-8980561AEC6A", "!0B839226-9EC8-4DAE-945D-7330736FEB0A", "",
-        "/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026",
-        																						"200", "image/jpeg\"", "",
-        
+        "/media/images.json",									"id=29AA0303-D037-4B96-A8B3-B9BE3BE2FEDD", "200", "image/tiff\"", 	"",
+        "/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", "200", "total\" : 0", 	"",
+        "/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			   "404", "",
+        "/media/images.json",									"id=C2EEBCC9-B973-4217-AD96-5B6CEDEBF676", "200",			
+																"\"filename", "\"title", "\"George Romney; 1937.1.105", "",
+        "/media/images.json",									"id=3924",						"200",			
+																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
+																"\"filename", "\"productionDate", "\"description", "!\"title", "",
+        "/media/images.json",									"id=1960",						"200",			
+																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
+																"\"filename", "\"productionDate", "\"description", "\"title", 
+																"\"Madame Dietz-Monnin", "\"Edgar Degas; 1951.2.1", "",
+																						
         // SERvICE #6: ERROR LOGGER
         "/system/logger.json",			"severity=error&origin=someurl&summary=maximum value for pageSize&details=The limit for page size is 25",
         																						"200",			"limit for page size", "error", ""

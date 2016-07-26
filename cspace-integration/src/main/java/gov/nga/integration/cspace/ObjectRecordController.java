@@ -1,6 +1,8 @@
 package gov.nga.integration.cspace;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.search.SearchHelper;
 import gov.nga.utils.LongUtils;
 
 @RestController
@@ -82,9 +85,15 @@ public class ObjectRecordController {
     	ArtObject o = artDataManager.fetchByObjectID(l);
     	if (o == null)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-    	
+
     	// if we have gotten to this point, then we found the art object and can construct a response
-    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), ts, imgCtrl);
+
+    	// find any images that are associated with this art object
+		SearchHelper<CSpaceImage> imageSearchHelper = new SearchHelper<CSpaceImage>();
+    	List<CSpaceImage> images = imgCtrl.searchImages(null, imageSearchHelper, Arrays.asList(o));
+
+    	// and construct the object record along with all of its references
+    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), ts, images);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		

@@ -877,18 +877,37 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			Constituent c = oc.getConstituent(); 
 			if (c == null)
 				continue;
+			
+			// we need to check both the inverted and forward variations of primary and alternative names
 			String val = c.getPreferredDisplayName();
 			Boolean res = f.filterMatch(val);
 			if (res != null && res == true)
 				return res;
+			
+			// forward variation of primary name
+			val = c.getForwardDisplayName();
+			res = f.filterMatch(val);
+			if (res != null && res == true)
+				return res;
+			
+			// if there are altnames and we're supposed to search those too, then do so
 			if (altNames) {
 				List<ConstituentAltName> names = c.getAltNames();
 				if (names != null) {
 					for (ConstituentAltName name : names) {
+						
+						// search inverted name (alphasort column in TMS database)
 						val = name.getDisplayName();
 						res = f.filterMatch(val);
 						if (res != null && res == true)
 							return res;
+						
+						// and forward name
+						val = name.getForwardDisplayName();
+						res = f.filterMatch(val);
+						if (res != null && res == true)
+							return res;
+
 					}
 				}
 			}

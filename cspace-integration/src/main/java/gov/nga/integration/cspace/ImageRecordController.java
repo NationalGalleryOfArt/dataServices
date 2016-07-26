@@ -83,7 +83,7 @@ public class ImageRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the unique image and can construct an appropriate response
-    	ImageRecord ir = new ImageRecord(images.get(0), true, ts, imgCtrl);
+    	ImageRecord ir = new ImageRecord(images.get(0), true, ts, images);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
@@ -129,8 +129,6 @@ public class ImageRecordController {
     	dSearchHelper.addFilter(Derivative.SEARCH.IMAGEID, SEARCHOP.EQUALS, id);
     	List<CSpaceImage> images = imgCtrl.searchImages(sourceScope, dSearchHelper, null);
     	
-    	// TODO - enhance logging of all queries since requests for records is not being logged in the integration log currently
-
     	if (images == null || images.size() != 1)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 

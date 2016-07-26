@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.BeanUtils;
@@ -39,33 +40,26 @@ public class ImageRecord extends AbridgedImageRecord {
     // and only appear with the unabridged version of the cultural object record
 	private String
 		sequence,
-		filename,				// we should have this for the most part
-		description,			// not clear what this would be used for, but listed as optional in CS integration spec - perhaps portfolio?
 		subjectWidthCM,
 		subjectHeightCM,
 		creator,
 		originalSource,
 		originalSourceType,
 		originalFilename,
-		viewDescription,
 		projectDescription,
-		lightQuality,
-		spectrum,
-		treatmentPhase,
 		captureDevice,
 		originalSourceInstitution,
 		photographer,
-		productionDate,
 		productType;
-    
-    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
-    	super(d,references,ts,imgCtrl);
+
+    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
+    	super(d,references,ts);
     	if (d == null)
     		return;
     	BeanUtils.copyProperties(d, this);
     	setSequence(d.getSequence());
     	setFilename(d.getFilename());
-    	setDescription(null);			// no description for this type of image record
+    	setDescription(d.getDescription());
     	setSubjectWidthCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.WIDTH));
     	setSubjectHeightCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.HEIGHT));    	
     }
@@ -78,22 +72,6 @@ public class ImageRecord extends AbridgedImageRecord {
 		this.sequence = sequence;
 	}
 	
-	public String getFilename() {
-		return filename;
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
 	public String getSubjectWidthCM() {
 		return subjectWidthCM;
 	}
@@ -144,44 +122,12 @@ public class ImageRecord extends AbridgedImageRecord {
 		this.originalFilename = originalFilename;
 	}
 
-	public String getViewDescription() {
-		return viewDescription;
-	}
-
-	public void setViewDescription(String viewDescription) {
-		this.viewDescription = viewDescription;
-	}
-
 	public String getProjectDescription() {
 		return projectDescription;
 	}
 
 	public void setProjectDescription(String projectDescription) {
 		this.projectDescription = projectDescription;
-	}
-
-	public String getLightQuality() {
-		return lightQuality;
-	}
-
-	public void setLightQuality(String lightQuality) {
-		this.lightQuality = lightQuality;
-	}
-
-	public String getSpectrum() {
-		return spectrum;
-	}
-
-	public void setSpectrum(String spectrum) {
-		this.spectrum = spectrum;
-	}
-
-	public String getTreatmentPhase() {
-		return treatmentPhase;
-	}
-
-	public void setTreatmentPhase(String treatmentPhase) {
-		this.treatmentPhase = treatmentPhase;
 	}
 
 	public String getCaptureDevice() {
@@ -206,14 +152,6 @@ public class ImageRecord extends AbridgedImageRecord {
 
 	public void setPhotographer(String photographer) {
 		this.photographer = photographer;
-	}
-
-	public String getProductionDate() {
-		return productionDate;
-	}
-
-	public void setProductionDate(String productionDate) {
-		this.productionDate = productionDate;
 	}
 
 	public String getProductType() {

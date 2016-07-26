@@ -83,12 +83,12 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String bibliography;
     private String catalogueRaisonneRef;
     
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
-    	this(o,locs,true, ts, imgCtrl);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
+    	this(o,locs,true, ts, images);
     }
        
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
-    	super(o, references, ts, imgCtrl);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
+    	super(o, references, ts, images);
     	if (o == null)
     		return;
     	if (!ts.isTestModeOtherHalfObjects())

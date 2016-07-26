@@ -85,10 +85,12 @@ public abstract class RecordSearchController {
     	return new String[]{source};
     }
 
-	public static void logSearchResults(HttpServletRequest request, int numSearchResults) {
+	public static void logSearchResults(HttpServletRequest request, Integer numSearchResults) {
 		String url = request.getRequestURL().toString();
 		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
 			url += "?" + request.getQueryString();
+		if (numSearchResults == null)
+			numSearchResults = 0;
 		String message = numSearchResults + " results for " + url;
 		if (request.getMethod().equals("POST")) {
 			Map<String, String[]> m = request.getParameterMap();
@@ -99,7 +101,7 @@ public abstract class RecordSearchController {
 	}
 	
 	// LASTMODIFIED FIELD
-    protected static DateTime[] getLastModifiedDates(List<String> lastModified, List<String> ns_lastModified, String defaultEarliestDate) throws APIUsageException {
+    protected static DateTime[] getLastModifiedDates(String[] lastModified, String[] ns_lastModified, String defaultEarliestDate) throws APIUsageException {
     	List<String> lmList = CollectionUtils.newArrayList(lastModified, ns_lastModified);
     	
     	int size = ( lmList == null ? 0 : lmList.size() );

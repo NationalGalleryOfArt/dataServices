@@ -20,12 +20,14 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -85,20 +87,25 @@ public class ImageSearchController extends RecordSearchController {
     
     @Autowired
     private CSpaceTestModeService ts;
+    
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
+    }
 
     @RequestMapping(value={"/media/images.json","/media/{source}/images.json"})
     public ResponseEntity<Items> imageRecordsSource (
     		
-    		@RequestParam(value="id", 					required=false) List<String> ids,
-			@RequestParam(value="image:id",				required=false) List<String> image_ids,
+    		@RequestParam(value="id", 					required=false) String[] ids,
+			@RequestParam(value="image:id",				required=false) String[] image_ids,
 
-			@RequestParam(value="lastModified", 		required=false) List<String> lastModified,
-			@RequestParam(value="image:lastModified", 	required=false) List<String> image_lastModified,
+			@RequestParam(value="lastModified", 		required=false) String[] lastModified,
+			@RequestParam(value="image:lastModified", 	required=false) String[] image_lastModified,
 
-			@RequestParam(value="cultObj:id",			required=false) List<String> cultObj_ids,
-			@RequestParam(value="cultObj:artistNames", 	required=false) List<String> cultObj_artistNames,
-			@RequestParam(value="cultObj:title",		required=false) List<String> cultObj_titles,
-			@RequestParam(value="cultObj:number",		required=false) List<String> cultObj_numbers,
+			@RequestParam(value="cultObj:id",			required=false) String[] cultObj_ids,
+			@RequestParam(value="cultObj:artistNames", 	required=false) String[] cultObj_artistNames,
+			@RequestParam(value="cultObj:title",		required=false) String[] cultObj_titles,
+			@RequestParam(value="cultObj:number",		required=false) String[] cultObj_numbers,
 
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
@@ -195,7 +202,7 @@ public class ImageSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating image URL: " + me.getMessage());
     				}
-    				Record imageRecord = new AbridgedImageRecord(d, references, ts, this);
+    				Record imageRecord = new AbridgedImageRecord(d, references, ts);
     				Future<String> thumb = thumbnailMap.get(d);
     				String thumbVal = (thumb == null ? null : thumb.get());
     				resultPage.add(new Item(imageURL, thumbVal, imageRecord));
@@ -220,7 +227,6 @@ public class ImageSearchController extends RecordSearchController {
     		sourceScope = getSupportedSources();
     	// TODO - opportunity exists to multi-thread this search
     	// these beans will have already been instantiated and are available for performing services
-    	// by default spring will 
     	Map<String, ImageSearchProvider> myBeans = appContext.getBeansOfType(ImageSearchProvider.class);
 //    	myBeans.forEach((k,v)->log.info(k + ":" + v.getClass().getName()));
     	for (ImageSearchProvider isp : myBeans.values()) {
@@ -270,7 +276,7 @@ public class ImageSearchController extends RecordSearchController {
     }
 
 	// ID FIELD
-	public static void processIDs(SearchHelper<CSpaceImage> searchHelper, List<String> ids, List<String> image_ids) {
+	public static void processIDs(SearchHelper<CSpaceImage> searchHelper, String[] ids, String[] image_ids) {
 		List<String> iList = CollectionUtils.newArrayList(ids, image_ids);
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
@@ -278,82 +284,11 @@ public class ImageSearchController extends RecordSearchController {
     }
     
 	// LASTMODIFIED FIELD
-    protected static void processLastModified(SearchHelper<CSpaceImage> searchHelper, List<String> lastModified, List<String> image_lastModified) throws APIUsageException {
+    protected static void processLastModified(SearchHelper<CSpaceImage> searchHelper, String[] lastModified, String[] image_lastModified) throws APIUsageException {
     	DateTime[] dates = getLastModifiedDates(lastModified,image_lastModified,"1/1/2008");
     	if (dates != null && dates.length > 1) {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, Derivative.SEARCH.CATALOGUED, dates[0].toString(), dates[1].toString() ));
     	}
     }
- 
-    /*********************************** NOTES TODO - DISCARD AFTER REVIEWING *******************************************/
-	
-	// so, basically we're accumulating a bunch of images (all derivatives) that match a series of filters....
-	// hmmm... so if we take the approach of accumulating and sorting all this stuff by just extending Derivative
-	// we'll get the search and sort for free I think - the actual search implementation would be different of course
-	// so, if we implement all the search providers, accumulating a list of derivatives for everything, then we should
-	// be able to just sort those derivatives using the supplied ordering
-
-	/************************************************************************************************************************************************
-           	 loop through each art object sort order individually and store a map of {ArtObject.SORT}{objectID} with value of the index in the list
-           	 so that we can later use that ordering to sort the images once all images from all sources have been collected
-           	Map<ArtObject.SORT, Map<Long, Long>> artObjectImageOrderIndexes = CollectionUtils.newHashMap();
-	   		for (Object soc : objectsSortHelper.getSortOrder()) {
-	   			Map<Long, Long> sortIndexes = CollectionUtils.newHashMap();
-	   			ArtObject.SORT os = (ArtObject.SORT) soc;
-	   			SortHelper<ArtObject> sh = new SortHelper<ArtObject>(os);
-	   			sh.sortEntities(artObjects);
-	   			long i = 0;
-	   			for (ArtObject ao : artObjects) {
-	   				sortIndexes.put(ao.getObjectID(), i++);
-	   			}
-	   			artObjectImageOrderIndexes.put(os, sortIndexes);
-	   		}
-	
-	// so here's how we can sort all derivatives by a mix of art object and derivative criteria
-	// loop through all of the sort criteria and sort the list by each criteria separately
-	// storing the order in a map{objectid,sort} = index in list
-	// so that way, we can always look up the object id to perform the proper sort criteria for the derivative
-	// and we assemble the candidate list of master images based on the returned object ids
-	// and looking only for the PTIF source files
-	
-	// then, if we have specific derivative search criteria such as IDs and last modified dates
-	// we process those against the (hopefully smaller) list of PTIF images, getting a list of matching 
-	// derivatives passing the derivatives search criteria
-	// and finally, we sort - we'll need a custom sorter in this class that draws upon the 
-	// derivatives.matchesAspect() and the map{objectid,sort} scores from above
-	// that should work fairly well
-	
-	// finally, when we have multiple sources of derivatives, we're going to
-	// have to perform a search by visiting all image sources with a potentially large
-	// list of object IDs.  So, that can be assisted by creating and indexing a temp table
-	// of object IDs and then joining against it - so, that'll work and it will allow a pattern
-	// to be created for additional sources
-	// spring can help us to find implementations of interfaces as follows: 
-	
-	BeanDefinitionRegistry bdr = new SimpleBeanDefinitionRegistry();
-	ClassPathBeanDefinitionScanner s = new ClassPathBeanDefinitionScanner(bdr);
-
-	TypeFilter tf = new AssignableTypeFilter(CLASS_YOU_WANT.class);
-	s.addIncludeFilter(tf);
-	s.scan("package.you.want1", "package.you.want2");       
-	String[] beans = bdr.getBeanDefinitionNames();
-	
-	
-	// this class will visit all implementers, passing a potentially large list of matching
-	// objects as well as the remaining search criteria for derivative metadata (lastModified, imageIDs)
-
-	// so the interface would return lists of derivatives (or perhaps a more advanced class of image constructed from derivatives)
-	// and would accept the list of object IDs and derivative search criteria - it would also have to implemented
-	// certain searchable interfaces to provide matches filter so we can sort them consistently
-	// and that's about it - this class would provide the searches since object criteria are also necessary
-	**********************************************************************************************************************/
-	
-	// visit all implementers as described above, accumulating images as necessary - for now we only have a single 
-	// implementation which is ArtObject Derivatives, and we've already added those by the time we get here - now 
-	// it's time to filter on any derivative criteria such as image ID and last modified dates
-	
-	// ideally, we would find all image search providers and, passing in the sortHelper
-	// for all implementers of ImageSearchProviders do
-	// taking the order, 
 
 }

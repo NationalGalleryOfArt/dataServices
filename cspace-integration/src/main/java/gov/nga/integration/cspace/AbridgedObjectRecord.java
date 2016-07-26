@@ -1,6 +1,5 @@
 package gov.nga.integration.cspace;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -12,7 +11,6 @@ import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectConstituent;
 import gov.nga.entities.art.ArtObjectImage;
 import gov.nga.integration.cspace.imageproviders.WebImage;
-import gov.nga.search.SearchHelper;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
@@ -49,14 +47,18 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		};
 	};
 
-	public AbridgedObjectRecord(ArtObject o, boolean references, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+	public AbridgedObjectRecord(ArtObject o, CSpaceTestModeService ts) throws InterruptedException, ExecutionException {
+		this(o, false, ts, null);
+	}
+	
+	public AbridgedObjectRecord(ArtObject o, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
 		if (o == null)
 			return;
 
 		testmode = ts.isTestModeOtherHalfObjects();
 
 		if (references)
-			setReferences(o, ts, imgCtrl);
+			setReferences(o, ts, images);
 		setNamespace(defaultNamespace);
 		setSource("tms");
 		setId(o.getObjectID().toString());
@@ -126,19 +128,19 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		return cNames;
 	}
 	
-	public void setReferences(ArtObject o, CSpaceTestModeService ts, ImageSearchController imgCtrl) throws InterruptedException, ExecutionException {
+	public void setReferences(ArtObject o, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
 		List<Reference> rList = CollectionUtils.newArrayList();
 		// first we go through the related objects
 		ArtObjectAssociation aop = o.getParentAssociation();
 		if (aop != null) {
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, ts, imgCtrl);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, ts, images);
 			rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASPARENT.getLabel(), aor));
 		}
 		List<ArtObjectAssociation> l = o.getChildAssociations();
 		if (l != null) {
 			for (ArtObjectAssociation aoc : l) {
 				if (aoc != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, ts, imgCtrl);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, ts, images);
 					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASCHILD.getLabel(), aor));
 				}
 			}
@@ -147,49 +149,31 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		if (l!= null) {
 			for (ArtObjectAssociation aos : l) {
 				if (aos != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, ts, imgCtrl);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, ts, images);
 					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASSIBLING.getLabel(), aor));
 				}
 			}		
 		}
 		
-		// this is actually incorrect - we need to perform an image search using this art object only and iterate through
-		// the results to grab ALL of the references
-		SearchHelper<CSpaceImage> imageSearchHelper = new SearchHelper<CSpaceImage>();
-    	List<CSpaceImage> images = imgCtrl.searchImages(null, imageSearchHelper, Arrays.asList(o));
-    	
-    	for (CSpaceImage ci : images) {
-			WebImage wi = WebImage.factory(ci, ts);
-			AbridgedImageRecord air = new AbridgedImageRecord(wi,false,ts,imgCtrl);
-			if (ArtObjectImage.isPrimaryView(wi)) {
-				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
+		// iterate through the images associated with this art object
+		if (images != null) {
+			for (CSpaceImage ci : images) {
+				WebImage wi = WebImage.factory(ci, ts);
+				AbridgedImageRecord air = new AbridgedImageRecord(wi,false,ts);
+				if (ArtObjectImage.isPrimaryView(wi)) {
+					rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
+				}
+				// we don't want to return cropped images associated with this object
+				else if (!wi.isCropped()) {
+					rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
+				}
 			}
-			// we don't want to return cropped images associated with this object
-			else if (!wi.isCropped()) {
-				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
-			}
-    	}
-
-		// then we go through the largest images associated with this work and return them as associated images
-//		for (Derivative d : o.getLargestImages()) {
-//			if (d == null)
-//				break;
-//			WebImage wi = WebImage.factory(d, ts);
-//			AbridgedImageRecord air = new AbridgedImageRecord(wi,false,ts);
-//			if (ArtObjectImage.isPrimaryView(wi)) {
-//				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
-//			}
-//			// we don't want to return cropped images associated with this object
-//			else if (!wi.isCropped()) {
-//				rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
-//			}
-//		}
+		}
 
 		if (rList.size() <= 0)
 			rList = null;
 
 		setReferences(rList);
-		//this.references = rList.toArray(new Reference[rList.size()]);
 	}
 
 }

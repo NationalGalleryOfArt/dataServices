@@ -39,36 +39,49 @@ public abstract class CSpaceImage extends ArtObjectImage {
 		this.classification=classification;
 	}
     
+	// From Roya who will have to provide better specifications than this:
+	// The artist is needed to be part of the Name(link) in order for Conservators to recognize the image. 
+	// if you do the query for artist: Matisse and title: La Negress, you will get 516 hit which 514 are the same object 
+	// number, and according to DCLPA not useful at all. 
+	// the mimestype and the size is not important for them at the first glance.
     @Override
     public String getTitle() {
     	ArtObject o = getArtObject();
-    	String objectDescription = "";
     	if (o != null)
-    		objectDescription = "of " + o.getAccessionNum();
-    	
-    	IMGFORMAT f = getFormat();
-    	String format = "unrecognized format";
-    	if (f != null)
-    		format = f.getMimetype();
-    	
-    	IMGVIEWTYPE vt = getViewType();
-    	String view = getViewDescription();
-    	if (vt != null) {
-    		view = vt.getLabel();
-    		if (getSequence() != null)
-    			view += " #" + getSequence();
-    	}
-    	
-    	Long w = getWidth();
-    	Long h = getHeight();
-    	String width = "?";
-    	String height = "?";
-    	if (w != null)
-    		width = w.toString();
-    	if (h != null)
-    		height = h.toString();
-   		return String.format("%s %s [%s %sx%s]", format, objectDescription, view, width, height);
+    		return o.getAttribution() + "; " + o.getAccessionNum();
+   		return null;
     }
+
+//	@Override
+//    public String getTitle() {
+//    	ArtObject o = getArtObject();
+//    	String objectDescription = "";
+//    	if (o != null)
+//    		objectDescription = "of " + o.getAccessionNum();
+//    	
+//    	IMGFORMAT f = getFormat();
+//    	String format = "unrecognized format";
+//    	if (f != null)
+//    		format = f.getMimetype();
+//    	
+//    	IMGVIEWTYPE vt = getViewType();
+//    	String view = getViewDescription();
+//    	if (vt != null) {
+//    		view = vt.getLabel();
+//    		if (getSequence() != null)
+//    			view += " #" + getSequence();
+//    	}
+//    	
+//    	Long w = getWidth();
+//    	Long h = getHeight();
+//    	String width = "?";
+//    	String height = "?";
+//    	if (w != null)
+//    		width = w.toString();
+//    	if (h != null)
+//    		height = h.toString();
+//   		return String.format("%s %s [%s %sx%s]", format, objectDescription, view, width, height);
+//    }
 	
 	int thumbnailSize;
 	public int getThumbnailSize() {

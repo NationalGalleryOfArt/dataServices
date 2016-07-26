@@ -18,11 +18,13 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -75,23 +77,28 @@ public class ObjectSearchController extends RecordSearchController {
     @Autowired
     ImageSearchController imgCtrl;
 
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
+    }
+    
     @RequestMapping(value={"/art/objects.json","/art/{source}/objects.json"})
     public ResponseEntity<Items> objectRecordsSource (
     		
-    		@RequestParam(value="id", 					required=false) List<String> ids,
-			@RequestParam(value="cultObj:id",			required=false) List<String> cultObj_ids,
+    		@RequestParam(value="id", 					required=false) String[] ids,
+			@RequestParam(value="cultObj:id",			required=false) String[] cultObj_ids,
 			
-			@RequestParam(value="lastModified", 		required=false) List<String> lastModified,
-			@RequestParam(value="cultObj:lastModified", required=false) List<String> cultObj_lastModified,
+			@RequestParam(value="lastModified", 		required=false) String[] lastModified,
+			@RequestParam(value="cultObj:lastModified", required=false) String[] cultObj_lastModified,
 
-			@RequestParam(value="artistNames", 			required=false) List<String> artistNames,
-			@RequestParam(value="cultObj:artistNames", 	required=false) List<String> cultObj_artistNames,
+			@RequestParam(value="artistNames", 			required=false) String[] artistNames,
+			@RequestParam(value="cultObj:artistNames", 	required=false) String[] cultObj_artistNames,
 			
-			@RequestParam(value="title", 				required=false) List<String> titles,
-			@RequestParam(value="cultObj:title",		required=false) List<String> cultObj_titles,
+			@RequestParam(value="title", 				required=false) String[] titles,
+			@RequestParam(value="cultObj:title",		required=false) String[] cultObj_titles,
 
-			@RequestParam(value="number", 				required=false) List<String> numbers,
-			@RequestParam(value="cultObj:number",		required=false) List<String> cultObj_numbers,
+			@RequestParam(value="number", 				required=false) String[] numbers,
+			@RequestParam(value="cultObj:number",		required=false) String[] cultObj_numbers,
 
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
@@ -140,8 +147,23 @@ public class ObjectSearchController extends RecordSearchController {
 		if (searchHelper.getFilterSize() > 0)
 			artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
     	
-    	logSearchResults(request, artObjects.size());
+    	logSearchResults(request, paginator.getTotalResults());
     	if (artObjects.size() > 0) {
+    		
+    		// we need to find all of the images associated with these objects, so we do that search ahead of time now
+    		// rather than repeating a bunch of times for every item in our page of results - we'll store them in
+    		// a map for easy access later
+    		SearchHelper<CSpaceImage> imageSearchHelper = new SearchHelper<CSpaceImage>();
+        	List<CSpaceImage> images = imgCtrl.searchImages(null, imageSearchHelper, artObjects);
+        	Map<Long, List<CSpaceImage>> imagesMap = CollectionUtils.newHashMap();
+        	for (CSpaceImage img : images) {
+        		List<CSpaceImage> oList = imagesMap.get(img.getArtObjectID());
+        		if (oList == null) {
+        			oList = CollectionUtils.newArrayList();
+        			imagesMap.put(img.getArtObjectID(), oList);
+        		}
+        		oList.add(img);
+        	}
     		
     		ExecutorService threadPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2);
 
@@ -183,7 +205,8 @@ public class ObjectSearchController extends RecordSearchController {
     				catch (MalformedURLException me) {
     					log.error("Problem creating object URL: " + me.getMessage());
     				}
-    				Record objectRecord = new AbridgedObjectRecord(o, references, ts, imgCtrl);
+    				
+    				Record objectRecord = new AbridgedObjectRecord(o, references, ts, imagesMap.get(o.getObjectID()));
     				Future<String> thumb = thumbnailMap.get(o.getObjectID());
     				String thumbVal = (thumb == null ? null : thumb.get());
     				partialResults.add(new Item(objectURL, thumbVal, objectRecord));
@@ -253,7 +276,7 @@ public class ObjectSearchController extends RecordSearchController {
     }
     
     // ARTISTNAMES & TITLES FIELD
-    protected static void processTextField(SearchHelper<ArtObject> searchHelper, List<String> textValues1, List<String> textValues2, ArtObject.SEARCH field) {
+    protected static void processTextField(SearchHelper<ArtObject> searchHelper, String[] textValues1, String[] textValues2, ArtObject.SEARCH field) {
     	List<String> aList = CollectionUtils.newArrayList(textValues1, textValues2);
     	aList = CollectionUtils.clearEmptyOrNull(aList);
 
@@ -267,7 +290,7 @@ public class ObjectSearchController extends RecordSearchController {
     }
 
 	// ID FIELD
-	protected static void processIDs(SearchHelper<ArtObject> searchHelper, List<String> ids, List<String> cultObj_ids) {
+	protected static void processIDs(SearchHelper<ArtObject> searchHelper, String[] ids, String[] cultObj_ids) {
 		List<String> iList = CollectionUtils.newArrayList(ids, cultObj_ids);
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
@@ -275,7 +298,7 @@ public class ObjectSearchController extends RecordSearchController {
     }
     
 	// LASTMODIFIED FIELD
-    protected static void processLastModified(SearchHelper<ArtObject> searchHelper, List<String> lastModified, List<String> cultObj_lastModified) throws APIUsageException {
+    protected static void processLastModified(SearchHelper<ArtObject> searchHelper, String[] lastModified, String[] cultObj_lastModified) throws APIUsageException {
     	DateTime[] dates = getLastModifiedDates(lastModified,cultObj_lastModified,"2008-01-01");
     	if (dates != null && dates.length > 1) {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, ArtObject.SEARCH.LASTDETECTEDMODIFICATION, dates[0].toString(), dates[1].toString() ));

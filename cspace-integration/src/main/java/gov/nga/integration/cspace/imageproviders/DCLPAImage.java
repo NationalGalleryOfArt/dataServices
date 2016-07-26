@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nga.entities.art.ArtDataManagerService;
-
 import gov.nga.imaging.Thumbnail;
 import gov.nga.integration.cspace.CSpaceImage;
 import gov.nga.integration.cspace.CSpaceTestModeService;
@@ -167,5 +166,5 @@ public class DCLPAImage extends CSpaceImage {
 		
 		return null;
 	}
-	
+    
 }

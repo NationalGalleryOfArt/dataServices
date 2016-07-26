@@ -367,14 +367,30 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
         return null;
     }
 
-    public static <I extends Derivative> I getLargestImage(List<I> images, IMGVIEWTYPE vt, String seq) {
+    public static <I extends Derivative> I getLargestImage(List<I> images, IMGVIEWTYPE vt, String seq, IMGFORMAT... preferredFormatOrder) {
         I ip = null;
+        
+        IMGFORMAT[] defaultFormatOrder = {IMGFORMAT.PTIF, IMGFORMAT.JPEG, IMGFORMAT.PNG}; 
+        if (preferredFormatOrder.length == 0)
+        	 preferredFormatOrder = defaultFormatOrder;
+        
         if (images != null) {
             for (I i : images) {
                 if ( filterMatch(i,vt,seq)) {
                     // skip over any cropped images or images that are too large
                     if (ip == null || i.pixelCount() > ip.pixelCount())
-                        ip = i;
+                    	ip = i;
+                    else if (i.pixelCount() == ip.pixelCount()) {
+                    	// we have two images equal in size, and we need to select one of them based on a preferred format order                    	
+                    	for (IMGFORMAT f : preferredFormatOrder) {
+                    		if (f.equals(ip.getFormat()))
+                    			break;
+                    		if (f.equals(i.getFormat())) {
+                    			ip = i;
+                    			break;
+                    		}
+                    	}
+                    }
                 }
             }
         }
