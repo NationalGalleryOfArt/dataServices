@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -137,10 +138,15 @@ public class ImageRecordController {
     	
 		RecordSearchController.logSearchResults(request, 1);
 		
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(d.getFormat().getMimetype()))
-                .body(new InputStreamResource(imageURI.toURL().openStream()));
-		
+		try {
+	        return ResponseEntity.ok()
+	                .contentType(MediaType.parseMediaType(d.getFormat().getMimetype()))
+	                .body(new InputStreamResource(imageURI.toURL().openStream()));
+		} 
+		// return 404 if the source file cannot be found on the NAS share
+		catch (FileNotFoundException fe) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}
 	}
 
     
