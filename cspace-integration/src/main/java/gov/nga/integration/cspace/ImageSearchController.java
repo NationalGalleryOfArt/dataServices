@@ -285,7 +285,7 @@ public class ImageSearchController extends RecordSearchController {
     
 	// LASTMODIFIED FIELD
     protected static void processLastModified(SearchHelper<CSpaceImage> searchHelper, String[] lastModified, String[] image_lastModified) throws APIUsageException {
-    	DateTime[] dates = getLastModifiedDates(lastModified,image_lastModified,"1/1/2008");
+    	DateTime[] dates = getLastModifiedDates(lastModified,image_lastModified);
     	if (dates != null && dates.length > 1) {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.BETWEEN, Derivative.SEARCH.CATALOGUED, dates[0].toString(), dates[1].toString() ));
     	}

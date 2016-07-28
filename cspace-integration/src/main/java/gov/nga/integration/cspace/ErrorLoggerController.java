@@ -94,10 +94,12 @@ public class ErrorLoggerController {
 		summary		= summary.replaceAll("\n", "");
 		details		= details.replaceAll("\n", "");
 		
-		if ( 	!logMess(severity, "Client Error Using: " + origin + "; " + summary) || !logMess("debug", "Client Error Details:" + details) ) {
+		if ( !logMess(severity, "Client Error: " + summary)
+				|| !logMess(severity, "Client Error Origin: " + origin)
+				|| !logMess("debug", "Client Error Details:" + details) 
+				)
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-		}
-		
+
 		// assemble a well formed response
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);

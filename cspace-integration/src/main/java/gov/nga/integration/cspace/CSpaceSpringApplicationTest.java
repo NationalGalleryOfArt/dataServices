@@ -150,7 +150,17 @@ public class CSpaceSpringApplicationTest {
 																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
 																"\"filename", "\"productionDate", "\"description", "\"title", 
 																"\"Madame Dietz-Monnin", "\"Edgar Degas; 1951.2.1", "",
-																						
+																
+		"/media/images.json", 	  								"lastModified=2016-04-05&lastModified=2016-06-04", 		"200",			"!\"total\" : 0", 		"\"total\" :", 		"",
+		"/media/web-images-repository/images.json", 	  		"lastModified=asdf2016-04-05&lastModified=2016-06-04", 	"400",			"not parse", 								"",
+		"/media/images.json", 	  								"lastModified=", 										"200",			"\"total\" : 0", 							"",
+		"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-04-05", 								"200",			"!\"total\" : 0", 		"",
+		"/media/images.json", 	  								"lastModified=2100-04-05", 								"200",			"\"total\" : 0", 		"",
+		"/media/images.json", 	  								"lastModified=2100-04-05&lastModified=", 				"200",			"\"total\" : 0", 		"",
+		"/media/images.json", 	  								"lastModified=2015-04-05&lastModified=", 				"200",			"!\"total\" : 0", 		"\"limit\" : 50",	"",
+		"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-06-04&lastModified=2015-06-04",		"200",			"!\"total\" : 0", 		"",
+		"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-07-28&lastModified=2016-07-28",		"200",			"!\"total\" : 0", 		"",
+		"/media/images.json", 	  								"lastModified=&lastModified=2016-06-04",				"200",			"!\"total\" : 0", 		"",																						
         // SERvICE #6: ERROR LOGGER
         "/system/logger.json",			"severity=error&origin=someurl&summary=maximum value for pageSize&details=The limit for page size is 25",
         																						"200",			"limit for page size", "error", ""

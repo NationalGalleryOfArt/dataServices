@@ -99,7 +99,11 @@ public abstract class RecordSearchController {
 		}
 		log.info(message);
 	}
-	
+
+    protected static DateTime[] getLastModifiedDates(String[] lastModified, String[] ns_lastModified) throws APIUsageException {
+    	return getLastModifiedDates(lastModified, ns_lastModified, "2008-01-01");
+    }
+    
 	// LASTMODIFIED FIELD
     protected static DateTime[] getLastModifiedDates(String[] lastModified, String[] ns_lastModified, String defaultEarliestDate) throws APIUsageException {
     	List<String> lmList = CollectionUtils.newArrayList(lastModified, ns_lastModified);
@@ -127,9 +131,13 @@ public abstract class RecordSearchController {
     			// if lm1 is empty, then we will always assign a lower bound based on the TMS conversion date
     			if (StringUtils.isNullOrEmpty(lm1))
     				lm1 = defaultEarliestDate;
-    			// if lm2 is empty, then we assign an upper bound of today's date since no records could possibly be modified after the current time
-    			if (StringUtils.isNullOrEmpty(lm2))
+    			// if lm2 is empty, then we assign an upper bound of the current time OR if the lower bound is already greater than now
+    			// then we set the upper bound equal to the lower bound since 
+    			if (StringUtils.isNullOrEmpty(lm2)) {
     				lm2 = DateTime.now().toString();
+    				if (lm2.compareTo(lm1) < 0)
+    					lm2 = lm1;
+    			}
     			
     			// swap if lm1 is > lm2 for some reason, then we swap values
     			if (lm1.compareTo(lm2) > 0) {
@@ -139,6 +147,12 @@ public abstract class RecordSearchController {
     			// now, all the dates should be set to something non empty, so we try to parse them
     			DateTime dm1 = new DateTime(lm1);
     			DateTime dm2 = new DateTime(lm2);
+    			
+    			// if the minutes, hours, and seconds of the high range are unset, then it is highly likely that the caller wants to include the entire day rather
+    			// than a cut-off of midnight, so we go ahead and jump to the next day
+    			if ( dm1.getHourOfDay() + dm1.getMinuteOfHour() + dm1.getSecondOfMinute() == 0)
+        			dm2 = dm2.plusDays(1);
+    			
     			return new DateTime[]{dm1,dm2};
     		}
     		catch (IllegalArgumentException ie) {
