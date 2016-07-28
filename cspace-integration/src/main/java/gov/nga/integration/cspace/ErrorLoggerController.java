@@ -73,7 +73,7 @@ public class ErrorLoggerController {
 		case "info"  : log.info(message);  break;
 		case "debug" : log.debug(message); break;
 		case "trace" : log.trace(message); break;
-		default 	 : return false;
+		default 	 : log.error("improper status: " + severity + "; message: " + message); return false;
 		}
 		return true;
 	}
