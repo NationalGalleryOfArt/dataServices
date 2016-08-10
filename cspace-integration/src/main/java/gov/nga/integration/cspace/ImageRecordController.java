@@ -1,9 +1,8 @@
 package gov.nga.integration.cspace;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -43,7 +42,7 @@ public class ImageRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws APIUsageException, InterruptedException, ExecutionException {
+	) throws Exception {
     	return imageRecordSource(null, id, request, response);
     }
 
@@ -55,7 +54,7 @@ public class ImageRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws APIUsageException, InterruptedException, ExecutionException {
+	) throws Exception {
     	
     	log.debug("SOURCE: " + source);
     	
@@ -113,7 +112,7 @@ public class ImageRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws IOException, APIUsageException, InterruptedException, ExecutionException, URISyntaxException {
+	) throws Exception {
 
     	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
     	String [] sourceScope = imgCtrl.getSources(request); 
@@ -143,8 +142,9 @@ public class ImageRecordController {
 	                .contentType(MediaType.parseMediaType(d.getFormat().getMimetype()))
 	                .body(new InputStreamResource(imageURI.toURL().openStream()));
 		} 
-		// return 404 if the source file cannot be found on the NAS share
-		catch (FileNotFoundException fe) {
+		// return 404 if the source file cannot be found or accessed
+		catch (IOException ie) {
+			log.warn("IO Exception trying to access image record",ie);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		}
 	}

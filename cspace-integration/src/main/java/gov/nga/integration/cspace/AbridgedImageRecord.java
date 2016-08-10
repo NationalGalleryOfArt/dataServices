@@ -15,7 +15,7 @@ import gov.nga.utils.CollectionUtils;
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
 
-@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "viewType", "partner2ViewType", 
+@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "fingerprint", "viewType", "partner2ViewType", 
 					 "width", "height", "title", "lastModified", "sequence", "filename", "description", 
 					 "lightQuality", "spectrum", "productionDate", "viewDescription", "treatmentPhase", 
 					 "references" })
@@ -106,6 +106,7 @@ public class AbridgedImageRecord extends Record implements NamespaceInterface {
 		
 		// TODO - might need to diverge here - the cataloged date is not necessarily what we're going for here 
 		setLastModified(d.getCatalogued());
+		setFingerprint(d.getCatalogued());
 	}
 	
 	public String getPartner2ViewType() {

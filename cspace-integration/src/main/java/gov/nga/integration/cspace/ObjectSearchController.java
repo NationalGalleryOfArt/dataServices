@@ -5,7 +5,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -115,7 +115,7 @@ public class ObjectSearchController extends RecordSearchController {
   */
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws APIUsageException, InterruptedException, ExecutionException {  	
+	) throws Exception {  	
     	
     	// getSource validates source if present or returns all supported sources, enabling us to merely invoke searches
     	// for all of the requested sources which, in this case, is just one of course (tms).

@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -118,7 +117,7 @@ public class ImageSearchController extends RecordSearchController {
 			
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws APIUsageException, InterruptedException, ExecutionException {  	
+	) throws Exception {  	
 
 		int thumbWidth = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailWidthProperty);
 		int thumbHeight = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailWidthProperty);
@@ -220,7 +219,7 @@ public class ImageSearchController extends RecordSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 	}
     
-    protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws InterruptedException, ExecutionException { 
+    protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws Exception { 
     	List<CSpaceImage> images = CollectionUtils.newArrayList();
     	
     	if (sourceScope == null)

@@ -1,5 +1,9 @@
 package gov.nga.integration.cspace;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -14,9 +18,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import gov.nga.entities.art.DataNotReadyException;
 
 @ControllerAdvice
-public class APIExceptionTranslator {
+public class ExceptionErrorMapper {
 
-	private static final Logger log = LoggerFactory.getLogger(APIExceptionTranslator.class);
+	private static final Logger log = LoggerFactory.getLogger(ExceptionErrorMapper.class);
 	
 	@ExceptionHandler(APIUsageException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -25,7 +29,43 @@ public class APIExceptionTranslator {
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
-				"There was a problem with the request. " + GenericErrorController.HELPLINK, 
+				"There was a problem with the request that prevented it from being processed at all. " + GenericErrorController.HELPLINK, 
+				e.getMessage()
+		);
+	}
+
+	@ExceptionHandler(SQLException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
+	ErrorLoggerResponse handleAPIUsageException(SQLException e, HttpServletRequest req){
+		log.warn(e.getMessage(),e);
+		return new ErrorLoggerResponse(
+				"error", req.getRequestURI(), 
+				"A SQL Exception was thrown when processing the request. ", 
+				e.getMessage()
+		);
+	}
+
+	@ExceptionHandler(ExecutionException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
+	ErrorLoggerResponse handleAPIUsageException(ExecutionException e, HttpServletRequest req){
+		log.warn(e.getMessage(),e);
+		return new ErrorLoggerResponse(
+				"error", req.getRequestURI(), 
+				"An Execution Exception (an exception thrown from a spawned thread) was thrown when processing the request. ", 
+				e.getMessage()
+		);
+	}
+
+	@ExceptionHandler(IOException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
+	ErrorLoggerResponse handleAPIUsageException(IOException e, HttpServletRequest req){
+		log.warn(e.getMessage(),e);
+		return new ErrorLoggerResponse(
+				"error", req.getRequestURI(), 
+				"An IO Exception was thrown when processing the request. ", 
 				e.getMessage()
 		);
 	}

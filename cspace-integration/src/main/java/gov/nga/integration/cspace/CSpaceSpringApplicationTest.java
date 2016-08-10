@@ -58,8 +58,8 @@ public class CSpaceSpringApplicationTest {
     	
     	// SERVICE #2: search for art objects
     	"/art/tms/objects.json", 	  	"id=1138", 												"200",			"\"total\" : 1", 		"\"thumbnail\" :",							"K05mypvXlSJLHUbaytboTR5", "",
-    	"/art/tms/objects.json", 	  	"id=1138&title=mud",									"200",			"\"total\" : 0", 		"",
-    	"/art/tms/objects.json", 	  	"cultObj:id=1138", 										"200",			"\"total\" : 1", 		"\"thumbnail\" :",							"K05mypvXlSJLHUbaytboTR5", "",
+    	"/art/tms/objects.json", 	  	"id=1138&title=mud",									"200",			"\"total\" : 0", 		"", 
+    	"/art/tms/objects.json", 	  	"cultObj:id=1138", 										"200",			"\"total\" : 1", 		"fingerprint\" : \"", "\"thumbnail\" :",							"K05mypvXlSJLHUbaytboTR5", "",
     	"/art/objects.json", 	  	  	"id=1138", 												"200",			"\"total\" : 1", 		"\"thumbnail\" :",							"K05mypvXlSJLHUbaytboTR5", "",
     	"/art/objects.json", 	  		"lastModified=2016-04-05&lastModified=2016-06-04", 		"200",			"!\"total\" : 0", 		"\"total\" :", 								"",
     	"/art/tms/objects.json", 	  	"lastModified=asdf2016-04-05&lastModified=2016-06-04", 	"400",			"not parse", 			"",
@@ -93,16 +93,18 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
         "/media/images/2566",									"",								"400",			"",
         "/media/portfolio-dclpa/images/2774",					"",								"200",			"image/x-adobe-dng", "", // has space in the file name
-        "/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "", 
+        "/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "",
+        "/media/portfolio-dclpa/images/7007",					"",								"404",			"", 
         
         // SERVICE #4: IMAGE RECORD
         "/media/images/2556.json", 								"",								"308",			"Location", "media/images.json?id=2556", "",
         "/media/portfolio-dclpa/images/2556.json",				"",								"200",			"!\"references", "",
-        "/media/web-images-repository/images/0A78FF5D-1053-47AD-BA3D-D1C2AF4D4ADD.json", "",	"200",			"\"references", "lastModified", "",
+        "/media/web-images-repository/images/0A78FF5D-1053-47AD-BA3D-D1C2AF4D4ADD.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
         "/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "/media/web-images-repository/images/234234.json",		"",								"404",			"",
         "/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
-        "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "\"treatmentPhase\"", "",
+        "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "\"treatmentPhase\"", "fingerprint\" : \"", "",
+        "/media/portfolio-dclpa/images/10162.json",				"",								"200",			"accessionNum\" : \"1992.108.1\"", "",
         "/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"lastModified\" : \"2015-10-26T00:00:00-04:00\"", "",
         "/media/portfolio-dclpa/images/5284.json",				"",								"200",			
         								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate",  
@@ -122,8 +124,8 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images.json",					"id=2566",						"200",			"\"references",			"\"thumbnail", "",
         "/media/portfolio-dclpa/images.json",					"image:id=2566",				"200",			"\"references",			"\"thumbnail", "",
         "/media/web-images-repository/images.json", 			"id=2566",						"200",			"!\"references",		"!\"thumbnail", 	"\"total\" : 0", "",
-        "/media/images.json",									"cultObj:id=76219",				"200",			"\"references",			"\"thumbnail", "\"total\" : 5", "",
-        "/media/portfolio-dclpa/images.json",					"cultObj:id=76219",				"200",			"\"references",			"\"thumbnail", "\"total\" : 4", "",
+        "/media/images.json",									"cultObj:id=76219",				"200",			"\"references",	"fingerprint\" : \"",	"\"thumbnail", "\"total\" : 5", "",
+        "/media/portfolio-dclpa/images.json",					"cultObj:id=76219",				"200",			"\"references",	"fingerprint\" : \"",	"\"thumbnail", "\"total\" : 4", "",
         "/media/web-images-repository/images.json",				"cultObj:id=76219",		 		"200",			"\"references",			"\"thumbnail", "\"total\" : 1", "",
         "/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-title",
         																						"400",																	"",
@@ -136,7 +138,7 @@ public class CSpaceSpringApplicationTest {
         "/media/portfolio-dclpa/images.json", 					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title,-image:id&limit=1",
         																						"200",			"\"id\" : \"3994", 										"",
         "/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
-        "/media/images.json", 									"cultObj:artistNames=gogh&skip=27&limit=25&references=false&thumbnails=false&order=image:id",
+        "/media/images.json", 									"cultObj:artistNames=gogh&skip=71&limit=25&references=false&thumbnails=false&order=image:id",
         																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "F655F232-ACFD-4D2B-8CDE-43BD6C78B425", "!E7F34278-89BC-4120-BB15-8980561AEC6A", "!0B839226-9EC8-4DAE-945D-7330736FEB0A", "",
         "/media/images.json",									"id=29AA0303-D037-4B96-A8B3-B9BE3BE2FEDD", "200", "image/tiff\"", 	"",
         "/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", "200", "total\" : 0", 	"",
@@ -145,7 +147,7 @@ public class CSpaceSpringApplicationTest {
 																"\"filename", "\"title", "\"George Romney; 1937.1.105", "",
         "/media/images.json",									"id=3924",						"200",			
 																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
-																"\"filename", "\"productionDate", "\"description", "!\"title", "",
+																"\"filename", "\"productionDate", "\"description", "!\"title", "fingerprint\" : \"", "",
         "/media/images.json",									"id=1960",						"200",			
 																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
 																"\"filename", "\"productionDate", "\"description", "\"title", 
@@ -277,7 +279,7 @@ public class CSpaceSpringApplicationTest {
 			
 			boolean ok = (finding && found) || (!finding && !found);
 			String status = ok ? "Successfully" : "Unsuccessfully";
-			String presence = finding ? "prescence" : "non-presence";
+			String presence = finding ? "presence" : "non-presence";
 			log.info(status + " validated " + presence + " of content: " + v);
 			valid = valid && ok;
 			

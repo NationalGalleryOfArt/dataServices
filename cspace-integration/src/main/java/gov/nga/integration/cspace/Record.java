@@ -5,14 +5,16 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({ "namespace", "id", "source", "lastModifiedOn", "references" })
+@JsonPropertyOrder({ "namespace", "id", "source", "lastModifiedOn", "fingerprint", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Record {
 
-	private String namespace;
-	private String id;
-	private String source;
-    private String lastModified;
+	private String 
+		namespace,
+		id,
+		fingerprint,
+		source,
+		lastModified;
 
 	private List<Reference> references;
 
@@ -43,6 +45,14 @@ public abstract class Record {
 
 	public void setLastModified(String lastModified) {
 		this.lastModified = lastModified;
+	}
+
+	public String getFingerprint() {
+		return fingerprint;
+	}
+
+	public void setFingerprint(String fingerprint) {
+		this.fingerprint = fingerprint;
 	}
 
 	public List<Reference> getReferences() {

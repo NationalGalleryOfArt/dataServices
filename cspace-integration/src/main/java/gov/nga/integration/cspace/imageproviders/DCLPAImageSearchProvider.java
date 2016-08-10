@@ -57,9 +57,8 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 
 	// TODO the image record controller should be modified to use search with a specific source rather than a dedicated fetch
 	public List<CSpaceImage> searchImages(
-//			SearchHelper<ArtObject> aoSearchHelper, 
 			SearchHelper<CSpaceImage> imageSearchHelper,
-			List<ArtObject> limitToTheseArtObjects) {
+			List<ArtObject> limitToTheseArtObjects) throws SQLException {
 
 		List<CSpaceImage> images = CollectionUtils.newArrayList();
 
@@ -68,12 +67,7 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 		// if we are to limit the images to specific objects then we can do that although the number of objects is potentially fairly large
 		// so we'll have to see how it goes - might have to create a temp table, insert the objects of interest and perform a join
 		
-		try {
-			images = fetchImages(limitToTheseArtObjects, imageSearchHelper);
-		}
-		catch (SQLException se) {
-			log.error(se.getMessage());
-		}
+		images = fetchImages(limitToTheseArtObjects, imageSearchHelper);
 		
     	return images;
 	}
@@ -184,9 +178,9 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 			log.trace("************************ END TEMP TABLE: " + tTime + " ************************");
 			conn.close();
 		}
-    	catch (SQLException se) {
-    		log.error(se.getMessage(),se);
-    	}
+//    	catch (SQLException se) {
+//  		log.error(se.getMessage(),se);
+//    	}
 
 		return imageHitList;
 	}

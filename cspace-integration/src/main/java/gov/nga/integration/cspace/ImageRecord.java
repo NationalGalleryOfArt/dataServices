@@ -26,7 +26,7 @@ import gov.nga.entities.art.ArtObjectDimension;
 */
 
 	 
-@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "width", "height", "title", "lastModified", 
+@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "fingerprint", "width", "height", "title", "lastModified", 
 					 "viewType", "partner2ViewType", "sequence", "filename", "description", "subjectWidthCM", "subjectHeightCM", 
 					 "originalSource", "originalSourceType", "originalFilename", "projectDescription", "lightQuality",
 					 "spectrum", "captureDevice", "originalSourceInstitution", "photographer", "productionDate", "creator", 

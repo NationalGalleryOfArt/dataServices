@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ErrorLoggerController {
 
 	static final Logger log = LoggerFactory.getLogger(ErrorLoggerController.class);
+	
+	static final public String paragraphSepChar = "↲"; 
 
 	/*  SPRING REST CONTROLLER NOTES
 	 @RequestMapping(value = "/matches/{matchId}", produces = "application/json")
@@ -89,10 +91,12 @@ public class ErrorLoggerController {
 		if (severity == null || origin == null || summary == null || details == null)
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		
-		severity	= severity.replaceAll("\n", "");
-		origin 		= origin.replaceAll("\n", "");
-		summary		= summary.replaceAll("\n", "");
-		details		= details.replaceAll("\n", "");
+		// the remote logger sometimes sends us linebreaks which we don't really want in the log files, so we transform them here
+		// to a single character that indicates a line break when rendered in a viewer that has the glyph for the given code point.
+		severity	= severity.replaceAll("\r\n", paragraphSepChar).replaceAll("\r", paragraphSepChar).replaceAll("\n", paragraphSepChar);
+		origin 		= origin.replaceAll("\r\n", paragraphSepChar).replaceAll("\r", paragraphSepChar).replaceAll("\n", paragraphSepChar);
+		summary		= summary.replaceAll("\r\n", paragraphSepChar).replaceAll("\r", paragraphSepChar).replaceAll("\n", paragraphSepChar);
+		details		= details.replaceAll("\r\n", paragraphSepChar).replaceAll("\r", paragraphSepChar).replaceAll("\n", paragraphSepChar);
 		
 		if ( !logMess(severity, "Client Error: " + summary)
 				|| !logMess(severity, "Client Error Origin: " + origin)

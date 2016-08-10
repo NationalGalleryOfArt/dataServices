@@ -3,7 +3,6 @@ package gov.nga.integration.cspace;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,7 +42,7 @@ public class ObjectRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws InterruptedException, ExecutionException {
+	) throws Exception {
     	return objectRecordSource(null, id, request, response);
     }
     
@@ -56,7 +55,7 @@ public class ObjectRecordController {
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
 			HttpServletResponse response
-	) throws InterruptedException, ExecutionException {
+	) throws Exception {
     	
     	log.debug("SOURCE: " + source);
     	// not implemented if the source is not specified OR (preferably) a redirect to the generic search for object records
