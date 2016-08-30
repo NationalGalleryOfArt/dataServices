@@ -1831,6 +1831,10 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 	public String getAttribution() {
 		return attribution;
 	}
+	
+	public void setAttribution(String attribution) {
+		this.attribution = attribution;
+	}
 
 	private String visualBrowserTimeSpan = null;
 	public String getVisualBrowserTimeSpan() {

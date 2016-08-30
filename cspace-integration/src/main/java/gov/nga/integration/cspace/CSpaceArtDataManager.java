@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import gov.nga.entities.art.ArtDataManager;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.Derivative;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.ConfigService;
 import gov.nga.utils.DateUtils;
@@ -215,6 +216,16 @@ public class CSpaceArtDataManager extends ArtDataManager {
     				String[] parts = t.split(delimeter);
     				t = parts[0];
     				o.setTitle(t + delimeter + "[" + o.getLastDetectedModification() + "]");
+
+    				// and now adjust any primary images that are associated with this object  
+    				List<Derivative> dList = o.getImages();
+    				if (dList != null) {
+    					for (Derivative d : dList) {
+   							d.setCatalogued(DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, new Date()));
+   							d.setTestingMessage(d.getCatalogued());
+    					}
+    				}
+    				
     			}
     		}
     	}

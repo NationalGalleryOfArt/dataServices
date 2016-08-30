@@ -73,7 +73,7 @@ public class CSpaceSpringApplicationTest {
     	"/art/objects.json", 	  		"number=1992.51.9", 									"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"\"references\" : [ {",		"thumbnail\" :", "",
     	"/art/objects.json", 	  		"number=1992.51.9&references=0&thumbnails=0",			"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"!references",				"!thumbnail",	"",
     	"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
-    	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"206294",	 						"",
+    	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"207851",	 						"",
     	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 59", 		"",
     	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 59", 		"\"title\" : \"Toy Bank: Frog\"",			"jcSOv616NXD/EnT7YafDqbbhLvETY6EYY5/T/OKLG1GSUt",	"",
     	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		

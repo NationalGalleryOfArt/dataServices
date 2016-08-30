@@ -678,6 +678,16 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 
     	return null;
     }
+    
+	private String testingMessage;
+	public String getTestingMessage() {
+		return testingMessage;
+	}
+	
+	public void setTestingMessage(String testingMessage) {
+		this.testingMessage = testingMessage;
+	}
+
 
 }
 

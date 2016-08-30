@@ -38,7 +38,7 @@ public abstract class CSpaceImage extends ArtObjectImage {
 	public void setClassification(String classification) {
 		this.classification=classification;
 	}
-    
+	
 	// From Roya who will have to provide better specifications than this:
 	// The artist is needed to be part of the Name(link) in order for Conservators to recognize the image. 
 	// if you do the query for artist: Matisse and title: La Negress, you will get 516 hit which 514 are the same object 
@@ -47,9 +47,13 @@ public abstract class CSpaceImage extends ArtObjectImage {
     @Override
     public String getTitle() {
     	ArtObject o = getArtObject();
+    	String title = null;
     	if (o != null)
-    		return o.getAttribution() + "; " + o.getAccessionNum();
-   		return null;
+    		title = o.getAttribution() + "; " + o.getAccessionNum();
+    	// TODO - remove testing code from production release
+    	if (getTestingMessage() != null)
+    		title = title + "; -=-=-=- [" + getTestingMessage() + "]";
+   		return title;
     }
 
 //	@Override
