@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import gov.nga.entities.art.ArtDataManager;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
+import gov.nga.integration.cspace.imageproviders.WebImageSearchProvider;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.ConfigService;
 import gov.nga.utils.DateUtils;
@@ -193,6 +194,9 @@ public class CSpaceArtDataManager extends ArtDataManager {
         // unload art object data from memory
         unload();
     }
+    
+    @Autowired
+	WebImageSearchProvider webImageSearchProvider;
 
     @Scheduled(cron="0 */2 * * * *")
     public void updateTestData() {
@@ -225,7 +229,7 @@ public class CSpaceArtDataManager extends ArtDataManager {
    							d.setTestingMessage(d.getCatalogued());
     					}
     				}
-    				
+    				webImageSearchProvider.clearImageCache();
     			}
     		}
     	}

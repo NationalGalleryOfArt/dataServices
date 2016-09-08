@@ -38,6 +38,10 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 	
 	private List<CSpaceImage> imageCache = null;
 	private Collection<ArtObject> objectMarker = null;
+	
+	public void clearImageCache() {
+		imageCache = null;
+	}
 
 	private List<CSpaceImage> getLargestImagesOfArtObjects(Collection<ArtObject> fromTheseObjects) {
 		List<CSpaceImage> images = CollectionUtils.newArrayList();
@@ -70,7 +74,7 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 			images = getLargestImagesOfArtObjects(limitToTheseArtObjects);
 		else {
 			artDataManager.isDataReady(true);
-			// if we haven't yet cached the list of art objects or the list has changed since we cached it, then refresh it
+			// if we haven't yet cached the list of images or the list has changed since we cached it, then refresh it
 			if ( objectMarker == null || !objectMarker.equals(artDataManager.getArtObjectsRaw().values()) ) {
 				objectMarker = artDataManager.getArtObjectsRaw().values();
 				imageCache = getLargestImagesOfArtObjects(objectMarker);
