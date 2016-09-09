@@ -39,8 +39,8 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl {
 	private List<CSpaceImage> imageCache = null;
 	private Collection<ArtObject> objectMarker = null;
 	
-	public void clearImageCache() {
-		imageCache = null;
+	public synchronized void resetImageCache() {
+		objectMarker = null;
 	}
 
 	private List<CSpaceImage> getLargestImagesOfArtObjects(Collection<ArtObject> fromTheseObjects) {

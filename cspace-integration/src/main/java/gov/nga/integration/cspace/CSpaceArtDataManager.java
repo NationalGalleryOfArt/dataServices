@@ -229,9 +229,9 @@ public class CSpaceArtDataManager extends ArtDataManager {
    							d.setTestingMessage(d.getCatalogued());
     					}
     				}
-    				webImageSearchProvider.clearImageCache();
     			}
     		}
+    		webImageSearchProvider.resetImageCache();
     	}
     }
 
