@@ -139,7 +139,7 @@ public class CSpaceSpringApplicationTest {
         																						"200",			"\"id\" : \"3994", 										"",
         "/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
         "/media/images.json", 									"cultObj:artistNames=gogh&skip=71&limit=25&references=false&thumbnails=false&order=image:id",
-        																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "F655F232-ACFD-4D2B-8CDE-43BD6C78B425", "!E7F34278-89BC-4120-BB15-8980561AEC6A", "!0B839226-9EC8-4DAE-945D-7330736FEB0A", "",
+        																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "E7F34278-89BC-4120-BB15-8980561AEC6A", "!E7E24A15-8A07-483E-AE2F-A902DC6F1F14", "",
         "/media/images.json",									"id=29AA0303-D037-4B96-A8B3-B9BE3BE2FEDD", "200", "image/tiff\"", 	"",
         "/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", "200", "total\" : 0", 	"",
         "/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			   "404", "",
