@@ -1288,14 +1288,20 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			// and if a zoom image, we can show zooms
 			// and either we can show imagery in general or the size constitutes fair use 
 		return  inPrivateOperatingMode() || 							// in private operating mode OR...
-					( 	isPublic() &&										// public object AND 
-						!isThumbnailProhibited() &&                         // thumbnails not prohibited AND
-						( !d.isZoom() || isZoomImageryPermitted() ) &&      // if zoom image, ensure we can show zooms for this object AND
-						( canShowImagery() ||                               // either we can show imagery in general or the size is fair use or smaller
-								(                                           
-										d.getWidth()  <= Derivative.FAIRUSEMAXEXTENT && 
-										d.getHeight() <= Derivative.FAIRUSEMAXEXTENT
+				
+					( 	isPublic() &&									// the art object must be public to display it publicly
+						(
+							// a bunch of object and image characteristics are met to ensure we can show the image publicly
+							(   !isThumbnailProhibited() &&                         // thumbnails not prohibited AND
+								( !d.isZoom() || isZoomImageryPermitted() ) &&      // if zoom image, ensure we can show zooms for this object AND
+								( canShowImagery() ||                               // either we can show imagery in general or the size is fair use or smaller
+										( d.getWidth()  <= Derivative.FAIRUSEMAXEXTENT && 
+										d.getHeight() <= Derivative.FAIRUSEMAXEXTENT )
 								)
+							)
+							
+							// or the image is a research image
+							|| (d instanceof ResearchImage)
 						)
 					);
 	}
