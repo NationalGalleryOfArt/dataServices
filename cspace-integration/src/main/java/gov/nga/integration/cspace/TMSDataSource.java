@@ -40,7 +40,7 @@ public class TMSDataSource extends DataSourceService {
 	
 	@PreDestroy
 	private void preDestroy() {
-		log.info("Nothing to do here since pool implementation is responsible for closing any open connections.");
+		log.debug("Nothing to destroy here since Spring's pool implementation is responsible for closing any open connections.");
 	}
 
 }

@@ -235,10 +235,8 @@ public class CSpaceArtDataManager extends ArtDataManager {
     	}
     }
 
-    // reload TMS data every 10 minutes
-    // TODO merge this cron with an application property
-    @Scheduled(cron="0 0 8 * * *")
-//    @Scheduled(cron="0 */2 * * * *") // for testing a problem encountered during refresh under load
+    // reload TMS data periodically according to a cron schedule
+    @Scheduled(cron="${ngaweb.CSpaceArtDataManager.refresh.cron}")
     public void refreshData() {
     	// TODO - rework this to support refreshing without unloading the existing data from memory
     	log.info("****************** REFRESH OF TMS DATA RUNNING **********************");
