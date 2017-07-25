@@ -93,7 +93,7 @@ public class ObjectRecord extends AbridgedObjectRecord {
     		return;
     	if (!ts.isTestModeOtherHalfObjects())
     		setSubClassification(o.getSubClassification());
-        this.ownerNames = constituentNames(o.getOwners());
+        this.ownerNames = constituentNames(o.getOwners(),"owner");
         setAttribution(o.getAttribution());
         setBibliography(o.getBibliography());
         setDisplayDate(o.getDisplayDate());

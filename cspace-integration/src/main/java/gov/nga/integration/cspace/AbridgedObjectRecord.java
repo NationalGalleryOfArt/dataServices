@@ -3,6 +3,9 @@ package gov.nga.integration.cspace;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -20,6 +23,8 @@ import gov.nga.utils.StringUtils;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
+	private static final Logger log = LoggerFactory.getLogger(AbridgedObjectRecord.class);
+	
 	private static final String defaultNamespace = "cultObj";
 
 	// mandatory fields of the API - source and id are also mandatory and are inherited from the base object Record
@@ -67,7 +72,7 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
         setTitle(StringUtils.removeOnlyHTMLAndFormatting(o.getTitle()));
         setLastModified(o.getLastDetectedModification());
 
-        this.artistNames = constituentNames(o.getArtists());
+        this.artistNames = constituentNames(o.getArtists(),"artist");
 	}
 
 	public static String getDefaultNamespace() {
@@ -108,20 +113,37 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		this.accessionNum = accessionNum;
 	}
 
-	public String constituentNames(List<ArtObjectConstituent> constituents) {
+	public String constituentNames(List<ArtObjectConstituent> constituents, String filterRoleType) {
 		String cNames=null;
 		if (constituents != null) {
 			for (ArtObjectConstituent aoc : constituents) {
 				String cName = aoc.getConstituent().getForwardDisplayName();
 				String roleType = aoc.getRoleType();
-				if (cName != null) {
+				String role = aoc.getRole();
+				log.trace("Role: " + role);
+				log.trace("Role type: " + roleType);
+				/* DCL has discussed limiting the roletypes and / or roles returned by artistNames - personally I think that's a mistake but
+				 * the jury is still out
+				 */
+				/* if ( cName != null && !StringUtils.isNullOrEmpty(roleType) && roleType.toLowerCase().equals("artist") 
+					 && !StringUtils.isNullOrEmpty(role) && role.toLowerCase().equals("artist")) {
+					log.info("HERE HER HE H");
+					cNames += cName;
+					if (cNames != null)
+						cNames += "; ";
+					else
+						cNames = "";
+					
+				 */	
+				if ( cName != null && !StringUtils.isNullOrEmpty(roleType) && roleType.toLowerCase().equals(filterRoleType) 
+						&& !StringUtils.isNullOrEmpty(role) ) {
 					if (cNames != null)
 						cNames += "; ";
 					else
 						cNames = "";
 					cNames += cName;
-					if (roleType != null)
-						cNames += " (" + roleType + ")";
+					if (role != null)
+						cNames += " (" + role + ")"; 
 				}
 			}
 		}

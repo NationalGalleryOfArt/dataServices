@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import gov.nga.entities.art.ArtDataManagerService;
+import gov.nga.entities.art.ArtEntity.OperatingMode;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.integration.cspace.CSpaceImage;
@@ -67,7 +68,9 @@ public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 		// if we are to limit the images to specific objects then we can do that although the number of objects is potentially fairly large
 		// so we'll have to see how it goes - might have to create a temp table, insert the objects of interest and perform a join
 		
-		images = fetchImages(limitToTheseArtObjects, imageSearchHelper);
+		// only return DCLPA images if we're operating in PRIVATE mode 
+		if ( artDataManager.getOperatingMode() == OperatingMode.PRIVATE)
+			images = fetchImages(limitToTheseArtObjects, imageSearchHelper);
 		
     	return images;
 	}

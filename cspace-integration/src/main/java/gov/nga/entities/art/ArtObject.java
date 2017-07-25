@@ -181,27 +181,33 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		super(manager);
 	}
 
-	public static String fetchAllObjectsQuery = 
+	public static String fetchAllObjectsQuery = null;
+	public static void setFetchAllObjectsQuery(OperatingMode mode) {
+		fetchAllObjectsQuery = 
 			"SELECT fingerprint, objectID, accessioned, accessionNum, locationID, " +
-					"       title, displayDate, beginYear, endYear, visualBrowserTimespan, " +
-					"       attributionInverted, attribution," +
-					"       creditLine, isIAD, " +
-					"       classification, subClassification, visualBrowserClassification, " +
-					"       canShowImagery, parentID, thumbnailsProhibited, maxDerivativeExtent, " +
-					"       medium, provenanceText, " +
-					"       objectLeonardoID, dimensions, inscription, " +
-					"       markings, catalogRaisonneRef, imageCopyright, " +
-					"       oldAccessionNum, zoomPermissionGranted, " + 
-					"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, " + 
-					"		description, portfolio, curatorialRemarks, watermarks, lastDetectedModification, isPublic " +
-					"FROM data.objects " +
-					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID "
-//					"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID WHERE objectID < 5000 "
-					;
-					//+ "WHERE objectid = 1046 ";
+			"       title, displayDate, beginYear, endYear, visualBrowserTimespan, " +
+			"       attributionInverted, attribution," +
+			"       creditLine, isIAD, " +
+			"       classification, subClassification, visualBrowserClassification, " +
+			"       canShowImagery, parentID, thumbnailsProhibited, maxDerivativeExtent, " +
+			"       medium, provenanceText, " +
+			"       objectLeonardoID, dimensions, inscription, " +
+			"       markings, catalogRaisonneRef, imageCopyright, " +
+			"       oldAccessionNum, zoomPermissionGranted, " + 
+			"       ngaimages.TMSObjectID AS downloadID, isVirtual, departmentAbbr, " +
+			"		portfolio, watermarks, lastDetectedModification, isPublic ";
 
-	protected static final String briefObjectQuery = 
-			fetchAllObjectsQuery + " WHERE objectID @@ "; 
+		if ( mode == OperatingMode.PRIVATE )
+			fetchAllObjectsQuery += ",description, curatorialRemarks ";
+		
+		fetchAllObjectsQuery +=
+			"FROM data.objects " +
+			"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID ";
+//			"LEFT JOIN data.objects_ngaimages_status ngaimages ON ngaimages.TMSObjectID = objectID WHERE objectID < 5000 "
+//          + "WHERE objectid = 1046 ";
+	}
+
+	protected final String briefObjectQuery = fetchAllObjectsQuery + " WHERE objectID @@ "; 
 
 	// create an art object from an existing result set row
 	public ArtObject(ArtDataManagerService manager, ResultSet rs) throws SQLException {
@@ -242,14 +248,17 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		downloadAvailable           = (downloadID == null || !downloadID.equals(objectID)) ? Long.valueOf(0) : Long.valueOf(1);
 		virtual       				= TypeUtils.getLong(rs, 33);
 		departmentAbbr				= rs.getString(34);
-		description					= htmlToMarkdown(sanitizeHtml(rs.getString(35)));
-		portfolio					= rs.getString(36);
-		curatorialRemarks			= htmlToMarkdown(sanitizeHtml(rs.getString(37)));
-		watermarks					= rs.getString(38);
+		portfolio					= rs.getString(35);
+		watermarks					= rs.getString(36);
 		// TODO consider making below a timestamp rather than a string for faster comparisons
 		// although this will require a number of new filter tests in search filter I think
-		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, rs.getTimestamp(39));
-		isPublic					= TypeUtils.getLong(rs, 40);
+		lastDetectedModification	= DateUtils.formatDate(DateUtils.DATE_FORMAT_ISO_8601_WITH_TIME_AND_TZ_CORRECT, rs.getTimestamp(37));
+		isPublic					= TypeUtils.getLong(rs, 38);
+
+		if ( manager.getOperatingMode() == OperatingMode.PRIVATE ) {
+			description					= htmlToMarkdown(sanitizeHtml(rs.getString(39)));
+			curatorialRemarks			= htmlToMarkdown(sanitizeHtml(rs.getString(40)));
+		}
 	
 		// pre-compute commonly used collation keys to speed up sort routines
 		formatFreeTitle				= StringUtils.removeOnlyHTMLAndFormatting(getTitle());

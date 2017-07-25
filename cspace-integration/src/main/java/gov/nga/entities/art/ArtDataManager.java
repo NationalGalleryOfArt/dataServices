@@ -1037,6 +1037,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         Map<Long, ArtObject> newArtObjects = CollectionUtils.newHashMap();
         EntityQuery<ArtObject> eq = new EntityQuery<ArtObject>(getDataSourceService());
         log.info("Starting pre-fetch of all objects");
+        ArtObject.setFetchAllObjectsQuery(getOperatingMode());
         List<ArtObject> newObjects = eq.fetchAll(ArtObject.fetchAllObjectsQuery, new ArtObject(this));
         log.debug("found this many objects: " + newObjects.size());
         for (ArtObject o : newObjects) {
