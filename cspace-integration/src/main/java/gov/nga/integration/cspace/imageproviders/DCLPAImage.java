@@ -24,7 +24,7 @@ public class DCLPAImage extends CSpaceImage {
     private static final Logger log = LoggerFactory.getLogger(DCLPAImage.class);
 
     public static final String defaultSource = "portfolio-dclpa";
-	private static final Pattern pathTransformationPattern = Pattern.compile(".*/DAR(/.*)");
+	private static final Pattern pathTransformationPattern = Pattern.compile(".*/DAR(/.*)", Pattern.CASE_INSENSITIVE);
     public IMAGECLASS getImageClass() {
         return IMAGECLASS.CONSERVATIONIMAGE;
     }
