@@ -18,12 +18,13 @@ import org.springframework.stereotype.Service;
 import gov.nga.entities.art.ArtDataManager;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
-import gov.nga.integration.cspace.imageproviders.WebImageSearchProvider;
+
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.ConfigService;
 import gov.nga.utils.DateUtils;
 import gov.nga.utils.db.DataSourceService;
 
+// spring defaults to singleton beans so that's good - nothing to spec here in that case
 @Service
 public class CSpaceArtDataManager extends ArtDataManager {
 	
@@ -131,7 +132,7 @@ public class CSpaceArtDataManager extends ArtDataManager {
         // we probably don't really need to implement this
         // since we are going to asynchronously load the data
         // using the DataRefreshController
-        log.info("AAAAAAAAAAAAAAAAAAAAAA: Activating Art Data Manager YEEHAAWW AAAAAAAAAAAAAAAAAAAAAAAA");
+        log.info("******************************************* Activating Art Data Manager Service **********************************************");
         setConfigService(cs);
         setDataSourceService(ds);
 
@@ -148,26 +149,24 @@ public class CSpaceArtDataManager extends ArtDataManager {
     	return this.loading;
     }
     
-    private boolean testApplied = false;
-    
     public void run() {
+
     	synchronized(loading) {
     		// if we're already loading in another thread, don't re-load
-    		if (isLoading())
+    		if (isLoading()) {
+    			log.info("********************** Skipped Art Data Manager Service Refresh Schedule Since Already Running ************************");
     			return;
+    		}
     		setLoading(true);
     	}
     	try {
     		// unload TMS data if already loaded
-    		setArtObjectsList(null);
-    		if ( !testApplied ) {
-    			if ( ts.isTestModeHalfObjects() )
-    				ArtObject.fetchAllObjectsQuery += " WHERE objectid <= 100000 ";
-    			else if ( ts.isTestModeOtherHalfObjects() )
-    				ArtObject.fetchAllObjectsQuery += " WHERE objectid > 100000 ";
-    			testApplied = true;
+    		//setArtObjectsList(null);
+    		if ( ts.unloadBeforeLoading() ) {
+    			setDataReady(false);
+    			unload();
     		}
-    		unload();
+    		
     		// TODO -- having to clear cache manually from here isn't the best design but for only one cache at this level, it's probably fine
     		// for now.  In future, probably a better pattern would be to implement a resetOnLoad interface and then find all classes implementing it
     		// and call the rest operation
@@ -175,8 +174,7 @@ public class CSpaceArtDataManager extends ArtDataManager {
     			// if we are unable to load, then we will try again in ten seconds
     			scheduler.schedule(this, 10, TimeUnit.SECONDS); 
     		}
-    		else
-    			setArtObjectsList(getArtObjects());
+    		sendMessage(EVENTTYPES.DATAREFRESHED);
     		ImageThumbnailWorker.clearCache(); 
     	}
     	catch (Exception e) {
@@ -190,14 +188,11 @@ public class CSpaceArtDataManager extends ArtDataManager {
     // we unload all data upon destruction of this component
     @PreDestroy
     public void preDestroy() {
-        log.info("AAAAAAAAAAAAAAAAAAAAAA: Destroying Art Data Manager");
+        log.info("******************************************* Destroying Art Data Manager Service **********************************************");
         // unload art object data from memory
         unload();
     }
     
-    @Autowired
-	WebImageSearchProvider webImageSearchProvider;
-
     @Scheduled(cron="0 */2 * * * *")
     public void updateTestData() {
     	if (ts.isTestModeHalfObjects() || ts.isTestModeOtherHalfObjects() ) {
@@ -231,7 +226,8 @@ public class CSpaceArtDataManager extends ArtDataManager {
     				}
     			}
     		}
-    		webImageSearchProvider.resetImageCache();
+    		sendMessage(EVENTTYPES.DATAREFRESHED);
+    		ImageThumbnailWorker.clearCache(); 
     	}
     }
 
@@ -239,11 +235,11 @@ public class CSpaceArtDataManager extends ArtDataManager {
     @Scheduled(cron="${ngaweb.CSpaceArtDataManager.refresh.cron}")
     public void refreshData() {
     	// TODO - rework this to support refreshing without unloading the existing data from memory
-    	log.info("****************** REFRESH OF TMS DATA RUNNING **********************");
+    	log.info("******************************************* Scheduled Refresh of TMS Data *****************************************************");
     	run();
     }
 
-    private List<ArtObject> artObjectsList = null;
+/*    private List<ArtObject> artObjectsList = null;
     private synchronized void setArtObjectsList(List<ArtObject> artObjectsList) {
     	this.artObjectsList = artObjectsList;
     }
@@ -255,5 +251,5 @@ public class CSpaceArtDataManager extends ArtDataManager {
     	else
     		return super.getArtObjects();
     }
-
+*/
 }

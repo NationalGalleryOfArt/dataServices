@@ -47,7 +47,7 @@ public class RunAllTestsController {
     	int total = testResult.getRunCount();
     	int failed = testResult.getFailureCount();
     	log.info("Finished Tests: " + (total - failed) + " / " + total + " passed.");
-    	
+    	CSpaceSpringApplicationTest.setArtDataManager(null);
     	if (failed > 0)
     		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
     	else

@@ -219,7 +219,7 @@ public class ImageSearchController extends RecordSearchController {
 		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 	}
     
-    protected List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws Exception { 
+    public List<CSpaceImage> searchImages(String [] sourceScope, SearchHelper<CSpaceImage> imageSearchHelper, List<ArtObject> artObjects) throws Exception { 
     	List<CSpaceImage> images = CollectionUtils.newArrayList();
     	
     	if (sourceScope == null)

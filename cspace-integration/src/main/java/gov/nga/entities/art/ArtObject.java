@@ -1294,7 +1294,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		// we can only show an image if we're in private operating mode OR 
 			// if the object is a public object
 			// and thumbnails are not prohibited
-			// and if a zoom image, we can show zooms
+			// and if a zoom image, we can show zooms <<---- UPDATE: we can now relax this a bit because we're going to put IIIF auth in place of IIP Server
 			// and either we can show imagery in general or the size constitutes fair use 
 		return  inPrivateOperatingMode() || 							// in private operating mode OR...
 				
@@ -1302,9 +1302,10 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 						(
 							// a bunch of object and image characteristics are met to ensure we can show the image publicly
 							(   !isThumbnailProhibited() &&                         // thumbnails not prohibited AND
-								( !d.isZoom() || isZoomImageryPermitted() ) &&      // if zoom image, ensure we can show zooms for this object AND
-								( canShowImagery() ||                               // either we can show imagery in general or the size is fair use or smaller
-										( d.getWidth()  <= Derivative.FAIRUSEMAXEXTENT && 
+								// ( !d.isZoom() || isZoomImageryPermitted() ) &&   // if zoom image, ensure we can show zooms for this object AND
+								( canShowImagery() || 								// either we can show imagery in general for this object
+								  d.isZoom()       ||                    			// or we are referring to the zoom image
+								  		( d.getWidth()  <= Derivative.FAIRUSEMAXEXTENT &&  // or this is a derivative and the size is fair use or smaller 
 										d.getHeight() <= Derivative.FAIRUSEMAXEXTENT )
 								)
 							)

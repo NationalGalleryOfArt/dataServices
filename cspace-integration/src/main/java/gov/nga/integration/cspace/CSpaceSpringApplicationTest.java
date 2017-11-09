@@ -48,7 +48,7 @@ public class CSpaceSpringApplicationTest {
     	// SERVICE #1 : art object record
     	"BOTH", 	"/art/tms/objects/1138.json", 	"", 													"200", 			"\"artistNames\" : \"Giovanni Bellini (painter);", 		"\"predicate\" : \"hasPrimaryDepiction\"",	"",
     	"BOTH", 	"/art/tms/objects/999999.json", "", 													"404",			"",
-    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2013-04-05T14:59:09-04:00\"", "",
+    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2017-08-04T22:19:40-04:00\"", "",
     	"BOTH",		"/art/tms2/objects/1138.json", 	"", 													"404",			"",
     	"BOTH",		"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"BOTH",		"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
@@ -74,16 +74,17 @@ public class CSpaceSpringApplicationTest {
     	"BOTH",		"/art/objects.json", 	  		"number=1992.51.9", 									"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"\"references\" : [ {",		"thumbnail\" :", "",
     	"BOTH",		"/art/objects.json", 	  		"number=1992.51.9&references=0&thumbnails=0",			"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"!references",				"!thumbnail",	"",
     	"BOTH",		"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
-    	"BOTH",		"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"207851",	 						"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 60", 		"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 60", 		"\"title\" : \"Toy Bank: Frog\"",			"jcSOv616NXD/EnT7YafDqbbhLvETY6EYY5/T/OKLG1GSUt",	"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"212998",						"",
+    	"PUBLIC",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"207851",						"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 64", 		"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 64", 		"\"title\" : \"Toy Bank: Frog\"",			"/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQ",	"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		
     																							"200",			"\"total\" : 10", 		"\"accessionNum\" : \"X.12827\"",					"!\"thumbnail\"",	"",
     	"PRIVATE",	"/art/objects.json",			"number=19&skip=8000&limit=2000&thumbnails=0&references=0",
         																						"200",			"\"total\" : 10",		"\"limit\" : 1000",	"\"skip\" : 8000", "",
         "PRIVATE",	"/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//vm-imgrepo-tdp", "",
         "BOTH",		"/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
-        "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "09445340-ACEC-48C7-B389-C104B32778FC", "",
+        "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "F777D90F-7B95-4404-AFC0-F05C0E8ADDBB", "",
         "PRIVATE",	"/art/objects.json",			"id=93013", 											"200",			"hasDepiction",  "hasPrimaryDepiction", "id\" : \"6799", 	"!://[",	"",
         "PRIVATE",	"/art/objects.json", 			"artistNames=Hopper, Edward",							"200",			"total\" : 190",	"",		
 
@@ -114,11 +115,11 @@ public class CSpaceSpringApplicationTest {
         "PRIVATE",	"/media/portfolio-dclpa/images/5004.json",				"",								"200",
         								"!\"references", "!\"subjectWidthCM", "\"originalSource\"", "\"originalSourceInstitution\"", "\"classification\" : \"conservationImage\"", "",
         "PRIVATE",	"/media/web-images-repository/images/1EA96663-F651-41C0-A35C-5CBF5EE22970.json", "",	"200", "predicate\" : \"primarilyDepicts\"", "viewType\" : \"primary\"", "\"5177\"", "!subjectWidthCM", "",
-        "BOTH",		"/media/web-images-repository/images/09445340-ACEC-48C7-B389-C104B32778FC.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
+        "BOTH",		"/media/web-images-repository/images/F777D90F-7B95-4404-AFC0-F05C0E8ADDBB.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
         
         // SERVICE #5: IMAGE RECORD SEARCH
         "PRIVATE",	"/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
-        "PRIVATE",	"/media/images.json",									"id=FEFA3275-D783-4E4D-BB40-6A56AA2F5B39",						
+        "PRIVATE",	"/media/images.json",									"id=ACD3C8B9-F7D0-43FD-AC31-3E6F371F09FD",						
         																						"200",			"\"references",			"\"thumbnail", "publishedImage", "\"viewType\"", "",
         "BOTH",		"/media/images.json",									"id=FEFA",						
         																						"200",			"total\" : 0", "",
@@ -141,10 +142,10 @@ public class CSpaceSpringApplicationTest {
         "PRIVATE",	"/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
         "PRIVATE",	"/media/images.json", 									"cultObj:artistNames=gogh&skip=71&limit=25&references=false&thumbnails=false&order=image:id",
         																						"200",			"EB31B934-FF88-4D73-9C6E-3CBFB2248427", "E7F34278-89BC-4120-BB15-8980561AEC6A", "!E7E24A15-8A07-483E-AE2F-A902DC6F1F14", "",
-        "PRIVATE",	"/media/images.json",									"id=29AA0303-D037-4B96-A8B3-B9BE3BE2FEDD", "200", "image/tiff\"", 	"",
+        "PRIVATE",	"/media/images.json",									"id=E7F34278-89BC-4120-BB15-8980561AEC6A", "200", "image/tiff\"", 	"",
         "BOTH",		"/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", "200", "total\" : 0", 	"",
         "BOTH",		"/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			   "404", "",
-        "BOTH",		"/media/images.json",									"id=C2EEBCC9-B973-4217-AD96-5B6CEDEBF676", "200",			
+        "BOTH",		"/media/images.json",									"id=55BC5DB5-B4DB-41C6-81AC-4AE2F55DD66F", "200",			
 																"\"filename", "\"title", "\"George Romney; 1937.1.105", "",
 		"PRIVATE",	"/media/images.json",									"id=3924",						"200",			
 																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
@@ -191,9 +192,10 @@ public class CSpaceSpringApplicationTest {
 	}
 	
 	@Test
-	public void testAPIs() throws Exception {
+	public void testAPIs() throws AssertionError {
 		String hostPort = getHostPort();
 		Assert.assertTrue(testData.length > 0);
+		AssertionError lastError = null;
 		for (int i=0; i<testData.length; i++) {
 
 			// collection our data for the test
@@ -230,10 +232,13 @@ public class CSpaceSpringApplicationTest {
 				validation.add(testData[i++]);
 			}
 			
-			// if we're operating in public mode and have a private test, then skip it
+			// if we're operating in public mode and have a private test, then skip it and likewise for tests only relevant to public
 			if ( artDataManager.getOperatingMode() == OperatingMode.PUBLIC && env.equals("PRIVATE"))
 				continue;
+			if ( artDataManager.getOperatingMode() == OperatingMode.PRIVATE && env.equals("PUBLIC"))
+				continue;
 
+			try {
 			if (method == null || method.equals("G")) {
 				// USING GET METHOD
 				log.info("Testing GET Method to: " + gurl);
@@ -249,7 +254,14 @@ public class CSpaceSpringApplicationTest {
 				assertTrue(purl + params.toString() + " did not have code " + code,  responseCodeValidates(resp, code));
 				assertTrue(purl + params.toString() + " did not pass validation " + validation,  contentValidates(resp, validation));
 			}
+			}
+			catch (AssertionError ae) {
+				log.error("Assertion error:" + ae.getMessage());
+				lastError = ae;
+			}
 		}
+		if (lastError != null)
+			throw lastError;
 	}
 	
 	private boolean responseCodeValidates(ResponseEntity<String> resp, String code) {

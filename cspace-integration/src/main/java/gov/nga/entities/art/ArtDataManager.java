@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 // to work properly
 //    @Property(name="scheduler.concurrent", boolValue=false, propertyPrivate=true),
 //    @Property(name="scheduler.expression", value="0 15 7 * * ? *", label="Refresh Schedule")
-public class ArtDataManager implements Runnable, ArtDataManagerService { 
+public class ArtDataManager extends MessageProviderImpl implements Runnable, ArtDataManagerService { 
 
 // TODO - make the TMS data manager class configurable to run either in private or public exclusively via artdatamanager configuration settings
 // TODO - separate all JCR related calls from the base ArtDataManager to keep it pure and simple and create new art data manager CQ implementation wrapper for OSGI
@@ -221,22 +221,25 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     }
 
     synchronized public void unload() {
-        log.info("AAAAAAAAAAAAAAAAAAAAAA: Unloading Art Data Manager cached data");
+        log.info("**************************** Unloading Previous Art Data Manager cached data *************************************************");
         setDataReady(false);
         setArtObjects(null);
         setLocations(null);
         setConstituents(null);
         setStandardArtObjectFacets(null);
         setAllIndexOfArtistRanges(null);
-        clearDerivativesByImageID();
-        clearSuggestMaps();
-        clearDerivativesRaw();
+//        clearDerivativesByImageID();
+        setArtObjectTitleWords(null);
+        setArtistAltNames(null);
+        setOwnerAltNames(null);
+        System.gc();
+        log.info(SystemUtils.freeMemorySummary());
+//        clearDerivativesRaw();
     }
 
     synchronized public boolean load() {
 
-        log.info("AAAAAAAAAAAAAAAAAAAAAA: Beginning load of art object data");
-        log.info(SystemUtils.freeMemorySummary());
+    	log.info("**************************** Starting Load of Refreshed Art Data Manager Cached Data Set *************************************");
 
         // load all art object constituent data first, then pass that
         // map to both the object manager and constituent manager
@@ -245,15 +248,12 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
             EntityQuery<ArtObjectConstituent> eq = new EntityQuery<ArtObjectConstituent>(getDataSourceService());
             List<ArtObjectConstituent> ocs = eq.fetchAll(ArtObjectConstituent.fetchAllObjectsConstituentsQuery, new ArtObjectConstituent(this));
             log.info("found this many object constituent relationships: " + ocs.size());
-            log.info(SystemUtils.freeMemorySummary());
 
             log.info("Loading all location and related data");
             Map<Long, Location> newLocations = loadLocations();
-            log.info(SystemUtils.freeMemorySummary());
             
             log.info("Loading all components");
             List<ArtObjectComponent> aocomps = loadComponents();
-            log.info(SystemUtils.freeMemorySummary());
             
             log.info("Loading all art object text entries");
             EntityQuery<ArtObjectTextEntry> teq = new EntityQuery<ArtObjectTextEntry>(getDataSourceService());
@@ -277,7 +277,6 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
 
             log.info("Loading all art objects and related data");
             Map<Long, ArtObject> newArtObjects = getArtObjects(ocs, teList, aohist, aoDims, aoas, aocomps);
-            log.info(SystemUtils.freeMemorySummary());
             
             EntityQuery<ConstituentAltName> ceq = new EntityQuery<ConstituentAltName>(getDataSourceService());
             log.info("Loading all constituent alternate names");
@@ -291,27 +290,34 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
 
             log.info("Loading all constituent and related data");
             Map<Long, Constituent> newConstituents = getConstituents(ocs, alts, ctes);
-            log.info(SystemUtils.freeMemorySummary());
             
-            // then set it again
-            log.info("Setting locations, newArtObjects, and newConstituents");
-            setLocations(newLocations);
-            setArtObjects(newArtObjects);
-            setConstituents(newConstituents);
-            log.info("Resetting complete. Ready to serve querries.");
+            log.info("Computing art object title words and constituent altnames for suggest feature");
+            
+            Map<String, Set<Suggestion>> newArtObjectTitleWords = parseArtObjectTitleWords(newArtObjects);
+        	Map<String, Set<Suggestion>> newArtistAltNames = parseArtistAltNames(newConstituents);
+        	Map<String, Set<Suggestion>> newOwnerAltNames = parseOwnerAltNames(newConstituents);
+
+        	// dump any cached data we might still have before setting the new set in place  
+        	unload();
+        	setLocations(newLocations);
+        	setArtObjects(newArtObjects);
+        	setArtObjectTitleWords (newArtObjectTitleWords);
+        	setConstituents(newConstituents);
+        	setArtistAltNames(newArtistAltNames);
+        	setOwnerAltNames(newOwnerAltNames);
+        	log.info("Data refresh complete. Ready to serve queries.");
             // we can start serving queries again now
             setDataReady(true);
 
             // pre-calculate all art object facet counts for use by the initial visual browser page
             log.info("Pre-caching all art object facet counts");
             getArtObjectFacetCounts();
-            log.info(SystemUtils.freeMemorySummary());
 
             // pre-calculate the facet ranges for the index of artists
             log.info("Pre-caching all facet ranges for index of artists");
             getIndexOfArtistsRanges();
+            log.info("**************************** Finished Loading Art Data Manager Cached Data Set *******************************************");
             log.info(SystemUtils.freeMemorySummary());
-            log.info("**** FINISHED LOADING ART OBJECT DATA ****");
 
             return true;
         }
@@ -553,14 +559,9 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return cleanedString;
     }
     
-    private synchronized void clearSuggestMaps() {
-        artObjectTitleWords = null;
-        artistAltNames = null;
-        ownerAltNames = null;
-    }
-
-    synchronized private void parseArtObjectTitleWords() {
-        artObjectTitleWords = CollectionUtils.newTreeMap(
+    synchronized private Map<String, Set<Suggestion>> parseArtObjectTitleWords(Map<Long, ArtObject> newArtObjects) {
+    	Map<String, Set<Suggestion>> newArtObjectTitleWords = null;
+        newArtObjectTitleWords = CollectionUtils.newTreeMap(
                 new Comparator<String>() {
                     public int compare(String a, String b) {
                         return StringUtils.getDefaultCollator().compare(a, b);
@@ -568,12 +569,13 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
                 }
         );
 
-        if (artObjects != null) {
-            for (ArtObject o : artObjects.values()) {
+        if (newArtObjects != null) {
+            for (ArtObject o : newArtObjects.values()) {
                 String title = o.getTitle();
-                consumeIndexPair(artObjectTitleWords, title, o.getObjectID());
+                consumeIndexPair(newArtObjectTitleWords, title, o.getObjectID());
             }
         }
+        return newArtObjectTitleWords;
     }
 
     public List<String> suggestArtObjectTitles(String artistName, String titleWords) {
@@ -705,8 +707,8 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         }
     }
 
-    synchronized private void parseArtistNames() {
-        artistAltNames = CollectionUtils.newTreeMap(
+    synchronized private Map<String, Set<Suggestion>> parseArtistAltNames(Map<Long, Constituent> newConstituents) {
+    	Map<String, Set<Suggestion>> newArtistAltNames = CollectionUtils.newTreeMap(
                 new Comparator<String>() {
                     public int compare(String a, String b) {
                         return StringUtils.getDefaultCollator().compare(a, b);
@@ -714,39 +716,48 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
                 }
         );
 
-        ownerAltNames = CollectionUtils.newTreeMap(
-                new Comparator<String>() {
-                    public int compare(String a, String b) {
-                        return StringUtils.getDefaultCollator().compare(a, b);
-                    }
-                }
-        );
-
-        
-        if (constituents != null) {
-            for (Constituent c : constituents.values()) {
+        if (newConstituents != null) {
+            for (Constituent c : newConstituents.values()) {
                 if (c.isArtistOfNGAObject()) {
-                    consumeIndexPair(artistAltNames, c.getPreferredDisplayName(), c.getConstituentID());
+                    consumeIndexPair(newArtistAltNames, c.getPreferredDisplayName(), c.getConstituentID());
                     if (c.getAltNames() != null) {
                         for (ConstituentAltName a: c.getAltNames()) {
-                            consumeIndexPair(artistAltNames, a.getDisplayName(), c.getConstituentID());
+                            consumeIndexPair(newArtistAltNames, a.getDisplayName(), c.getConstituentID());
                         }
                     }
                 }
+            }
+            log.info("Done with parseArtistAltNames");
+        }
+    	return newArtistAltNames;
+    }
+
+    synchronized private Map<String, Set<Suggestion>> parseOwnerAltNames(Map<Long, Constituent> newConstituents) {
+    	Map<String, Set<Suggestion>> newOwnerAltNames = CollectionUtils.newTreeMap(
+                new Comparator<String>() {
+                    public int compare(String a, String b) {
+                        return StringUtils.getDefaultCollator().compare(a, b);
+                    }
+                }
+        );
+        
+        if (newConstituents != null) {
+            for (Constituent c : newConstituents.values()) {
                 if (c.isPreviousOwnerOfNGAObject()) {
-                    consumeIndexPair(ownerAltNames, c.getPreferredDisplayName(), c.getConstituentID());
+                    consumeIndexPair(newOwnerAltNames, c.getPreferredDisplayName(), c.getConstituentID());
                     if (c.getAltNames() != null) {
                         for (ConstituentAltName a: c.getAltNames()) {
-                            consumeIndexPair(ownerAltNames, a.getDisplayName(), c.getConstituentID());
+                            consumeIndexPair(newOwnerAltNames, a.getDisplayName(), c.getConstituentID());
                         }
                     }
                 }
                 
             }
-            log.info("Done with artistAltNames");
+            log.info("Done with parseOwnerAltNames");
         }
+    	return newOwnerAltNames;
     }
-    
+
     private Set<Suggestion> suggest(Map<String, Set<Suggestion>> map, String string) {
         Set<Suggestion> eSet = CollectionUtils.newHashSet();
         if (map != null && string != null && string.length() > 0) {
@@ -900,9 +911,13 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
 
     synchronized private void setArtObjects(Map<Long, ArtObject> newArtObjects) {
         artObjects = newArtObjects;
-        parseArtObjectTitleWords();
     }
 
+    synchronized private void setArtObjectTitleWords(Map<String, Set<Suggestion>> newArtObjectTitleWords) {
+        artObjectTitleWords = newArtObjectTitleWords;
+    }
+
+    
     synchronized private void setStandardArtObjectFacets(List<Facet> standardArtObjectFacets) {
         this.standardArtObjectFacets = standardArtObjectFacets;
     }
@@ -941,29 +956,32 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         return standardArtObjectFacets;
     }
     
+    // DPB - I actually don't think we need this
     // separate the images into a map indexed by object id
-    private Map<String, Derivative> derivativesByImageID = CollectionUtils.newHashMap();
+/*    private Map<String, Derivative> derivativesByImageID = CollectionUtils.newHashMap();
     public Derivative fetchDerivativeByImageID(String imageID) {
     	return derivativesByImageID.get(imageID);
     }
     synchronized private void clearDerivativesByImageID() {
     	derivativesByImageID = CollectionUtils.newHashMap();
     }
+*/
     
     synchronized protected <T extends Derivative> void loadImagery(Map<Long, ArtObject> newArtObjects, T seed) throws SQLException {
         
         EntityQuery<T> deq = new EntityQuery<T>(getDataSourceService());
         log.info("Starting pre-fetch of all " + seed.getClass().getName() + " images");
         List<T> newImages = deq.fetchAll(seed.getAllImagesQuery(), seed);
-        log.debug("found this many " + seed.getClass().getName() + " images: " + newImages.size());
+        log.info("found this many " + seed.getClass().getName() + " images: " + newImages.size());
         
         // add to the derivatives list
-        derivativesRaw.addAll(newImages);
+//        derivativesRaw.addAll(newImages);
         
         // separate the images into a map indexed by object id
         Map<Long, List<T>> imgByObject = CollectionUtils.newHashMap();
         for (T d : newImages) {
-        	derivativesByImageID.put(d.getImageID(), d);
+        	//  DPB - I don't think we need this actually 
+        	//  derivativesByImageID.put(d.getImageID(), d);
             ArtObject o = (ArtObject)newArtObjects.get(d.getArtObjectID());
             if ( o != null && o.imageOK(d) ) {
                 List<T> ld = imgByObject.get(d.getArtObjectID());
@@ -1039,7 +1057,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         log.info("Starting pre-fetch of all objects");
         ArtObject.setFetchAllObjectsQuery(getOperatingMode());
         List<ArtObject> newObjects = eq.fetchAll(ArtObject.fetchAllObjectsQuery, new ArtObject(this));
-        log.debug("found this many objects: " + newObjects.size());
+        log.info("found this many objects: " + newObjects.size());
         for (ArtObject o : newObjects) {
             // create blank lists for all objects by default so that
             // we don't try to load them again later if they're actually blank
@@ -1083,7 +1101,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         EntityQuery<ArtObjectTerm> teq = new EntityQuery<ArtObjectTerm>(getDataSourceService());
         log.info("Starting pre-fetch of all object terms");
         List<ArtObjectTerm> newTerms = teq.fetchAll(ArtObjectTerm.fetchAllObjectTermsQuery, new ArtObjectTerm(this));
-        log.debug("found this many object terms: " + newTerms.size());
+        log.info("found this many object terms: " + newTerms.size());
 
         // separate the terms into a map indexed by object id
         // and store a list of object IDs for each term for fast access
@@ -1194,14 +1212,16 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     //    return sh.search(list, pn, fn, sortH);
    // }
 
-    private List<Derivative> derivativesRaw = CollectionUtils.newArrayList();
+ /* 
+  * private List<Derivative> derivativesRaw = CollectionUtils.newArrayList();(non-Javadoc)
     public List<Derivative> getDerivatives() {
     	return CollectionUtils.newArrayList(this.derivativesRaw);
     }
     synchronized private void clearDerivativesRaw() {
     	derivativesRaw = CollectionUtils.newArrayList();
     }
-
+ */
+    
     public <C extends Constituent>List<C> searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory) {
         return searchConstituents(sh, pn, fn, sortH, factory, new ArtEntityFreeTextSearch<C>());
     }
@@ -1231,9 +1251,16 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
     
     synchronized private void setConstituents(Map<Long, Constituent> newConstituents) {
         constituents = newConstituents;
-        parseArtistNames();
     }
 
+    synchronized private void setArtistAltNames(Map<String, Set<Suggestion>> newArtistAltNames) {
+        artistAltNames = newArtistAltNames;
+    }
+
+    synchronized private void setOwnerAltNames(Map<String, Set<Suggestion>> newOwnerAltNames) {
+        ownerAltNames = newOwnerAltNames;
+    }
+    
     public Map<Long, Constituent> getConstituentsRaw() {
         return constituents;
     }
@@ -1246,7 +1273,7 @@ public class ArtDataManager implements Runnable, ArtDataManagerService {
         EntityQuery<Constituent> eq = new EntityQuery<Constituent>(getDataSourceService());
         log.info("Starting pre-fetch of all constituents");
         List<Constituent> list = eq.fetchAll(Constituent.fetchAllConstituentsQuery, new Constituent(this));
-        log.debug("found this many constituents: " + list.size());
+        log.info("found this many constituents: " + list.size());
 
         // store constituents in a map, indexed by constituent ID
         for (Constituent c : list ) {

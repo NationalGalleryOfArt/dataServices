@@ -75,10 +75,10 @@ public interface ArtDataManagerService {
 	public List<ArtObject> getArtObjects();
 	public Map<Long, Constituent> getConstituentsRaw();
     public Map<Long, Location> getLocationsRaw();
-    public List<Derivative> getDerivatives();
+//    public List<Derivative> getDerivatives();
 
     // Derivative Services
-    public Derivative fetchDerivativeByImageID(String imageID);
+//    public Derivative fetchDerivativeByImageID(String imageID);
     
 	// fetch configuration services reference
 	public ConfigService getConfig();

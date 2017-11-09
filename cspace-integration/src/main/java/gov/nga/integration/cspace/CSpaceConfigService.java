@@ -14,9 +14,10 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 	public static final String thumbnailWidthProperty 	= "thumbnailWidth";
 	public static final String thumbnailHeightProperty 	= "thumbnailHeight";
 	
-	public static final String multiTenancyTestMode = "testMode";
-	public static final String multiTenancyTestModeHalfObjects = "halfObjects";
+	public static final String multiTenancyTestMode 				= "testMode";
+	public static final String multiTenancyTestModeHalfObjects 		= "halfObjects";
 	public static final String multiTenancyTestModeOtherHalfObjects = "otherHalfObjectsWithOntologyChanges";
+	public static final String unloadBeforeLoading 					= "dumpFromMemoryBeforeLoading";
 	
 	@Autowired
 	private Environment env;
@@ -34,6 +35,11 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 			return env.getProperty(propertyName, Integer.class);
 		
 		return env.getProperty("ngaweb."+propertyName, Integer.class);
+	}
+	
+	public boolean unloadBeforeLoading() {
+		String unloadFirst = getString(unloadBeforeLoading);
+		return unloadFirst == null || unloadFirst.equals("true");
 	}
 	
 	public boolean isTestModeHalfObjects() {

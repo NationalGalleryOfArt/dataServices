@@ -22,7 +22,6 @@ public class WebImage extends CSpaceImage {
     private static final Logger log = LoggerFactory.getLogger(WebImage.class);
     static {log.debug(WebImage.class.getName() + " starting up"); }
 
-    public static final String defaultSource = "portfolio-dclpa";
 	private static final String CLASSIFICATION = "publishedImage";
 	
 	public WebImage(ArtDataManagerService manager, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
