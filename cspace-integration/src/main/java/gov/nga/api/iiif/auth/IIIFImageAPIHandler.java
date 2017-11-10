@@ -23,16 +23,16 @@ import org.springframework.web.bind.annotation.RestController;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
 import gov.nga.integration.cspace.CSpaceImage;
-import gov.nga.integration.cspace.ImageSearchController;
 import gov.nga.integration.cspace.imageproviders.WebImageSearchProvider;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SearchHelper.SEARCHOP;
+import gov.nga.utils.ConfigService;
 
 @RestController
 public class IIIFImageAPIHandler {
 
 	@Autowired
-	private ImageSearchController imgCtrl;
+	ConfigService cs;
 
 	@Autowired
 	WebImageSearchProvider webImageSearchProvider;
@@ -77,7 +77,7 @@ public class IIIFImageAPIHandler {
 	//		value={	"/iiif/{permMode}/**/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}", 
 	//				"/iiif/{permMode}/**/{imgFilename}/{region}/{size}/{rotation}/{quality}.maxsampling.{sampleSize}.{format}"} 
 
-	@RequestMapping("/iiif/{sampleSize}/**/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}")
+	@RequestMapping("/${ngaweb.imagingServerIIIFPublicPrefix}/{sampleSize}/**/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}")
 	public ResponseEntity<InputStreamResource> iiifAuthHandler (
 			@PathVariable(value="sampleSize") String sampleSize,
 			@PathVariable(value="imgFilename") String imgFilename,
@@ -92,6 +92,8 @@ public class IIIFImageAPIHandler {
 
 		try {
 
+			String iiifPublicPrefix = cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName);
+			String iiifPrivatePrefix = cs.getString(IIIFAuthConfigs.iiifPrivatePrefixPropertyName);
 
 			Long samplingSize = null;
 			// attempt to parse the sampleSize out of the quality if it's present
@@ -114,9 +116,9 @@ public class IIIFImageAPIHandler {
 			}
 			String imgVolPath = null;
 			if (samplingSize != null)
-				imgVolPath = request.getRequestURI().replace("/iiif/"+sampleSize,"").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
+				imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix+"/"+sampleSize,"").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
 			else
-				imgVolPath = request.getRequestURI().replace("/iiif","").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
+				imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix,"").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
 
 			log.debug("sampleSize: " + sampleSize );
 			log.debug("samplingSize: " + samplingSize );
@@ -146,7 +148,7 @@ public class IIIFImageAPIHandler {
 			SearchHelper<CSpaceImage> dSearchHelper = new SearchHelper<CSpaceImage>();
 			dSearchHelper.addFilter(Derivative.SEARCH.IMAGEVOLUMEPATH, SEARCHOP.EQUALS, imgVolPath+'/');
 			dSearchHelper.addFilter(Derivative.SEARCH.IMAGEFILENAME, SEARCHOP.EQUALS, imgFilename);
-			List<CSpaceImage> images = imgCtrl.searchImages(webImageSearchProvider.getProvidedSources(), dSearchHelper, null);
+			List<CSpaceImage> images = webImageSearchProvider.searchImages(dSearchHelper, null);
 
 			// we should only ever have one image with the same volumepath and filename given the way we handle object images right now
 			log.debug("found: " + images.size() + " images"); 
@@ -187,7 +189,7 @@ public class IIIFImageAPIHandler {
 			// if the requested sampling size is greater than the max sampling size or there isn't a requested max size and the max size is greater than or equal to the actual width 
 			// of the image then just redirect to the default and recalculate <-- endless redirect
 			if ( samplingSize != null && ( ( maxSamplingSize != null && samplingSize > maxSamplingSize ) || samplingSize <= 0 || samplingSize >= d.getWidth() || samplingSize >= d.getHeight() ) ) { 
-				redirectURL = String.format("/iiif%s/%s/%s/%s/%s/%s.%s",imgVolPath, imgFilename, region, size, rotation, quality, format);
+				redirectURL = String.format("/%s%s/%s/%s/%s/%s/%s.%s",iiifPublicPrefix, imgVolPath, imgFilename, region, size, rotation, quality, format);
 				samplingSize = null;
 				maxSamplingSize = null;
 			}
@@ -214,7 +216,7 @@ public class IIIFImageAPIHandler {
 
 					// and finally if we have a new sample size to enforce, then set the redirect URL to the new sample size
 					if ( newSampleSize != null )
-						redirectURL = String.format("/iiif/%d%s/%s/%s/%s/%s/%s.%s",newSampleSize, imgVolPath, imgFilename, region, size, rotation, quality, format);
+						redirectURL = String.format("/%s/%d%s/%s/%s/%s/%s/%s.%s",iiifPublicPrefix, newSampleSize, imgVolPath, imgFilename, region, size, rotation, quality, format);
 			}
 
 			log.debug("redirecting to: " + redirectURL);
@@ -231,7 +233,8 @@ public class IIIFImageAPIHandler {
 			if ( samplingSize == null && maxPublicPix != null && maxPublicPix < d.getLongestSideInPixels() )
 				nocache = true;
 			
-			String proxyURL = String.format("https://vm-imgrepotst-tdp.nga.gov/iiif%s/%s/%s/%s/%s/%s.%s", imgVolPath, imgFilename, region, size, rotation, quality, format);
+			String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
+			String proxyURL = String.format("https:%s/%s%s/%s/%s/%s/%s/%s.%s", serverURL, iiifPrivatePrefix, imgVolPath, imgFilename, region, size, rotation, quality, format);
 			// if we have unlimited maxSamplingSize then we just proxy the request normally
 
 			URI imageURI = new URI(proxyURL);
