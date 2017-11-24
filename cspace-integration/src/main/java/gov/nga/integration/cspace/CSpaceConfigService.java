@@ -1,13 +1,12 @@
 package gov.nga.integration.cspace;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import gov.nga.utils.ConfigService;
 
-@Configuration
 @Service
 public class CSpaceConfigService implements ConfigService, CSpaceTestModeService {
 	
@@ -18,6 +17,8 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 	public static final String multiTenancyTestModeHalfObjects 		= "halfObjects";
 	public static final String multiTenancyTestModeOtherHalfObjects = "otherHalfObjectsWithOntologyChanges";
 	public static final String unloadBeforeLoading 					= "dumpFromMemoryBeforeLoading";
+	
+	//private static final Logger log = LoggerFactory.getLogger(CSpaceConfigService.class);
 	
 	@Autowired
 	private Environment env;

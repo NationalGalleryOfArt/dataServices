@@ -5,12 +5,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.TestRestTemplate;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtEntity.OperatingMode;
@@ -32,7 +31,7 @@ public class CSpaceSpringApplicationTest {
 		CSpaceSpringApplicationTest.artDataManager = artDataManager;
 	}
 	
-    RestTemplate tmpl = new TestRestTemplate();
+    TestRestTemplate tmpl = new TestRestTemplate();
     
     @Before
     public void readyForTest() throws InterruptedException {
@@ -188,7 +187,7 @@ public class CSpaceSpringApplicationTest {
 				log.info(k + ":" + s);	
 			}
 		}
-		Assert.assertTrue(headers.get("Server").toString().contains("Apache-Coyote"));
+		Assert.assertTrue(headers.get("Server").toString().equals("[Apache]"));
 	}
 	
 	@Test

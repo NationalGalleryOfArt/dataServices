@@ -116,6 +116,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 	// not all of these are actual image formats, but Portfolio accepts them so for now we'll leave here
 	// we will need to eventually base Derivative off of a more generic media class which would possibly contain some of these
 	// or the mimetype can be detected dynamically after we know more about the actual bits of the file
+	// TODO: CONVERT this to use Spring's MediaType class
 	public static enum IMGFORMAT {
 		JPEG(	new String[]{".jpg",".jpeg"},	"JPEG",	"image/jpeg"),
 		PNG(	new String[]{".png"},			"PNG",	"image/png"),
