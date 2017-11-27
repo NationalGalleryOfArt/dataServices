@@ -22,9 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.Derivative;
@@ -46,9 +49,6 @@ public class IIIFImageAPIHandler {
 	@Autowired
 	WebImageSearchProvider webImageSearchProvider;
 	
-	// TODO - ADD TESTS!!!! for IIIF and IIP request handling and CORS headers with OPTIONS
-	// TODO - need some testing here: https://vm-imgrepotst-tdp.nga.gov/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/-10,-10,5,5/full/0/default.jpg
-
 	private static final Logger log = LoggerFactory.getLogger(IIIFImageAPIHandler.class);
 	
 	public static enum EXCLUDEHEADER {
@@ -81,7 +81,7 @@ public class IIIFImageAPIHandler {
 	private static enum IIIFAuthParameters {
 		HTTPSTATUSCODE, NGAINTERNAL, NEWSAMPLESIZE, OKTOCACHE, MAXSAMPLESIZE;
 	}
-
+	
 	@RequestMapping(value="/fastcgi/iipsrv.fcgi", 
 					method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
 	public ResponseEntity<InputStreamResource> iipFIFHandler (
@@ -503,6 +503,17 @@ public class IIIFImageAPIHandler {
 	public void postConstruct() throws Exception {
 		if (SAMPLESIZEPATTERN == null)
 			SAMPLESIZEPATTERN = Pattern.compile("/"+cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName)+"\\/(\\d*)\\/");
+	}
+
+	// EXCEPTION HANDLER - SPECIFIC TO THIS CONTROLLER - CANNOT RESPOND WITH AN ACTUAL RESPONSE HERE OR WE GET A MEDIA TYPE ERROR
+	@ExceptionHandler(IOException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
+	public void handleMyException(IOException e, HttpServletRequest req){
+		String mesg = e.getMessage();
+		// don't log errors when the client resets the connection - this happens in performance tests and pollutes the logs
+		if (!mesg.contains("Connection reset by peer") && !mesg.contains("An established connection was aborted by the software in your host machine") )
+			log.warn(e.getMessage(),e);
 	}
 	
 }

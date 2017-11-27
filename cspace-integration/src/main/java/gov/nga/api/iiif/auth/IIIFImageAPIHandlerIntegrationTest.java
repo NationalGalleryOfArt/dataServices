@@ -3,6 +3,8 @@ package gov.nga.api.iiif.auth;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,12 +18,19 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import gov.nga.integration.cspace.CSpaceSpringApplication;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT,  classes = CSpaceSpringApplication.class)
+@SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT, classes = CSpaceSpringApplication.class)
 @AutoConfigureMockMvc
 public class IIIFImageAPIHandlerIntegrationTest {
+	
+	private static final Logger log = LoggerFactory.getLogger(IIIFImageAPIHandlerIntegrationTest.class);
  
     @Autowired
     private MockMvc mvc;
@@ -37,7 +46,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-    // we actually should figure out some way to set the header in the request to force IIP one way or the other
     @Test
     public void iip_nosample_restricted_image() throws Exception {
         mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
@@ -49,6 +57,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
+    // forces header in request to test that returned dimensions are full and correct for NGA
     @Test
     public void iip_sample_restricted_image() throws Exception {
         mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
@@ -180,7 +189,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-
     @Test
     public void iiif_nosample_openaccess_infojson() throws Exception {
         mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
@@ -209,5 +217,73 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
     
+    @Test
+    public void test_severed_connection_handling() throws Exception {
+    	// HTTP GET request
+    	String url = "http://localhost:8080/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/full/800,/0/default.jpg";
+
+    	URL obj = new URL(url);
+    	HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+    	// optional default is GET
+    	con.setRequestMethod("GET");
+
+    	int responseCode = con.getResponseCode();
+    	log.debug("Sending 'GET' request to URL : " + url);
+    	log.debug("Response Code : " + responseCode);
+    	log.debug("content-type:" + con.getContentType());
+
+    	BufferedReader in = new BufferedReader(
+    			new InputStreamReader(con.getInputStream()));
+    	String inputLine = in.readLine();
+    	log.debug("received " + inputLine.length() + " bytes.  Severing connection now");
+
+    	// close prematurely to cause an error 
+    	con.disconnect();
+    }
+    
+    @Test
+    public void iiif_nosample_openaccess_region_outside_image() throws Exception {
+        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,5,5/512,/0/default.jpg"))
+        	.andExpect(status().isBadRequest())
+        	;
+    }
+
+    @Test
+    public void iiif_nosample_openaccess_region_tangential_to_image() throws Exception {
+        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,10,50/512,/0/default.jpg"))
+        	.andExpect(status().isBadRequest())
+        	;
+    }
+
+    @Test
+    public void iiif_nosample_openaccess_region_one_pixel_image() throws Exception {
+        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,50/512,/0/default.jpg"))
+        	.andExpect(status().isOk())
+        	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
+    
+    @Test
+    public void iiif_nosample_openaccess_region_tangential_to_image_on_y() throws Exception {
+        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,10/512,/0/default.jpg"))
+        	.andExpect(status().isBadRequest())
+        	;
+    }
+    
+    @Test
+    public void iiif_nosample_openaccess_region_one_pixel_image_on_x_and_y() throws Exception {
+        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,11/512,/0/default.jpg"))
+        	.andExpect(status().isOk())
+        	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
+
 }
+
+
 

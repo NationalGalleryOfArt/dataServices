@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.ExecutionException;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class ExceptionErrorMapper {
 	@ExceptionHandler(APIUsageException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	ErrorLoggerResponse handleAPIUsageException(Exception e, HttpServletRequest req){
+	public ErrorLoggerResponse handleAPIUsageException(Exception e, HttpServletRequest req){
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
@@ -37,7 +38,7 @@ public class ExceptionErrorMapper {
 	@ExceptionHandler(SQLException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	ErrorLoggerResponse handleAPIUsageException(SQLException e, HttpServletRequest req){
+	public ErrorLoggerResponse handleSQLException(SQLException e, HttpServletRequest req){
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
@@ -49,7 +50,7 @@ public class ExceptionErrorMapper {
 	@ExceptionHandler(ExecutionException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	ErrorLoggerResponse handleAPIUsageException(ExecutionException e, HttpServletRequest req){
+	public ErrorLoggerResponse handleExecutionException(ExecutionException e, HttpServletRequest req){
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
@@ -61,19 +62,23 @@ public class ExceptionErrorMapper {
 	@ExceptionHandler(IOException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	ErrorLoggerResponse handleAPIUsageException(IOException e, HttpServletRequest req){
-		log.warn(e.getMessage(),e);
+	public ErrorLoggerResponse handleIOException(IOException e, HttpServletRequest req){
+		String mesg = e.getMessage();
+		// don't log errors when the client resets the connection - this happens in performance tests and pollutes the logs
+		if (!mesg.equals("Connection reset by peer") && !mesg.equals("An established connection was aborted by the software in your host machine") ) {
+			log.warn(e.getMessage(),e);
+		}
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
 				"An IO Exception was thrown when processing the request. ", 
 				e.getMessage()
 		);
 	}
-
+	
 	@ExceptionHandler(DataNotReadyException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	ErrorLoggerResponse handleDataNotReadyException(DataNotReadyException e, HttpServletRequest req){
+	public ErrorLoggerResponse handleDataNotReadyException(DataNotReadyException e, HttpServletRequest req){
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
@@ -85,19 +90,26 @@ public class ExceptionErrorMapper {
 	@ExceptionHandler(TypeMismatchException.class)
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ResponseBody
-	ErrorLoggerResponse handleTypeMismatchException(TypeMismatchException e, HttpServletRequest req){
+	public ErrorLoggerResponse handleTypeMismatchException(TypeMismatchException e, HttpServletRequest req){
 		return handleAPIUsageException(e, req);
 	}
-
-/*	@ExceptionHandler({UsernameNotFoundException.class})
-	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	
+	@ExceptionHandler(ServletException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	SimpleErrorMessage handleException(UsernameNotFoundException exception){
-		log.debug("Username not found {}",exception.getLocalizedMessage());
-		log.trace(exception.getMessage(),exception);
-		return new SimpleErrorMessage("Unaouthorized"," ");
-	}
-*/
+	public ErrorLoggerResponse handleServletExceptionConflict(ServletException e, HttpServletRequest req) {
+		//request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
+		log.debug("================================================================================================");
+		log.debug("================================================================================================");
+		log.debug("================================================================================================");
+		log.debug("================================================================================================");
+		log.debug("================================================================================================");
+		return new ErrorLoggerResponse(
+				"error", req.getRequestURI(), 
+				"The data service is still starting up and not yet ready to handle requests.", 
+				e.getMessage()
+		);
+    }
 
 }
 
