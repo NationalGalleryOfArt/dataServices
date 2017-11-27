@@ -14,6 +14,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -505,15 +506,27 @@ public class IIIFImageAPIHandler {
 			SAMPLESIZEPATTERN = Pattern.compile("/"+cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName)+"\\/(\\d*)\\/");
 	}
 
+	// EXCEPTION HANDLER - WE DON'T CARE IF THE CLIENT ABORTS SO JUST SWALLOW THIS EXCEPTION AND DON'T LOG ANYTHING
+	@ExceptionHandler(ClientAbortException.class)
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ResponseBody
+	public void handleMyException(ClientAbortException e, HttpServletRequest req){
+		// log.error("HERE 1");
+		// eat it
+	}
+
 	// EXCEPTION HANDLER - SPECIFIC TO THIS CONTROLLER - CANNOT RESPOND WITH AN ACTUAL RESPONSE HERE OR WE GET A MEDIA TYPE ERROR
 	@ExceptionHandler(IOException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
 	public void handleMyException(IOException e, HttpServletRequest req){
+		//log.error("HERE 2");
 		String mesg = e.getMessage();
 		// don't log errors when the client resets the connection - this happens in performance tests and pollutes the logs
-		if (!mesg.contains("Connection reset by peer") && !mesg.contains("An established connection was aborted by the software in your host machine") )
+		if (!mesg.contains("Connection reset by peer") && !mesg.contains("An established connection was aborted by the software in your host machine")) {
+		//	log.error("HERE 3");
 			log.warn(e.getMessage(),e);
+		}
 	}
 	
 }
