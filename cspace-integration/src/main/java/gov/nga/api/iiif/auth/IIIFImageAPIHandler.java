@@ -355,6 +355,17 @@ public class IIIFImageAPIHandler {
 			imgVolPath = "/" + imgVolPath;
 		if ( !imgVolPath.endsWith("/") )
 			imgVolPath += "/";
+		
+		// TODO -- for now, this is an afterthought hack since conservation space thumbnails cannot be displayed otherwise, but 
+		// in the future, however, this should be handled by permissions in the eDAM instead of having to read private art object data
+		// to ascertain the rights of an image
+		if ( imgVolPath.startsWith("/private") ) {
+			// returnMap.put(IIIFAuthParameters.NGAINTERNAL, 		ngainternal);
+			returnMap.put(IIIFAuthParameters.OKTOCACHE, 		true);
+			returnMap.put(IIIFAuthParameters.MAXSAMPLESIZE,		null);
+			return returnMap;
+		}
+		
 		dSearchHelper.addFilter(Derivative.SEARCH.IMAGEVOLUMEPATH, SEARCHOP.EQUALS, imgVolPath);
 		dSearchHelper.addFilter(Derivative.SEARCH.IMAGEFILENAME, SEARCHOP.EQUALS, imgFilename);
 
@@ -432,7 +443,7 @@ public class IIIFImageAPIHandler {
 		if ( requestedSamplingSize == null && maxPublicPix != null && maxPublicPix < d.getLongestSideInPixels() )
 			oktocache = false;
 
-		returnMap.put(IIIFAuthParameters.NGAINTERNAL, 		ngainternal);
+		//returnMap.put(IIIFAuthParameters.NGAINTERNAL, 		ngainternal);
 		returnMap.put(IIIFAuthParameters.OKTOCACHE, 		oktocache);
 		returnMap.put(IIIFAuthParameters.MAXSAMPLESIZE,		maxPermittedSamplingSize);
 		

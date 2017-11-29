@@ -206,6 +206,16 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
         	;
     }
+
+    @Test
+    public void iiif_private_image_should_defer_to_iip_server() throws Exception {
+        mvc.perform(get("/iiif/private/objects/1/6/7/8/8/2/167882-primary-0-nativeres.ptif/full/!100,100/0/default.jpg"))
+    	.andExpect(status().isOk())
+    	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+    	.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
     
     @Test
     public void iiif_sample_openaccess_infojson() throws Exception {
