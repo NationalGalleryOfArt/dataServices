@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
+import gov.nga.integration.cspace.APIUsageException;
 import gov.nga.integration.cspace.CSpaceImage;
 import gov.nga.integration.cspace.imageproviders.WebImageSearchProvider;
 import gov.nga.search.SearchHelper;
@@ -42,6 +43,7 @@ import gov.nga.utils.ConfigService;
 
 @CrossOrigin(origins="*")
 @RestController
+@RequestMapping(value={"/${ngaweb.imagingServerIIIFPublicPrefix}/", "/${ngaweb.imagingServerFastCGIPublicPrefix}/"})
 public class IIIFImageAPIHandler {
 
 	@Autowired
@@ -83,12 +85,14 @@ public class IIIFImageAPIHandler {
 		HTTPSTATUSCODE, NGAINTERNAL, NEWSAMPLESIZE, OKTOCACHE, MAXSAMPLESIZE;
 	}
 	
-	@RequestMapping(value="/fastcgi/iipsrv.fcgi", 
+	@RequestMapping(value="/${ngaweb.imagingServerIIPCGIName}", 
 					method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
 	public ResponseEntity<InputStreamResource> iipFIFHandler (
 			HttpServletRequest request,
 			HttpServletResponse response
 			) throws Exception {
+
+		log.trace("entering iipFIFHandler");
 
 		// Step 1: parse the URL and get the image ID
 		// Step 2: set the requested sampling size to null because that's what it is for IIP requests (we assume - and don't need to give special treatment to this)
@@ -108,6 +112,9 @@ public class IIIFImageAPIHandler {
 				}
 			}
 		}
+		
+		if ( imgPath == null )
+			throw new APIUsageException("no image specified in IIP request");
 
 		log.debug(imgPath);
 		log.debug(request.getRequestURI());
@@ -129,9 +136,8 @@ public class IIIFImageAPIHandler {
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
 		String publicIIP = cs.getString(IIIFAuthConfigs.iipPublicPrefixPropertyName);
 		String privateIIP = cs.getString(IIIFAuthConfigs.iipPrivatePrefixPropertyName);
-		String proxyURL = String.format("https:%s%s?%s", serverURL, request.getRequestURI(), request.getQueryString());
-		proxyURL = proxyURL.replace(publicIIP, privateIIP);
-
+		String proxyURL = String.format("https:%s%s?%s", serverURL, request.getRequestURI().replaceAll(publicIIP,  privateIIP), request.getQueryString());
+		
 		return proxyIIPRequest(proxyURL, (Long) imgAuthData.get(IIIFAuthParameters.MAXSAMPLESIZE), (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response); 
 		// if we have unlimited maxSamplingSize then we just proxy the request normally
 
@@ -147,8 +153,25 @@ public class IIIFImageAPIHandler {
 		}
 	}
 	
-	@RequestMapping(value={"/${ngaweb.imagingServerIIIFPublicPrefix}/{sampleSize}/**/{imgFilename}/{infoJson:info.json}"}, 
-					method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
+	@RequestMapping(value={
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/*/{imgFilename}/{infoJson:info.json}",
+			"/{sampleSize}/{imgFilename}/{infoJson:info.json}"
+			},
+			method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}
+	)
 	public ResponseEntity<InputStreamResource> iiifInfoJsonHandler (
 			@PathVariable(value="sampleSize") String sampleSize,
 			@PathVariable(value="imgFilename") String imgFilename,
@@ -157,6 +180,7 @@ public class IIIFImageAPIHandler {
 			HttpServletResponse response
 			) throws Exception {
 
+		log.trace("entering iiifInfoJsonHandler");
 		
 		String iiifPublicPrefix = cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName);
 		String iiifPrivatePrefix = cs.getString(IIIFAuthConfigs.iiifPrivatePrefixPropertyName);
@@ -227,21 +251,42 @@ public class IIIFImageAPIHandler {
 	 * For example  /hotels/{hotel} is more specific than /hotels/*.
 	 * -------
 	 *  
-	 * So, this is a bit counter intuitive.  In our case below, this pattern is considered to be the "most specific" - 
-	 * I think if we treat this as just processing the * image server iiif public prefix as a default handler, we should be ok
+	 * Note that some of this is a bit counter intuitive.  That's why the ** wildcard won't work below to match multiple
+	 * directories if we ALSO want to use the ** to create a default handler 
 	 */
-	@RequestMapping(value="/${ngaweb.imagingServerIIIFPublicPrefix}/**/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}", 
-					method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
+	@RequestMapping(value={
+			"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/*/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}",
+			"/{imgFilename}/{region}/{size}/{rotation}/{quality}.{format}"
+		}, 
+		method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}
+	)
 	public ResponseEntity<InputStreamResource> iiifAuthHandler (
-			@PathVariable(value="imgFilename") String imgFilename,
-			@PathVariable(value="region") String region,
-			@PathVariable(value="size") String size,
-			@PathVariable(value="rotation") String rotation,
-			@PathVariable(value="quality") String quality,
-			@PathVariable(value="format") String format,
+			@PathVariable(value="imgFilename", 	required=true)  String imgFilename,
+			@PathVariable(value="region", 		required=false) String region,
+			@PathVariable(value="size", 		required=false) String size,
+			@PathVariable(value="rotation", 	required=false) String rotation,
+			@PathVariable(value="quality", 		required=false) String quality,
+			@PathVariable(value="format", 		required=false) String format,
 			HttpServletRequest request,
 			HttpServletResponse response
 			) throws Exception {
+
+		log.trace("entering iiifAuthHandler");
 
 		// PARSE OUT THE SAMPLING SIZE AND THE IMAGE ID / PATH SPECIFIC TO THE FORMAT OF IIIF REQUESTS
 		String iiifPublicPrefix = cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName);
@@ -313,7 +358,7 @@ public class IIIFImageAPIHandler {
 		// We'll convey those to IIP via a custom HTTP HEADER and IIP will read them and make sure that the max tile size it uses considers this; we 
 		// only need to do this (for now) if the request was received from outside the firewall - otherwise, we don't set the header and just pass
 
-		// so, what we want to do here is check for the presence of the NGA_INTERNAL cookie - it will be set by Apache for all internal requests 
+		// so, what we want to do here is check for the presence of the NGA_INTERNAL header - it will be set by Apache for all internal requests 
 		// and unset otherwise so should be fairly reliable - if unset, then we have to validate the request - otherwise we skip the validation part 
 
 		// get image details and if request ends with an unsuccessful httpd status, return that status
@@ -378,26 +423,29 @@ public class IIIFImageAPIHandler {
 		}
 
 		// we should only ever have one image with the same volumepath and filename given the way we handle object images right now
-		log.debug("found: " + images.size() + " images"); 
-		if (images == null || images.size() != 1)
-			return NOTFOUND;
-		
-		CSpaceImage d = images.get(0);
+		log.debug("found: " + images.size() + " images");
 
-		// if the requested image isn't a zoom image for some reason, then return a 404 error since we can't return a IIIF image from a non-zoomable file
-		if ( !d.isZoom() )
-			return NOTFOUND;
-	    
 		Long maxPermittedSamplingSize = null;
-		
-		// when zero, was returning the full detail  of the image - also I should use a prefix rather than mangling the spec... 
-		// probably use /degrade:250/ in the URL for the redirect only
 
 		// read header set by Apache to determine whether this is an internal or external request
-		boolean ngainternal = request.getHeader("NGA_INTERNAL") != null;
+		boolean ngainternal = request.getHeader("NGA_EXTERNAL") == null && request.getHeader("NGA_INTERNAL") != null;
+		log.debug("NGA INTERNAL: " + ngainternal);
 
+		CSpaceImage d = null;
+
+		// if we don't have any images, then it is safe to just defer to the image server to handle them like it did before this layer was written
+		// the only images that would be published would have rights cleared ahead of time anyway - that said, in the future ALL of the image rights 
+		// will need to come from the eDAM
+		if (images != null && images.size() > 0)	
+			d = images.get(0);
+
+		// if the requested image isn't a zoom image for some reason, then return a 404 error since we can't return a IIIF image from a non-zoomable file
+		if ( d != null && !d.isZoom() )
+			return NOTFOUND;
+	    
 		// acquire max sampling size from APIs
-		maxPermittedSamplingSize = d.getMaxSamplingSizeInPixels(!ngainternal);
+		if ( d != null )
+			maxPermittedSamplingSize = d.getMaxSamplingSizeInPixels(!ngainternal);
 		// scenario image is 200 but max sampling is 700 - but request was for default so we just don't enforce the header that's all - no redirect
 
 		// if we are not permitted to show this image, then return an unauthorized message
@@ -406,13 +454,13 @@ public class IIIFImageAPIHandler {
 
 		// if the requested sampling size is greater than the max sampling size or there isn't a requested max size and the max size is greater than or equal to the actual width 
 		// of the image then just redirect to the default and recalculate <-- endless redirect
-		if ( requestedSamplingSize != null && ( ( maxPermittedSamplingSize != null && requestedSamplingSize > maxPermittedSamplingSize ) || requestedSamplingSize <= 0 || requestedSamplingSize >= d.getWidth() || requestedSamplingSize >= d.getHeight() ) ) { 
+		if ( requestedSamplingSize != null && ( ( maxPermittedSamplingSize != null && requestedSamplingSize > maxPermittedSamplingSize ) || requestedSamplingSize <= 0 || (d != null && (requestedSamplingSize >= d.getWidth() || requestedSamplingSize >= d.getHeight()) ) ) ) { 
 			requestedSamplingSize = null;
 			maxPermittedSamplingSize = null;
 			returnMap.put(IIIFAuthParameters.NEWSAMPLESIZE, new Long(0L)); // tells client to redirect to the full size image
 		}
 		// no point sending the max sampling size header if the max is greater than the longest side of the image anyway
-		if ( maxPermittedSamplingSize != null && ( maxPermittedSamplingSize >= d.getWidth() || maxPermittedSamplingSize >= d.getHeight() ) )
+		if ( maxPermittedSamplingSize != null && ( d != null && (maxPermittedSamplingSize >= d.getWidth() || maxPermittedSamplingSize >= d.getHeight()) ) )
 			maxPermittedSamplingSize = null;
 
 		// if a sample size is specified in the URL already or there's a max sample size to enforce
@@ -424,24 +472,28 @@ public class IIIFImageAPIHandler {
 			if ( maxPermittedSamplingSize != null && ( requestedSamplingSize == null || requestedSamplingSize > maxPermittedSamplingSize ) )
 				newSampleSize = maxPermittedSamplingSize;
 
-			// if the sample size requested is larger than the width or height of the zoom image, then constrain it to the larger of the two
-			if ( requestedSamplingSize != null && ( requestedSamplingSize > d.getWidth() || requestedSamplingSize > d.getHeight() ) )
-				newSampleSize = d.getWidth() > d.getWidth() ? d.getWidth() : d.getHeight();
+			if ( d != null) {
+				// if the sample size requested is larger than the width or height of the zoom image, then constrain it to the larger of the two
+				if ( requestedSamplingSize != null && ( requestedSamplingSize > d.getWidth() || requestedSamplingSize > d.getHeight() ) )
+					newSampleSize = d.getWidth() > d.getWidth() ? d.getWidth() : d.getHeight();
 
-			// and finally, if the new sample size is >= the width or height of the image, then no point in specifying maxsampling at all
-			if ( newSampleSize != null && ( newSampleSize >= d.getWidth() || newSampleSize >= d.getHeight() ) )
-				newSampleSize = null;
-			
+					// and finally, if the new sample size is >= the width or height of the image, then no point in specifying maxsampling at all
+					if ( newSampleSize != null && ( newSampleSize >= d.getWidth() || newSampleSize >= d.getHeight() ) )
+						newSampleSize = null;
+			}
+
 			returnMap.put(IIIFAuthParameters.NEWSAMPLESIZE, newSampleSize);
 
 		}
 
 		// by default allow caching of everything
 		boolean oktocache = true;
-		// but don't cache requests for default images (samplingSize == null) with public sampling restrictions that are smaller than the image's longest side
-		Long maxPublicPix = d.getMaxSamplingSizeInPixels(true);
-		if ( requestedSamplingSize == null && maxPublicPix != null && maxPublicPix < d.getLongestSideInPixels() )
-			oktocache = false;
+		if ( d != null) {
+			// but don't cache requests for default images (samplingSize == null) with public sampling restrictions that are smaller than the image's longest side
+			Long maxPublicPix = d.getMaxSamplingSizeInPixels(true);
+			if ( requestedSamplingSize == null && maxPublicPix != null && maxPublicPix < d.getLongestSideInPixels() )
+				oktocache = false;
+		}
 
 		//returnMap.put(IIIFAuthParameters.NGAINTERNAL, 		ngainternal);
 		returnMap.put(IIIFAuthParameters.OKTOCACHE, 		oktocache);
@@ -472,6 +524,10 @@ public class IIIFImageAPIHandler {
 			urlConnection.setUseCaches(false);
 			if ( samplingSizeToEnforce != null )
 				urlConnection.setRequestProperty("MAX_SAMPLE_SIZE", samplingSizeToEnforce.toString());
+			
+			if ( request.getHeader("NGA_EXTERNAL") != null)
+				urlConnection.setRequestProperty("NGA_EXTERNAL",  "true");
+			
 			urlConnection.connect();
 
 			Map<String, List<String>> map = urlConnection.getHeaderFields();
@@ -507,7 +563,14 @@ public class IIIFImageAPIHandler {
 					.body(new InputStreamResource(urlConnection.getInputStream()));
 		}
 		catch (IOException ie) {
-			return ResponseEntity.status(urlConnection.getResponseCode()).body(null);
+			if ( urlConnection.getErrorStream() != null)
+				return ResponseEntity.status(urlConnection.getResponseCode())
+						.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
+						.body(new InputStreamResource(urlConnection.getErrorStream()));
+			else 
+				return ResponseEntity.status(urlConnection.getResponseCode())
+						.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
+						.body(null);
 		}
 	}
 	
@@ -516,28 +579,44 @@ public class IIIFImageAPIHandler {
 		if (SAMPLESIZEPATTERN == null)
 			SAMPLESIZEPATTERN = Pattern.compile("/"+cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName)+"\\/(\\d*)\\/");
 	}
+	
+	@RequestMapping("**")
+	public ResponseEntity<String> iiifUnMatchedRequestHandler (
+			HttpServletRequest request,
+			HttpServletResponse response
+			) throws Exception {
+		log.trace("entering iiifUnmatchedRequestHandler");
+		throw new APIUsageException("Bogus request");
+	}
 
 	// EXCEPTION HANDLER - WE DON'T CARE IF THE CLIENT ABORTS SO JUST SWALLOW THIS EXCEPTION AND DON'T LOG ANYTHING
 	@ExceptionHandler(ClientAbortException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public void handleMyException(ClientAbortException e, HttpServletRequest req){
-		// log.error("HERE 1");
-		// eat it
+	public void handleClientAbortException(ClientAbortException e, HttpServletRequest req) {
+		log.trace("entering handleClientAbortException");
+		// nothing to return to client since they have already aborted the connection
 	}
 
 	// EXCEPTION HANDLER - SPECIFIC TO THIS CONTROLLER - CANNOT RESPOND WITH AN ACTUAL RESPONSE HERE OR WE GET A MEDIA TYPE ERROR
-	@ExceptionHandler(IOException.class)
+	@ExceptionHandler(APIUsageException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public String handleAPIUsageException(APIUsageException e, HttpServletRequest req) {
+		log.trace("entering handleAPIUsageException");
+		return "Bad Request.  Consult the <a href=\"http://iiif.io/image/\">IIIF Image Specifications</a> or the <a href=\"http://iipimage.sourceforge.net/documentation/protocol/\">IIP Protocol</a> and try re-formulating the request.";
+	}
+	
+	// DEFAULT EXCEPTION HANDLER - SPECIFIC TO THIS CONTROLLER - CANNOT RESPOND WITH AN ACTUAL RESPONSE HERE OR WE GET A MEDIA TYPE ERROR
+	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
-	public void handleMyException(IOException e, HttpServletRequest req){
-		//log.error("HERE 2");
-		String mesg = e.getMessage();
-		// don't log errors when the client resets the connection - this happens in performance tests and pollutes the logs
-		if (!mesg.contains("Connection reset by peer") && !mesg.contains("An established connection was aborted by the software in your host machine")) {
-		//	log.error("HERE 3");
-			log.warn(e.getMessage(),e);
-		}
+	public String handleAnyOtherException(Exception e, HttpServletRequest req) {
+		log.trace("entering handleAnyOtherException", e);
+		log.debug("An unhandled exception encountered: ", e);
+		return "An error occurred trying to handle your request.  Try your request again later or try reformulating it.";
 	}
+ 	
+	
 	
 }

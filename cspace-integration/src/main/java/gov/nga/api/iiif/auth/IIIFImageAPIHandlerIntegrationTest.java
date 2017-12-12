@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -24,6 +25,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import gov.nga.integration.cspace.CSpaceSpringApplication;
+import static gov.nga.utils.CaseInsensitiveSubstringMatcher.containsStringCaseInsensitive;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT, classes = CSpaceSpringApplication.class)
@@ -34,9 +36,60 @@ public class IIIFImageAPIHandlerIntegrationTest {
  
     @Autowired
     private MockMvc mvc;
+
+    @Test
+    public void iip_long_path_can_access_image_test() throws Exception {
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/italian_paintings_13th_14th_centuries/objects/1/9/8/4/2/3/198423-compfig-4.0-nativeres.ptif&SDS=0,90&JTL=1,1")
+           	.header("Access-Control-Request-Method", "GET")
+           	.header("Origin","https://someserver.com"))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+    		.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
+
+    @Test
+    public void iip_nosample_openaccess_research_image() throws Exception {
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/6/0/60-technical-4.1-nativeres.ptif&SDS=0,90&JTL=1,1")
+           	.header("Access-Control-Request-Method", "GET")
+           	.header("Origin","https://someserver.com"))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+    		.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
+    	
+    @Test
+    public void iip_nosample_openaccess_research_image_metadata() throws Exception {
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/6/0/60-technical-4.0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
+        	.andExpect(status().isOk())
+        	.andExpect(content().contentType("application/vnd.netfpx"))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	.andExpect(content().string(containsString("Max-size:1934 2433")))
+        	;
+    }
+
+    @Test
+    public void iiif_bad_image_request_should_not_give_link_to_cspace() throws Exception {
+        mvc.perform(get("/iiif/boogeywoogey"))
+        	.andExpect(status().isBadRequest())
+        	.andExpect(content().string(not(containsStringCaseInsensitive("cspace"))))
+        	;
+    }
     
     @Test
-    public void iip_nosample_openaccess_image() throws Exception {
+    public void fastcgi_bad_request_should_not_give_link_to_cspace() throws Exception {
+        mvc.perform(get("/fastcgi/boogeywoogey"))
+        	.andExpect(status().isBadRequest())
+        	.andExpect(content().string(containsString("IIP Protocol")))
+        	;
+    }
+    
+    @Test
+    public void iip_nosample_openaccess_image_metadata() throws Exception {
         mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/5/1/51-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/vnd.netfpx"))
@@ -46,9 +99,13 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
+    // on localhsot default case is external unless NGA_INTERAL header is set; however, to support this vis-a-vis integration with a live image server, we 
+    // have to specify NGA_EXTERNAL => true otherwise the response from the server will be an internal one for the actual bit values since the web server
+    // knows we're inside the firewall
     @Test
     public void iip_nosample_restricted_image() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
+        	.header("NGA_EXTERNAL",  true))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -101,18 +158,52 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @Test
     public void iiif_nonzoom_image() throws Exception {
         mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-740x560.jpg/full/512,/0/default.jpg"))
-        	.andExpect(status().isNotFound())
+        	.andExpect(status().isBadRequest())
         	;
     }
     
     @Test
-    public void iiif_sample_openaccess_image_options() throws Exception {
+    public void iiif_sample_openaccess_image_options_get() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","GET,HEAD,POST"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","GET"))
+        	;
+    }
+
+    @Test
+    public void iiif_sample_openaccess_research_image_options_get() throws Exception {
+    	mvc.perform(get("/iiif/640/public/research/italian_paintings_13th_14th_centuries/objects/1/9/8/4/2/3/198423-compfig-4.0-nativeres.ptif/full/128,/0/default.jpg")
+    		.header("Access-Control-Request-Method", "GET")
+    		.header("Origin","https://someserver.com"))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+    		.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+    		;
+    }
+
+    @Test
+    public void iiif_sample_openaccess_image_options_head() throws Exception {
+        mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+           	.header("Access-Control-Request-Method", "HEAD")
+           	.header("Origin","https://someserver.com"))
+        	.andExpect(status().isOk())
+        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","HEAD"))
+        	;
+    }
+
+    @Test
+    public void iiif_sample_openaccess_image_options_post() throws Exception {
+        mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+           	.header("Access-Control-Request-Method", "POST")
+           	.header("Origin","https://someserver.com"))
+        	.andExpect(status().isOk())
+        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","POST"))
         	;
     }
 
@@ -135,7 +226,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","GET,HEAD,POST"))
+        	.andExpect(header().string("Access-Control-Allow-Methods","GET"))
         	;
     }
 

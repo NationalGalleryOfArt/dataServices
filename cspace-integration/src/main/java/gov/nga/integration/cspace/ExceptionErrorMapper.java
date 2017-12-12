@@ -42,8 +42,8 @@ public class ExceptionErrorMapper {
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
-				"A SQL Exception was thrown when processing the request. ", 
-				e.getMessage()
+				"A Database Exception was thrown when processing the request. ",
+				"Details have been logged and will be inspected by an administrator of this system."
 		);
 	}
 
@@ -54,8 +54,8 @@ public class ExceptionErrorMapper {
 		log.warn(e.getMessage(),e);
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
-				"An Execution Exception (an exception thrown from a spawned thread) was thrown when processing the request. ", 
-				e.getMessage()
+				"An Execution Exception was thrown when processing the request. ", 
+				"Details have been logged and will be inspected by an administrator of this system."
 		);
 	}
 
@@ -71,7 +71,7 @@ public class ExceptionErrorMapper {
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
 				"An IO Exception was thrown when processing the request. ", 
-				e.getMessage()
+				"Details have been logged and will be inspected by an administrator of this system."
 		);
 	}
 	
@@ -98,12 +98,6 @@ public class ExceptionErrorMapper {
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ResponseBody
 	public ErrorLoggerResponse handleServletExceptionConflict(ServletException e, HttpServletRequest req) {
-		//request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
-		log.debug("================================================================================================");
-		log.debug("================================================================================================");
-		log.debug("================================================================================================");
-		log.debug("================================================================================================");
-		log.debug("================================================================================================");
 		return new ErrorLoggerResponse(
 				"error", req.getRequestURI(), 
 				"The data service is still starting up and not yet ready to handle requests.", 
