@@ -3,6 +3,7 @@ package gov.nga.api.iiif.auth;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -152,7 +153,23 @@ public class IIIFImageAPIHandler {
 			// then we interpret this as part of the path to the image rather than a sampling size
 		}
 	}
-	
+
+	@RequestMapping(value={
+			"/{sampleSize}/*/*/{imgFilename:.*}",
+			"/{sampleSize}/*/{imgFilename:.*}",
+			"/{sampleSize}/{imgFilename:.*}",
+			},
+			method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}//,
+	)
+	public ResponseEntity<InputStreamResource> iiifShortRequestHandler (
+			@PathVariable(value="sampleSize") String sampleSize,
+			@PathVariable(value="imgFilename") String imgFilename,
+			HttpServletRequest request,
+			HttpServletResponse response
+			) throws Exception {
+		return iiifInfoJsonHandler(sampleSize, imgFilename, null, request, response);
+	}
+
 	@RequestMapping(value={
 			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
 			"/{sampleSize}/*/*/*/*/*/*/*/*/*/*/*/*/*/{imgFilename}/{infoJson:info.json}",
@@ -168,9 +185,9 @@ public class IIIFImageAPIHandler {
 			"/{sampleSize}/*/*/*/{imgFilename}/{infoJson:info.json}",
 			"/{sampleSize}/*/*/{imgFilename}/{infoJson:info.json}",
 			"/{sampleSize}/*/{imgFilename}/{infoJson:info.json}",
-			"/{sampleSize}/{imgFilename}/{infoJson:info.json}"
+			"/{sampleSize}/{imgFilename}/{infoJson:info.json}",
 			},
-			method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}
+			method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}//,
 	)
 	public ResponseEntity<InputStreamResource> iiifInfoJsonHandler (
 			@PathVariable(value="sampleSize") String sampleSize,
@@ -188,12 +205,18 @@ public class IIIFImageAPIHandler {
 		Long requestedSamplingSize = fromSamplingSize(sampleSize);
 		String imgVolPath = null;
 		if (requestedSamplingSize != null)
-			imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix+"/"+sampleSize,"").replace("/"+imgFilename,"");
+			imgVolPath = request.getRequestURI().replaceFirst(
+				Pattern.quote("/"+iiifPublicPrefix+"/"+sampleSize),"").replaceFirst(
+				Pattern.quote("/"+imgFilename),""
+			);
 		else 
-			imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix,"").replace("/"+imgFilename,"");
+			imgVolPath = request.getRequestURI().replaceFirst(
+				Pattern.quote("/"+iiifPublicPrefix),"").replaceFirst(
+				Pattern.quote("/"+imgFilename),""
+			);
 
 		if ( infoJson != null )
-			imgVolPath = imgVolPath.replace("/"+infoJson,"");
+			imgVolPath = imgVolPath.replaceFirst(Pattern.quote("/"+infoJson),"");
 
 		log.debug("sampleSize: " + sampleSize);
 		log.debug("requestedSamplingSize: " + requestedSamplingSize);
@@ -319,7 +342,9 @@ public class IIIFImageAPIHandler {
 		if (format != null && format.equals("ptif")) {
 			// ok, since ptif isn't an output format, this can only be a request for the pyramidal tiff directly 
 			// which we cannot defer to IIP directly without first verifying that the max sample size has been set
-			imgFilename = request.getRequestURI().replace("/"+iiifPublicPrefix,"");
+			imgFilename = request.getRequestURI().replaceFirst(
+				Pattern.quote("/"+iiifPublicPrefix),""
+			);
 			m = IMGFILENAMEPATTERN.matcher(imgFilename);
 			if (m.find()) {
 				imgVolPath	= m.group(1);
@@ -332,9 +357,15 @@ public class IIIFImageAPIHandler {
 		}
 		else {
 			if (requestedSamplingSize != null)
-				imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix+"/"+sampleSize,"").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
+				imgVolPath = request.getRequestURI().replaceFirst(
+					Pattern.quote("/"+iiifPublicPrefix+"/"+sampleSize),"").replaceFirst(
+					Pattern.quote("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format),""
+				);
 			else
-				imgVolPath = request.getRequestURI().replace("/"+iiifPublicPrefix,"").replace("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format,"");
+				imgVolPath = request.getRequestURI().replaceFirst(
+					Pattern.quote("/"+iiifPublicPrefix),"").replaceFirst(
+					Pattern.quote("/"+imgFilename+"/"+region+"/"+size+"/"+rotation+"/"+quality+"."+format),""
+				);
 		}
 
 		// LOG SOME IIIF URL SPECIFIC REQUEST PARAMETERS
@@ -349,9 +380,10 @@ public class IIIFImageAPIHandler {
 		log.debug("format: " + format );
 
 		// AS PER IIIF SPECS, THE if the requested format is not either jpg or png then return a 404
+		// however, the validator seems to check for 400, 415, or 503 errors for some reason so we throw a bad request here instead
 		IMGFORMAT imgFormat = IMGFORMAT.formatFromExtension(format);
 		if ( imgFormat != Derivative.IMGFORMAT.JPEG && imgFormat != Derivative.IMGFORMAT.PNG )
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 
 		// What we need to do now is figure out whether the image being requested has any special rights constraints that limit the size
 		// of the sample that should be used prior to generating the requested image size.  This will simply be a max width and a max height.  
@@ -511,12 +543,13 @@ public class IIIFImageAPIHandler {
 			HttpServletResponse response
 			) throws Exception {
 
-		URI imageURI = new URI(proxyURL);
-
-		log.debug("proxying to: " + imageURI.toString());
 		
 		HttpURLConnection urlConnection = null;
 		try {
+
+			URI imageURI = new URI(proxyURL);
+
+			log.debug("proxying to: " + imageURI.toString());
 
 			urlConnection = (HttpURLConnection) imageURI.toURL().openConnection();
 			urlConnection.setInstanceFollowRedirects(false); // don't follow IIP redirects automatically behind the scenes - we want to return those to browser
@@ -562,6 +595,9 @@ public class IIIFImageAPIHandler {
 					.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
 					.body(new InputStreamResource(urlConnection.getInputStream()));
 		}
+		catch (URISyntaxException se) {
+				throw new APIUsageException(se.getMessage());
+		}
 		catch (IOException ie) {
 			if ( urlConnection.getErrorStream() != null)
 				return ResponseEntity.status(urlConnection.getResponseCode())
@@ -580,7 +616,7 @@ public class IIIFImageAPIHandler {
 			SAMPLESIZEPATTERN = Pattern.compile("/"+cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName)+"\\/(\\d*)\\/");
 	}
 	
-	@RequestMapping("**")
+/*	@RequestMapping("**")
 	public ResponseEntity<String> iiifUnMatchedRequestHandler (
 			HttpServletRequest request,
 			HttpServletResponse response
@@ -588,7 +624,8 @@ public class IIIFImageAPIHandler {
 		log.trace("entering iiifUnmatchedRequestHandler");
 		throw new APIUsageException("Bogus request");
 	}
-
+	*/
+	
 	// EXCEPTION HANDLER - WE DON'T CARE IF THE CLIENT ABORTS SO JUST SWALLOW THIS EXCEPTION AND DON'T LOG ANYTHING
 	@ExceptionHandler(ClientAbortException.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

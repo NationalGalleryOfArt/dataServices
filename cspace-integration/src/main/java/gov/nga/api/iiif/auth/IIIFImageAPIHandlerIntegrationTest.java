@@ -13,8 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -75,7 +78,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @Test
     public void iiif_bad_image_request_should_not_give_link_to_cspace() throws Exception {
         mvc.perform(get("/iiif/boogeywoogey"))
-        	.andExpect(status().isBadRequest())
+        	.andExpect(status().isNotFound())
         	.andExpect(content().string(not(containsStringCaseInsensitive("cspace"))))
         	;
     }
@@ -83,8 +86,8 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @Test
     public void fastcgi_bad_request_should_not_give_link_to_cspace() throws Exception {
         mvc.perform(get("/fastcgi/boogeywoogey"))
-        	.andExpect(status().isBadRequest())
-        	.andExpect(content().string(containsString("IIP Protocol")))
+        	.andExpect(status().isNotFound())
+        	//.andExpect(content().string(containsString("IIP Protocol")))
         	;
     }
     
@@ -162,14 +165,15 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
     
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void iiif_sample_openaccess_image_options_get() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","GET"))
+        	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("GET"))))
         	;
     }
 
@@ -185,25 +189,27 @@ public class IIIFImageAPIHandlerIntegrationTest {
     		;
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void iiif_sample_openaccess_image_options_head() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "HEAD")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","HEAD"))
+        	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("HEAD"))))
         	;
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void iiif_sample_openaccess_image_options_post() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "POST")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","POST"))
+        	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("POST"))))
         	;
     }
 
@@ -219,14 +225,15 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void iiif_nosample_openaccess_image_options() throws Exception {
         mvc.perform(options("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
         	.header("Access-Control-Request-Method", "GET")
         	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
         	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","GET"))
+        	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("GET"))))
         	;
     }
 
@@ -284,8 +291,8 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void iiif_nosample_openaccess_infojson() throws Exception {
         mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
         	.andExpect(status().isOk())
-        	.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        	.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        	.andExpect(content().contentType("application/ld+json"))
+        	//.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         	.andExpect(jsonPath("$.width", equalTo(4217)));
         	;
     }
@@ -312,8 +319,8 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void iiif_sample_openaccess_infojson() throws Exception {
         mvc.perform(get("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
         	.andExpect(status().isOk())
-        	.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        	.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        	.andExpect(content().contentType("application/ld+json"))
+        	//.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         	.andExpect(jsonPath("$.width", equalTo(263)))
         	;
     }
@@ -381,6 +388,44 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+        	;
+    }
+    
+    @Test
+    public void iiif_online_validator_unescaped_id_gives_400_or_404() throws Exception {
+        mvc.perform(get("/iiif/public/[frob]/full/full/0/default.jpg"))
+        	.andExpect(status().is(anyOf(is(400),is(404))))
+        	;
+    }
+
+	@Test
+    public void iiif_online_validator_random_format_gives_400_415_or_503() throws Exception {
+        mvc.perform(get("/iiif/public/objects/0/0-primary-0-nativeres.ptif/full/full/0/default.AZ["))
+        	.andExpect(status().is(anyOf(is(400),is(415),is(503))))
+        	;
+    }
+
+	@Test
+    public void iiif_online_validator_base_uri_redirect_produces_redirect() throws Exception {
+		// shortest object image path
+        mvc.perform(get("/iiif/public/objects/0/0-primary-0-nativeres.ptif"))
+    	.andExpect(status().is(303))
+    	.andExpect(redirectedUrl("/iiif/public/objects/0/0-primary-0-nativeres.ptif/info.json"))
+       	;
+        // and even shorter path to a test image
+        mvc.perform(get("/iiif/public/iiif_validator/api_test.ptif"))
+    	.andExpect(status().is(303))
+    	.andExpect(redirectedUrl("/iiif/public/iiif_validator/api_test.ptif/info.json"))
+       	;
+
+	}
+
+    @Test
+    public void iiif_online_validator_content_type_for_descriptive_resource() throws Exception {
+        mvc.perform(get("/iiif/public/iiif_validator/api_test.ptif/info.json"))
+        	.andExpect(status().isOk())
+        	.andExpect(content().contentType("application/ld+json"))
+        	// .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
         	;
     }
 
