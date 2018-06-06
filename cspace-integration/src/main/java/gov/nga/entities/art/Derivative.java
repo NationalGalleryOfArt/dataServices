@@ -35,6 +35,8 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 
 	// property name containing the base URL of the imaging server 
 	public static final String imagingServerURLPropertyName = "imagingServerURL";
+	public static final String imagingServerSchemePropertyName = "imagingServerScheme";
+
 
 	public static enum IMAGECLASS {
 		ARTOBJECTIMAGE, RESEARCHIMAGE, CONSERVATIONIMAGE

@@ -134,10 +134,11 @@ public class IIIFImageAPIHandler {
 			return ResponseEntity.status((HttpStatus) imgAuthData.get(IIIFAuthParameters.HTTPSTATUSCODE)).body(null);
 
 		// at this point, we should now have the max permitted sampling size so we can just use that in a header and proxy the request to IIP directly
+		String serverScheme = cs.getString(Derivative.imagingServerSchemePropertyName);
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
 		String publicIIP = cs.getString(IIIFAuthConfigs.iipPublicPrefixPropertyName);
 		String privateIIP = cs.getString(IIIFAuthConfigs.iipPrivatePrefixPropertyName);
-		String proxyURL = String.format("https:%s%s?%s", serverURL, request.getRequestURI().replaceAll(publicIIP,  privateIIP), request.getQueryString());
+		String proxyURL = String.format("%s:%s%s?%s", serverScheme, serverURL, request.getRequestURI().replaceAll(publicIIP,  privateIIP), request.getQueryString());
 		
 		return proxyIIPRequest(proxyURL, (Long) imgAuthData.get(IIIFAuthParameters.MAXSAMPLESIZE), (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response); 
 		// if we have unlimited maxSamplingSize then we just proxy the request normally
@@ -247,8 +248,9 @@ public class IIIFImageAPIHandler {
 		}
 		
 		// otherwise, we proxy to IIP and return the response
+		String serverScheme = cs.getString(Derivative.imagingServerSchemePropertyName);
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
-		String proxyURL = String.format("https:%s/%s%s/%s", serverURL, iiifPrivatePrefix, imgVolPath, imgFilename );
+		String proxyURL = String.format("%s:%s/%s%s/%s", serverScheme, serverURL, iiifPrivatePrefix, imgVolPath, imgFilename );
 		if ( infoJson != null )
 			proxyURL += "/" + infoJson;
 
@@ -415,8 +417,9 @@ public class IIIFImageAPIHandler {
 		}
 
 		// otherwise, we proxy to IIP and return the response
+		String serverScheme = cs.getString(Derivative.imagingServerSchemePropertyName);
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
-		String proxyURL = String.format("https:%s/%s%s/%s/%s/%s/%s/%s.%s", serverURL, iiifPrivatePrefix, imgVolPath, imgFilename, region, size, rotation, quality, format);
+		String proxyURL = String.format("%s:%s/%s%s/%s/%s/%s/%s/%s.%s", serverScheme, serverURL, iiifPrivatePrefix, imgVolPath, imgFilename, region, size, rotation, quality, format);
 		// if we have unlimited maxSamplingSize then we just proxy the request normally
 
 		return proxyIIPRequest(proxyURL, requestedSamplingSize, (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response);
@@ -555,11 +558,23 @@ public class IIIFImageAPIHandler {
 			urlConnection.setInstanceFollowRedirects(false); // don't follow IIP redirects automatically behind the scenes - we want to return those to browser
 			// add a special HTTP header here to instruct IIP to only take up to a certain maximum tile size when resampling if we have such a restriction
 			urlConnection.setUseCaches(false);
-			if ( samplingSizeToEnforce != null )
-				urlConnection.setRequestProperty("MAX_SAMPLE_SIZE", samplingSizeToEnforce.toString());
 			
-			if ( request.getHeader("NGA_EXTERNAL") != null)
+			// this might seem silly to set three headers for the same thing, and admittedly it is
+			// but in Apache 2.4, it seems headers with underscores set by the client are converted to
+			// headers with dashes - in light of this, I'm going to try to transition away from using any
+			// word delimiters. Putting all three at once for a while ensures that this program continues
+			// to be backwards compatible with the original IIP implementation that expects underscores
+			if ( samplingSizeToEnforce != null ) {
+				urlConnection.setRequestProperty("MAXSAMPLESIZE", samplingSizeToEnforce.toString());
+				urlConnection.setRequestProperty("MAX_SAMPLE_SIZE", samplingSizeToEnforce.toString());
+				urlConnection.setRequestProperty("MAX-SAMPLE-SIZE", samplingSizeToEnforce.toString());
+			}
+			
+			if ( request.getHeader("NGA_EXTERNAL") != null) {
+				urlConnection.setRequestProperty("NGAEXTERNAL",  "true");
 				urlConnection.setRequestProperty("NGA_EXTERNAL",  "true");
+				urlConnection.setRequestProperty("NGA-EXTERNAL",  "true");
+			}
 			
 			urlConnection.connect();
 
