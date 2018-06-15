@@ -140,7 +140,12 @@ public class IIIFImageAPIHandler {
 		String privateIIP = cs.getString(IIIFAuthConfigs.iipPrivatePrefixPropertyName);
 		String proxyURL = String.format("%s:%s%s?%s", serverScheme, serverURL, request.getRequestURI().replaceAll(publicIIP,  privateIIP), request.getQueryString());
 		
-		return proxyIIPRequest(proxyURL, (Long) imgAuthData.get(IIIFAuthParameters.MAXSAMPLESIZE), (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response); 
+		return proxyIIPRequest(
+				proxyURL, 
+				(Long) imgAuthData.get(IIIFAuthParameters.MAXSAMPLESIZE), 
+				(Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), 
+				request, response, serverScheme, serverURL, null
+		); 
 		// if we have unlimited maxSamplingSize then we just proxy the request normally
 
 	}
@@ -250,6 +255,7 @@ public class IIIFImageAPIHandler {
 		// otherwise, we proxy to IIP and return the response
 		String serverScheme = cs.getString(Derivative.imagingServerSchemePropertyName);
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
+		String image_id = String.format("%s/%s", imgVolPath, imgFilename );
 		String proxyURL = String.format("%s:%s/%s%s/%s", serverScheme, serverURL, iiifPrivatePrefix, imgVolPath, imgFilename );
 		if ( infoJson != null )
 			proxyURL += "/" + infoJson;
@@ -258,7 +264,7 @@ public class IIIFImageAPIHandler {
 				proxyURL, 
 				requestedSamplingSize, 
 				(Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), 
-				request, response
+				request, response, serverScheme, serverURL+'/'+iiifPublicPrefix, image_id
 		);
 		
 	}
@@ -419,10 +425,11 @@ public class IIIFImageAPIHandler {
 		// otherwise, we proxy to IIP and return the response
 		String serverScheme = cs.getString(Derivative.imagingServerSchemePropertyName);
 		String serverURL = cs.getString(Derivative.imagingServerURLPropertyName);
-		String proxyURL = String.format("%s:%s/%s%s/%s/%s/%s/%s/%s.%s", serverScheme, serverURL, iiifPrivatePrefix, imgVolPath, imgFilename, region, size, rotation, quality, format);
+		String iiif_request = String.format("%s/%s/%s/%s/%s/%s.%s", imgVolPath, imgFilename, region, size, rotation, quality, format);
+		String proxyURL = String.format("%s:%s/%s%s", serverScheme, serverURL, iiifPrivatePrefix, iiif_request);
 		// if we have unlimited maxSamplingSize then we just proxy the request normally
 
-		return proxyIIPRequest(proxyURL, requestedSamplingSize, (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response);
+		return proxyIIPRequest(proxyURL, requestedSamplingSize, (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response, serverScheme, serverURL, iiif_request );
 	}
 	
 	// in the future, e.g. eDAM context, we can easily create a method that accepts the image ID
@@ -543,7 +550,10 @@ public class IIIFImageAPIHandler {
 			Long samplingSizeToEnforce,
 			boolean permitCaching,
 			HttpServletRequest request,
-			HttpServletResponse response
+			HttpServletResponse response,
+			String iiif_scheme,
+			String iiif_prefix,
+			String image_id
 			) throws Exception {
 
 		
@@ -558,16 +568,30 @@ public class IIIFImageAPIHandler {
 			urlConnection.setInstanceFollowRedirects(false); // don't follow IIP redirects automatically behind the scenes - we want to return those to browser
 			// add a special HTTP header here to instruct IIP to only take up to a certain maximum tile size when resampling if we have such a restriction
 			urlConnection.setUseCaches(false);
-			
+
+			String iiif_image_id = null;
+			if (image_id != null)
+				iiif_image_id = String.format("%s:%s%s", iiif_scheme, iiif_prefix, image_id);
+
 			// this might seem silly to set three headers for the same thing, and admittedly it is
 			// but in Apache 2.4, it seems headers with underscores set by the client are converted to
 			// headers with dashes - in light of this, I'm going to try to transition away from using any
 			// word delimiters. Putting all three at once for a while ensures that this program continues
 			// to be backwards compatible with the original IIP implementation that expects underscores
 			if ( samplingSizeToEnforce != null ) {
-				urlConnection.setRequestProperty("MAXSAMPLESIZE", samplingSizeToEnforce.toString());
+				urlConnection.setRequestProperty("MAXSAMPLESIZE",   samplingSizeToEnforce.toString());
 				urlConnection.setRequestProperty("MAX_SAMPLE_SIZE", samplingSizeToEnforce.toString());
 				urlConnection.setRequestProperty("MAX-SAMPLE-SIZE", samplingSizeToEnforce.toString());
+				if (image_id != null)
+					iiif_image_id = String.format("%s:%s/%s%s", iiif_scheme, iiif_prefix, samplingSizeToEnforce.toString(), image_id);
+			}
+			// override the IIIF Image ID that IIP uses to ensure the size constraint is reported in the ID as this is very important to
+			// establish for the purpose of annotation, etc.  Also, a IIIF Image request to a region INSIDE a size-constrained image will NOT
+			// match the region inside a non-size constrained image, so it makes sense that these two image renditions would have different IDs
+			if (iiif_image_id != null) {
+				urlConnection.setRequestProperty("XIIIFID",   iiif_image_id );
+				urlConnection.setRequestProperty("X_IIIF_ID", iiif_image_id );
+				urlConnection.setRequestProperty("X-IIIF-ID", iiif_image_id );
 			}
 			
 			if ( request.getHeader("NGA_EXTERNAL") != null) {
