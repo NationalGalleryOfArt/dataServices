@@ -1,0 +1,75 @@
+################### JDBC Configuration ##########################
+#jdbc.driverClassName=org.postgresql.Driver
+nga.jdbc.tms.url=jdbc:postgresql://hostname.nga.gov/tmsextractdb
+nga.jdbc.tms.username=service_account_user
+nga.jdbc.tms.password=service_account_password
+nga.jdbc.tms.validationQuery=SELECT objectID FROM data.objects LIMIT 1
+
+# prepareSQL=2 is VERY important below since we're using temp tables which otherwise 
+# fall out of scope with prepareSQL default value
+nga.jdbc.dclpa.url=jdbc:jtds:sqlserver://hostname.nga.gov/PORTFOLIO_DB;domain=nga.gov;prepareSQL=2
+nga.jdbc.dclpa.username=service_account_user
+nga.jdbc.dclpa.password=service_account_password
+nga.jdbc.dclpa.validationQuery=SELECT TOP 1 record_id FROM item_table
+
+################### NGAWEB Configurations ##########################
+ngaweb.imagingServerScheme=https
+ngaweb.imagingServerURL=//iiif_server.nga.gov
+ngaweb.imagingServerIIPCGIName=iipsrv.fcgi
+ngaweb.imagingServerFastCGIPublicPrefix=fastcgi
+ngaweb.imagingServerIIPPublicPrefix=fastcgi/iipsrv.fcgi
+ngaweb.imagingServerIIPPrivatePrefix=fastcgi-private/iipsrv.fcgi
+ngaweb.imagingServerIIIFPublicPrefix=iiif
+ngaweb.imagingServerIIIFPrivatePrefix=iiif-private
+
+# public operates in a mode that only returns publicly accessible data and images
+#ngaweb.operatingMode=PUBLIC
+
+ngaweb.operatingMode=PRIVATE
+ngaweb.thumbnailWidth=100
+ngaweb.thumbnailHeight=100
+# refresh in-memory cache of tms extract daily at 5 am
+ngaweb.CSpaceArtDataManager.refresh.cron=0 0 5 * * *
+# refresh in-memory cache of tms extract every 3 minutes (for testing)
+#ngaweb.CSpaceArtDataManager.refresh.cron=0 */3 * * * *
+# on a memory-constrained server, the in-memory cache can be optionally dumped
+# from RAM before being reloaded which saves on RAM but will temporarily block
+# any incoming api requests
+ngaweb.dumpFromMemoryBeforeLoading=false
+
+# testMod is for testing ConservationSpace's multi-tenancy features and auto-updating features
+# and another half of objects in another instance
+#ngaweb.testMode=halfObjects
+
+# simulate changes to objects and providing the other half of tms objects in another instance
+#ngaweb.testMode=otherHalfObjectsWithOntologyChanges
+
+# Pretty-print JSON responses
+spring.jackson.serialization.INDENT_OUTPUT=true
+#spring.mvc.dispatch-options-request=true
+
+################## Tomcat properties ###############################
+server.tomcat.basedir=/home/username/cspace-integration
+# Directory in which log files are created. Can be relative to the tomcat base dir or absolute. 
+server.tomcat.accesslog.directory=logs
+# Enable access log 
+server.tomcat.accesslog.enabled=true
+# Format pattern for access logs
+server.tomcat.accesslog.pattern=common
+# Log file name prefix
+server.tomcat.accesslog.prefix=access_log
+# Log file name suffix 
+server.tomcat.accesslog.suffix=.log 
+server.server-header=Apache
+
+################## Spring Configurations ###########################
+# log level
+logging.level.root=INFO
+logging.level.gov=INFO
+
+# disable elastic search explicitly (for now) but enable http to ensure we can access 
+# the elastic search configuration locally if needs be
+spring.data.elasticsearch.repositories.enabled=false
+spring.data.elasticsearch.properties.node.local=false
+spring.data.elasticsearch.properties.node.data=false
+spring.data.elasticsearch.properties.http.enabled=true
