@@ -1,3 +1,29 @@
+/*
+    NGA Art Data API: Art Data Services Implementation
+    Implementation of ArtDataManagerService. This implementation reads all data from
+    RDBMS' and caches it in memory.  An alternative lighter weight implementation will
+    make calls to a RESTful JSON implementation (probably initially of the cached 
+    implementation to avoid having to cache the objects on multiple servers).  A third
+    implementation might implement searches using SOLR and then read the art entity data
+    from RDBMS' and other data sources in real-time.   
+
+    Copyright (C) 2018 National Gallery of Art Washington DC
+    Developers: David Beaudet
+
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 package gov.nga.entities.art;
 
 import gov.nga.entities.art.ArtEntity.OperatingMode;
@@ -329,6 +355,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         return false;
     }
 
+    @Deprecated
     public Narrative loadNarrative(long id, String query) {
         try {
             EntityQuery<Narrative> eq = new EntityQuery<Narrative>(getDataSourceService());

@@ -1,4 +1,29 @@
+/*
+    NGA Art Data API: Derivative is a class representing an image
+    derivative such as a resize of a larger image or a zoom image
+    created from a master image, etc.  This class and the other image
+    classes are badly in need of a major refactoring in light of the
+    fact that IIIF images are now available for all art objects and
+    the fact that ALL of our web images from the new NetX DAM will be
+    made available over IIIF.   
 
+    Copyright (C) 2018 National Gallery of Art Washington DC
+    Developers: David Beaudet
+
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 package gov.nga.entities.art; 
 
 import gov.nga.search.Faceted;
