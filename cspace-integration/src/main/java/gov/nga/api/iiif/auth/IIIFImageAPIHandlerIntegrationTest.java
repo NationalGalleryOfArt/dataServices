@@ -50,6 +50,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import gov.nga.entities.art.ArtDataManagerService;
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.integration.cspace.CSpaceSpringApplication;
 import static gov.nga.utils.CaseInsensitiveSubstringMatcher.containsStringCaseInsensitive;
 
@@ -76,7 +77,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iip_long_path_can_access_image_test() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/italian_paintings_13th_14th_centuries/objects/1/9/8/4/2/3/198423-compfig-4.0-nativeres.ptif&SDS=0,90&JTL=1,1")
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/italian_paintings_13th_14th_centuries/objects/198423/198423-compfig-4.0-nativeres.ptif&SDS=0,90&JTL=0,0")
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
     		.andExpect(status().isOk())
@@ -88,7 +89,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iip_nosample_openaccess_research_image() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/6/0/60-technical-4.1-nativeres.ptif&SDS=0,90&JTL=1,1")
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/60/60-technical-4.1-nativeres.ptif&SDS=0,90&JTL=0,0")
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
     		.andExpect(status().isOk())
@@ -100,7 +101,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     	
     @Test
     public void iip_nosample_openaccess_research_image_metadata() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/6/0/60-technical-4.0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/60/60-technical-4.0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -141,14 +142,25 @@ public class IIIFImageAPIHandlerIntegrationTest {
     // knows we're inside the firewall
     @Test
     public void iip_nosample_restricted_image() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
-        	.header("NGA_EXTERNAL",  true))
-        	.andExpect(status().isOk())
-        	.andExpect(content().contentType("application/vnd.netfpx"))
-        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
-        	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
-        	.andExpect(content().string(containsString("Max-size:322 367")))
-        	;
+    	if ( adms.getOperatingMode() == OperatingMode.PUBLIC) {
+    		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
+    				.header("NGA_EXTERNAL",  true))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType("application/vnd.netfpx"))
+    		.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+    		.andExpect(content().string(containsString("Max-size:322 367")))
+    		;
+    	}
+    	else {
+    		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/6/1/61-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
+    		.andExpect(status().isOk())
+    		.andExpect(content().contentType("application/vnd.netfpx"))
+    		.andExpect(header().string("Access-Control-Allow-Origin","*"))
+    		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
+    		.andExpect(content().string(containsString("Max-size:10321 11771")))
+    		;
+    	}
     }
 
     // forces header in request to test that returned dimensions are full and correct for NGA
@@ -214,7 +226,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_sample_openaccess_research_image_options_get() throws Exception {
-    	mvc.perform(get("/iiif/640/public/research/italian_paintings_13th_14th_centuries/objects/1/9/8/4/2/3/198423-compfig-4.0-nativeres.ptif/full/128,/0/default.jpg")
+    	mvc.perform(get("/iiif/640/public/research/italian_paintings_13th_14th_centuries/objects/198423/198423-compfig-4.0-nativeres.ptif/full/128,/0/default.jpg")
     		.header("Access-Control-Request-Method", "GET")
     		.header("Origin","https://someserver.com"))
     		.andExpect(status().isOk())
@@ -284,10 +296,20 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_nosample_restricted_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
-        	.andExpect(status().is(303))
-        	.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
-        	;
+    	// in public operating mode, we redirect to a restricted size image
+    	if ( adms.getOperatingMode() == OperatingMode.PUBLIC)
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+    				.header("NGA-EXTERNAL",  true))
+    		.andExpect(status().is(303))
+    		.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
+    		;
+    	// but in private operating mode, images are not restricted in size at all
+    	else {
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
+    		.andExpect(status().is(200))
+    		.andExpect(content().contentType(MediaType.IMAGE_JPEG))
+    		;
+    	}
     }
     
     @Test
@@ -300,10 +322,21 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_nosample_restricted_image_to_infojson_redirect() throws Exception {
-        mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif"))
-        	.andExpect(status().is(303))
-        	.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
-        	;
+       	// in public operating mode, we redirect to a restricted size image
+    	if ( adms.getOperatingMode() == OperatingMode.PUBLIC)
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif")
+    				.header("NGA_EXTERNAL",  true))
+    		.andExpect(status().is(303))
+    		.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
+    		;
+    	// but in private operating mode, images are not restricted in size at all
+    	else {
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif"))
+    		.andExpect(status().is(303))
+    		.andExpect(redirectedUrl("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
+    		;
+
+    	}
     }
     
     @Test
@@ -334,10 +367,21 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_nosample_restricted_infojson() throws Exception {
-        mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
-        	.andExpect(status().is(303))
-        	.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
-        	;
+       	// in public operating mode, we redirect to a restricted size image
+    	if ( adms.getOperatingMode() == OperatingMode.PUBLIC) {
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/info.json")
+    				.header("NGA_EXTERNAL",  true))
+    		.andExpect(status().is(303))
+    		.andExpect(redirectedUrl("/iiif/640/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
+    		;
+    	}
+    	// but in private operating mode, images are not restricted in size at all
+    	else {
+    		mvc.perform(get("/iiif/public/objects/6/1/61-primary-0-nativeres.ptif/info.json"))
+    		.andExpect(status().is(200))
+    		.andExpect(content().contentType("application/ld+json"))
+    		;
+    	}
     }
 
     @Test
