@@ -14,12 +14,13 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import gov.nga.entities.art.ArtDataManager;
+import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectImage;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.MessageSubscriber;
 import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
+import gov.nga.entities.art.MessageProvider;
 import gov.nga.entities.art.MessageProvider.EVENTTYPES;
 
 import gov.nga.integration.cspace.CSpaceImage;
@@ -34,11 +35,14 @@ import gov.nga.utils.CollectionUtils;
 // since it most closely resembles a service, we'll use that component type
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)  // default is singleton, but best to be explicit
-public class WebImageSearchProvider extends ImageSearchProviderImpl implements MessageSubscriber {
+public class WebImageSearchProvider extends SourceProviderImpl implements MessageSubscriber {
 	
 	@Autowired
-	ArtDataManager artDataManager;
-	
+	MessageProvider messageProvider;
+
+	@Autowired
+	ArtDataManagerService artDataManager;
+
 	@Autowired
 	CSpaceTestModeService ts;
 	
@@ -50,10 +54,12 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl implements M
 	
 	public synchronized void receiveMessage(EVENTTYPES event) {
 		if (event == EVENTTYPES.DATAREFRESHED) {
-			// re-cache the image list and object marker
-			Collection<ArtObject> newObjectMarker = artDataManager.getArtObjectsRaw().values();
-			List<CSpaceImage> newImageCache = getLargestImagesOfArtObjects(newObjectMarker);
-			imageCache = newImageCache;
+		//	if (artDataManager != null) {
+				// re-cache the image list and object marker
+				Collection<ArtObject> newObjectMarker = artDataManager.getArtObjectsRaw().values();
+				List<CSpaceImage> newImageCache = getLargestImagesOfArtObjects(newObjectMarker);
+				imageCache = newImageCache;
+		//	}
 		}
 	}
 	
@@ -104,7 +110,7 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl implements M
 	@PreDestroy
 	public void preDestroy() {
 		log.info("Unregistering from event notifications");
-		artDataManager.unsubscribe(this);
+		messageProvider.unsubscribe(this);
 	}
 	
 	public String[] getProvidedSources() {
@@ -113,7 +119,7 @@ public class WebImageSearchProvider extends ImageSearchProviderImpl implements M
 
 	@PostConstruct
 	public void postConstruct() throws Exception {
-		artDataManager.subscribe(this);
+		messageProvider.subscribe(this);
 		// can't receive messages here because the data isn't loaded yet, duh!
 	//	receiveMessage(EVENTTYPES.DATAREFRESHED);
 	}

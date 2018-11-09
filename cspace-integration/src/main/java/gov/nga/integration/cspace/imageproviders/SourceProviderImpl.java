@@ -1,8 +1,9 @@
 package gov.nga.integration.cspace.imageproviders;
 
 import gov.nga.integration.cspace.ImageSearchProvider;
+import gov.nga.integration.cspace.SourceProvider;
 
-public abstract class ImageSearchProviderImpl implements ImageSearchProvider {
+public abstract class SourceProviderImpl implements SourceProvider, ImageSearchProvider {
 	
 	public abstract String[] getProvidedSources();
 	

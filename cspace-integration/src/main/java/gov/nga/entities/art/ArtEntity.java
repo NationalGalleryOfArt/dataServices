@@ -29,11 +29,6 @@ import gov.nga.utils.db.DataSourceService;
 
 public interface ArtEntity extends Factory<ArtEntity>, FingerprintedInterface { 
 	
-	public enum OperatingMode {
-		PUBLIC,
-		PRIVATE
-	}
- 
 	public ArtDataManagerService getManager();
 	
 	public DataSourceService getDataSourceService();
@@ -41,6 +36,11 @@ public interface ArtEntity extends Factory<ArtEntity>, FingerprintedInterface {
 	public void setAdditionalProperties(ResultSet rs) throws SQLException;
 	
 	public Long getEntityID();
+	public void setEntityID(Long entityID);
+	
+	public String getEntityKey();
+	
+	public String getEntityUniqueID();
 	
 	// TODO - these are JCR specific and should be removed from a non-JCR implementation
 	public String freeTextSearchToNodePropertyName(Object field);

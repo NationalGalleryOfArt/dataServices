@@ -102,7 +102,7 @@ public class DCLPAImage extends CSpaceImage {
     	if (objectID != null) {
     		try {
     			Long id = Long.parseLong(objectID);
-    			setTmsObjectID(id);
+    			setArtObjectID(id);
     		}
     		catch (NumberFormatException ne) {
     			log.warn("an object id (" + objectID + ") stored in the " + getSource() + " DAM for image ID (" + getImageID() + ") is not in the proper format");

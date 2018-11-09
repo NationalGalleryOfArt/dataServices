@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace;
 
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -7,12 +8,15 @@ import java.util.concurrent.ExecutionException;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
+
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectComponent;
 import gov.nga.entities.art.Bibliography;
+import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.Location;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
@@ -49,12 +53,22 @@ import gov.nga.utils.StringUtils;
  *   cultObj:watermarks
  */
 
-@JsonPropertyOrder({ "namespace", 	"source", 			"id", 				"accessionNum", 	"title", 		"classification", 
+@JsonPropertyOrder({ "namespace", 	"source", 			"type", "id", 				"url", 				"accessionNum", 	"title", 		"classification", 
 					 "artistNames", "lastModified",		"attribution", 		"subClassification", 
-					 "displayDate", "medium",			"dimensions",		"departmentAbbr",
-					 "location",	"homeLocation",		"ownerNames",  		"creditLine",		"description",	"inscription",
-					 "markings",	"portfolio",		"provenanceText",	"curatorialRemarks","watermarks",	"bibliography",
-					 "catalogueRaisonneRef",			"references" })
+					 "displayDate", "medium",			"dimensions",		"departmentAbbr", 	"onView",
+					 "location",	"homeLocation",		"current_location",	"ownerNames",  		"creditLine",		"description",	"inscription",
+					 "markings",	"portfolio",		"overviewText",		"provenanceText",	"curatorialRemarks",
+					 "watermarks",	"bibliography", 	"catalogueRaisonneRef",	"produced_by", "references" })
+
+// TODO
+/*Need to look for document from Guidekick
+Need to add artist nationality
+Need to break out the list of artists into an array and call it "artists" rather than artistnames
+Need display date for art objects
+add language back to specs
+also look through my responses to john that are currently open in my inbox
+*/
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObjectRecord extends AbridgedObjectRecord {
 
@@ -82,18 +96,20 @@ public class ObjectRecord extends AbridgedObjectRecord {
     private String watermarks;
     private String bibliography;
     private String catalogueRaisonneRef;
+    private Boolean onView;
     
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
-    	this(o,locs,true, ts, images);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+    	this(o, locs, true, om, ts, images, urlParts);
     }
        
-    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
-    	super(o, references, ts, images);
+    public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+    	super(o, references, om, ts, images, urlParts);
     	if (o == null)
     		return;
     	if (!ts.isTestModeOtherHalfObjects())
     		setSubClassification(o.getSubClassification());
-        this.ownerNames = constituentNames(o.getOwners(),"owner");
+    	if ( om.getOperatingMode() == OperatingMode.PRIVATE )
+    		this.ownerNames = constituentNames(o.getOwners(),"owner");
         setAttribution(o.getAttribution());
         setBibliography(o.getBibliography());
         setDisplayDate(o.getDisplayDate());
@@ -112,9 +128,9 @@ public class ObjectRecord extends AbridgedObjectRecord {
         setCuratorialRemarks(StringUtils.removeOnlyHTMLAndFormatting(o.getCuratorialRemarks()));
         setWatermarks(o.getWatermarks());
         setCatalogueRaisonneRef(o.getCatalogRaisonneRef());
-        
-        setAllLocations(o.getComponents(), locs);
-        
+        setOnView(o.isOnView());
+        setAllLocations(om, o.getComponents(), locs);
+        setOverviewTextReference();
     }
 
 	public String getSubClassification() {
@@ -135,17 +151,19 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		}
 	}
 
-	public void setAllLocations(List<ArtObjectComponent> components, Map<Long, Location> locations) {
+	public void setAllLocations(OperatingModeService om, List<ArtObjectComponent> components, Map<Long, Location> locations) {
 		this.location = CollectionUtils.newArrayList();
-		this.homeLocation = CollectionUtils.newArrayList();
+		if ( om.getOperatingMode() == OperatingMode.PRIVATE )
+			this.homeLocation = CollectionUtils.newArrayList();
 		if (components != null && locations != null) {
 			for (ArtObjectComponent c : components) {
 				addComponentLocationDesc(this.location,locations.get(c.getLocationID()), c);
-				addComponentLocationDesc(this.homeLocation,locations.get(c.getHomeLocationID()), c);
+				if ( om.getOperatingMode() == OperatingMode.PRIVATE )
+					addComponentLocationDesc(this.homeLocation,locations.get(c.getHomeLocationID()), c);
 			}
 		}
 	}
-
+	
 	public String getAttribution() {
 		return attribution;
 	}
@@ -264,6 +282,20 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.provenanceText = provenance;
 	}
 
+	public void setOverviewTextReference() {
+		ArtObject o = getArtObject();
+		if ( o == null || o.getOverviewText() == null)
+			return;
+		addReferredToBy(
+			new LinkedArtLinguisticObject(getArtObject().getOverviewText(),
+				// TODO - turn all of these classifications and possibly classification groups into predefined static objects or drive from a configuration
+				// new LinkedArtClassification("http://vocab.getty.edu/page/aat/300026032", "abstracts (summaries)"),
+				new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300080091", "description"),
+				new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300418049", "brief texts") 
+			)
+		);
+	}
+
 	public String getCuratorialRemarks() {
 		return curatorialRemarks;
 	}
@@ -280,6 +312,14 @@ public class ObjectRecord extends AbridgedObjectRecord {
 		this.watermarks = watermarks;
 	}
 
+	public Boolean getOnView() {
+		return onView;
+	}
+
+	public void setOnView(Boolean onView) {
+		this.onView = onView;
+	}
+
 	public String getCatalogueRaisonneRef() {
 		return catalogueRaisonneRef;
 	}
@@ -290,45 +330,3 @@ public class ObjectRecord extends AbridgedObjectRecord {
 
 }	
 
-/*
-
-
-"record": {
-		"namespace": "cultObj",
-		"id": 1138,
-		"classification": "painting",
-		"title": "The Feast of the Gods",
-		"artistNames": "Bellini, Giovanni (artist); Titian (artist)","artistNameList": ["Bellini, Giovanni", "Titian"],
-		"attribution": "Giovanni Bellini and Titian",
-		"accessionNumber": "1942.9 .1",
-		"bibliographyList": ["Hartshorne, Rev.C.H.A Guide to Alnwick Castle.London, 1865: 62.", "<i> Paintings in the Collection of Joseph Widener at Lynnewood Hall. < /i> Intro. by Wilhelm R. Valentiner. Elkins Park, Pennsylvania, 1923: unpaginated, repro., as by Giovanni Bellini."],
-		"displayDate": "1514 / 1529",
-		"creditLine": "Widener Collection",
-		"description": "The Feast of the Gods, Giovanni Bellini and Titian, 1514 / 1529",
-		"location": [" 1942.9.1 – West Building Main Floor Gallery 12"],"WB - M12",
-		"homeLocation": [" 1942.9.1 – West Building Main Floor Gallery 12"],"WB - M12",
-		"inscription": "lower right on wooden tub: joannes bellinus venetus / p MDXIIII",
-		"medium": "oil on canvas",
-		"departmentAbbr": "DCRS",
-		"dimensions": "overall: 170.2 x 188 cm(67 x 74 in .) \n framed: 203.8 x 218.4 x 7.6 cm(80 1 / 4 x 86 x 3 in .)",
-		"provenance": "Probably commissioned by Alfonso I d 'Este, Duke of Ferrara [d. 1534);[1] by inheritance to his son, Ercole II d'Este, Duke of Ferrara[d .1559];by inheritance to his son, Alfonso II d 'Este, Duke of Ferrara [d. 1597]; by inheritance to his cousin, Cesare d' Este...",
-		"references": [
-			{	"predicate": "hasPrimaryDepiction",
-				"object": {
-					"namespace": "image",
-					"id": "d63a8ffd-bdac-498c-b861-a53e11989cef"
-				}
-			},
-			{	"predicate": "hasChild",
-				"object": {
-					"namespace": "cultObj",
-					"id": "1234",
-					"title": "",
-"classification": "frame"
-				}
-			}
-		]
-}
-
-
-*/

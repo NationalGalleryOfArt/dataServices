@@ -9,9 +9,9 @@ import gov.nga.search.ResultsPaginator;
 @JsonPropertyOrder({ "paging", "items" })
 public class Items {
 	Paging paging=null;
-	List<Item> items=null;
+	List<SearchResultItem> items=null;
 	
-	public Items(ResultsPaginator resultsPaginator, List<Item> items) {
+	public Items(ResultsPaginator resultsPaginator, List<SearchResultItem> items) {
 		this.items=items;
 		setPaging(resultsPaginator);
 	}
@@ -24,7 +24,7 @@ public class Items {
 		this.paging = new Paging(resultsPaginator);
 	}
 	
-	public List<Item> getItems() {
+	public List<SearchResultItem> getItems() {
 		return this.items;
 	}
 }

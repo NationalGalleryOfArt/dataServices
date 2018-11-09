@@ -16,10 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.OperatingModeService;
 import gov.nga.search.SearchHelper;
 import gov.nga.utils.LongUtils;
 
@@ -33,11 +35,14 @@ public class ObjectRecordController {
     
     @Autowired
     private CSpaceTestModeService ts;
-    
+
+    @Autowired
+    private OperatingModeService om;
+
 	@Autowired
 	private ImageSearchController imgCtrl;
 
-    @RequestMapping("/art/objects/{id}.json")
+    @RequestMapping(value="/art/objects/{id}.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<RecordContainer> objectRecordNoSource(
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
@@ -49,7 +54,7 @@ public class ObjectRecordController {
     // TODO - log every request since we're not doing that right now - or since we're searching anyway, log in the search instead
 
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
-    @RequestMapping("/art/{source}/objects/{id}.json")
+    @RequestMapping(value="/art/{source}/objects/{id}.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<RecordContainer> objectRecordSource(
     		@PathVariable(value="source") String source,
     		@PathVariable(value="id") String id,
@@ -92,7 +97,7 @@ public class ObjectRecordController {
     	List<CSpaceImage> images = imgCtrl.searchImages(null, imageSearchHelper, Arrays.asList(o));
 
     	// and construct the object record along with all of its references
-    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), ts, images);
+    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), om, ts, images, RecordSearchController.getRequestingServer(request));
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		

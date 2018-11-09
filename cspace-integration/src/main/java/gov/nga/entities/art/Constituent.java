@@ -106,6 +106,16 @@ public class Constituent extends ArtEntityImpl implements Searchable, Sortable, 
 
 	private static final String JCRNODENAME = "Constituent";
 	
+	@Override
+	public String getEntityKey() {
+		return getEntityKeyStatic();
+	}
+
+	public static String getEntityKeyStatic() {
+		return "nga:art:tms:constituents";
+	}
+
+	
 	private String indexOfArtistsRange = null;
 	private String preferredDisplayNameStartsWith = null;
 	

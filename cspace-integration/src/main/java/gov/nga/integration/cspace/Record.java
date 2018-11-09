@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace;
 
+import java.net.URL;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -7,14 +8,14 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({ "namespace", "id", "source", "lastModifiedOn", "fingerprint", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class Record {
+public abstract class Record implements NamespaceInterface {
 
-	private String 
-		namespace,
-		id,
-		fingerprint,
-		source,
-		lastModified;
+	private String namespace;
+	private String id;
+	private String fingerprint;
+	private String source;
+	private String lastModified;
+	private URL url;
 
 	private List<Reference> references;
 
@@ -36,8 +37,14 @@ public abstract class Record {
 	public void setSource(String source) {
 		this.source = source;
 	}
+	public URL getUrl() {
+		return url;
+	}
+	public void setUrl(URL url) {
+		this.url = url;
+	}
 
-	// can set a different JsonProperty name with
+	// can set a different JsonProperty name with this annotation if we want to
 	// @JsonProperty("lastModifiedOn")
 	public String getLastModified() {
 		return lastModified;

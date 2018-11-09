@@ -1,11 +1,14 @@
 package gov.nga.integration.cspace;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -13,15 +16,24 @@ import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectConstituent;
 import gov.nga.entities.art.ArtObjectImage;
+import gov.nga.entities.art.Media;
+import gov.nga.entities.art.OperatingModeService;
+import gov.nga.integration.cspace.ArtObjectPredicates.ARTOBJECTPREDICATES;
+import gov.nga.integration.cspace.MediaPredicates.MEDIAPREDICATES;
 import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
 // SEE notes in ObjectRecord for notes about alignment of this representation with Sirma's CS integration services implementation
-
-@JsonPropertyOrder({ "namespace", "source", "id", "accessionNum", "title", "classification", "artistNames", "lastModified", "references" })
+@JsonPropertyOrder({ "type", "namespace", 	"source", 		"id", 				"url", 				
+	 "accessionNum", 	"title", 		"classification", 
+	 "artistNames", "lastModified",		"attribution", 		"subClassification", 
+	 "displayDate", "medium",			"dimensions",		"departmentAbbr", 	"onView",
+	 "location",	"homeLocation",		"current_location",	"ownerNames",  		"creditLine",		"description",	"inscription",
+	 "markings",	"portfolio",		"overviewText",		"provenanceText",	"curatorialRemarks",
+	 "watermarks",	"bibliography", 	"catalogueRaisonneRef",	"produced_by", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AbridgedObjectRecord extends Record implements NamespaceInterface {
+public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceInterface {
 
 	private static final Logger log = LoggerFactory.getLogger(AbridgedObjectRecord.class);
 	
@@ -32,38 +44,23 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 	private String title;						// optional field, but searchable, so including it in abridged object used in search results
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
+    private URL url;							// url of this object's record
+    private PlaceRecord current_location;		// the place where this object is located
     
-    private static boolean testmode = false;
+    @JsonIgnore
+    private ArtObject artObject;
 
-	public enum PREDICATE {
-		HASPARENT("hasParent"),
-		HASCHILD("hasChild"),
-		HASSIBLING("hasSibling");
-
-		private String label;
-		public String getLabel() {
-			if (testmode)
-				return "partner2" + label;
-			return label;
-		}
-
-		private PREDICATE(String label) {
-			this.label = label;
-		};
-	};
-
-	public AbridgedObjectRecord(ArtObject o, CSpaceTestModeService ts) throws InterruptedException, ExecutionException {
-		this(o, false, ts, null);
+    
+	public AbridgedObjectRecord(ArtObject o, OperatingModeService om, CSpaceTestModeService ts, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+		this(o, false, om, ts, null, urlParts);
 	}
 	
-	public AbridgedObjectRecord(ArtObject o, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
+	public AbridgedObjectRecord(ArtObject o, boolean references, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+		super("ManMadeObject");
 		if (o == null)
 			return;
 
-		testmode = ts.isTestModeOtherHalfObjects();
-
-		if (references)
-			setReferences(o, ts, images);
+		setArtObject(o);
 		setNamespace(defaultNamespace);
 		setSource("tms");
 		setId(o.getObjectID().toString());
@@ -73,6 +70,36 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
         setLastModified(o.getLastDetectedModification());
 
         this.artistNames = constituentNames(o.getArtists(),"artist");
+        
+		URL objectURL = null;
+		
+		try {
+			if (urlParts[2] != null)
+				objectURL = new URL(urlParts[0], urlParts[1], Integer.parseInt(urlParts[2]),"/art/tms/objects/"+o.getObjectID()+".json");
+			else
+				objectURL = new URL(urlParts[0], urlParts[1], "/art/tms/objects/"+o.getObjectID()+".json");
+			setUrl(objectURL);
+		}
+		catch (MalformedURLException me) {
+			log.error("Problem creating object URL: " + me.getMessage());
+		}
+
+		setCurrent_location(o);
+
+		if (references) {
+			setReferences(o, om, ts, images, urlParts);
+			setMediaReferences();
+		}
+
+		
+	}
+	
+	private void setArtObject(ArtObject artObject) {
+		this.artObject = artObject;
+	}
+	
+	public ArtObject getArtObject() {
+		return this.artObject;
 	}
 
 	public static String getDefaultNamespace() {
@@ -96,6 +123,10 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		}
 		this.classification = classification;
 	}
+	
+	public ProductionRecord getProduced_by() {
+		return new ProductionRecord(this,"produced_by");
+	}
 
 	public String getTitle() {
 		return title;
@@ -111,6 +142,14 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 
 	public void setAccessionNum(String accessionNum) {
 		this.accessionNum = accessionNum;
+	}
+
+	public URL getUrl() {
+		return url;
+	}
+
+	public void setUrl(URL objectURL) {
+		this.url = objectURL;
 	}
 
 	public String constituentNames(List<ArtObjectConstituent> constituents, String filterRoleType) {
@@ -150,20 +189,20 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		return cNames;
 	}
 	
-	public void setReferences(ArtObject o, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
+	public void setReferences(ArtObject o, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
 		List<Reference> rList = CollectionUtils.newArrayList();
-		// first we go through the related objects
+		// first, go through the related objects
 		ArtObjectAssociation aop = o.getParentAssociation();
 		if (aop != null) {
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, ts, images);
-			rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASPARENT.getLabel(), aor));
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, om, ts, images, urlParts);
+			rList.add(new Reference(ARTOBJECTPREDICATES.HASPARENT.getLabels(), aor));
 		}
 		List<ArtObjectAssociation> l = o.getChildAssociations();
 		if (l != null) {
 			for (ArtObjectAssociation aoc : l) {
 				if (aoc != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, ts, images);
-					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASCHILD.getLabel(), aor));
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, om, ts, images, urlParts);
+					rList.add(new Reference(ARTOBJECTPREDICATES.HASCHILD.getLabels(), aor));
 				}
 			}
 		}
@@ -171,8 +210,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		if (l!= null) {
 			for (ArtObjectAssociation aos : l) {
 				if (aos != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, ts, images);
-					rList.add(new Reference(AbridgedObjectRecord.PREDICATE.HASSIBLING.getLabel(), aor));
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, om, ts, images, urlParts);
+					rList.add(new Reference(ARTOBJECTPREDICATES.HASSIBLING.getLabels(), aor));
 				}
 			}		
 		}
@@ -181,21 +220,44 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 		if (images != null) {
 			for (CSpaceImage ci : images) {
 				WebImage wi = WebImage.factory(ci, ts);
-				AbridgedImageRecord air = new AbridgedImageRecord(wi,false,ts);
+				AbridgedImageRecord air = new AbridgedImageRecord(wi,false,om,ts,urlParts);
+				addRepresentation(air);
 				if (ArtObjectImage.isPrimaryView(wi)) {
-					rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASPRIMARYDEPICTION.getLabel(), air));
+					rList.add(new Reference(MEDIAPREDICATES.HASPRIMARYDEPICTION.getLabels(), air));
 				}
 				// we don't want to return cropped images associated with this object
 				else if (!wi.isCropped()) {
-					rList.add(new Reference(AbridgedImageRecord.PREDICATE.HASDEPICTION.getLabel(), air));
+					rList.add(new Reference(MEDIAPREDICATES.HASDEPICTION.getLabels(), air));
 				}
 			}
 		}
-
+		
 		if (rList.size() <= 0)
 			rList = null;
 
 		setReferences(rList);
+	}
+	
+	public void setCurrent_location(ArtObject o) {
+		if (o.getLocation() != null && o.getLocation().getPlace() != null)
+			this.current_location = new PlaceRecord(o.getLocation().getPlace());
+	}
+	
+	public PlaceRecord getCurrent_location() {
+		return current_location;
+	}
+	
+	public void setMediaReferences() {
+		// iterate through media that's related to this art object
+		List<Media> mediaList = getArtObject().getRelatedMedia();
+		if (mediaList != null) {
+			for ( Media m : mediaList ) {
+				if ( m != null) {
+					LinkedArtInformationObject ir = new MediaRecord(m);
+					addReferredToBy(ir);
+				}
+			}
+		}
 	}
 
 }

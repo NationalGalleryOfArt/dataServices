@@ -29,5 +29,7 @@ public interface MessageProvider {
 	}
 	
 	public void subscribe(MessageSubscriber subscriber);
+	public void unsubscribe(MessageSubscriber subscriber);
+
 	
 }

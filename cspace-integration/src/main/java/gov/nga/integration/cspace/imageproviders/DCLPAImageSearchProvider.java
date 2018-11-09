@@ -1,6 +1,7 @@
 package gov.nga.integration.cspace.imageproviders;
 
 import java.sql.Connection;
+
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtEntity.OperatingMode;
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.Derivative;
 import gov.nga.integration.cspace.CSpaceImage;
@@ -37,7 +38,7 @@ import gov.nga.utils.db.DataSourceService;
 // since it most closely resembles a service, we'll use that component type 
 @Service
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)  // default is singleton, but best to be explicit
-public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
+public class DCLPAImageSearchProvider extends SourceProviderImpl {
 
 	private static final String[] providesSource = {"portfolio-dclpa"};
 	

@@ -12,7 +12,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtEntity.OperatingMode;
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 

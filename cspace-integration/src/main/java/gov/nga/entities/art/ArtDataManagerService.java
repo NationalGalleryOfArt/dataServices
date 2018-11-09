@@ -24,7 +24,7 @@
 package gov.nga.entities.art;
 
 import gov.nga.entities.art.ArtDataManager.Suggestion;
-import gov.nga.entities.art.ArtEntity.OperatingMode;
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ConstituentFactory;
 import gov.nga.search.Facet;
@@ -47,7 +47,11 @@ public interface ArtDataManagerService {
 	
 	// Art Location Services
 	public Location fetchByLocationID(long locationID);
+	public Place fetchByPlaceKey(String locationKey);
+	public Place fetchByTMSLocationID(long tmsLocationID);
 	public List<Location> fetchByLocationIDs(List<Long> locationIDs);
+    public List<Media> getMediaByEntityRelationship(String entityUniqueID);
+
 	// public Map<String, String> getAllLocationDescriptionsByRoom();
 
 	// Art Object Services

@@ -1,5 +1,6 @@
 package gov.nga.utils;
 
+import java.lang.reflect.Array;
 import java.util.*;
 //import java.util.concurrent.ConcurrentHashMap;
 //import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,21 @@ public class CollectionUtils {
 		return new TreeMap<T1, T2>();
 	}
 	
+	public static <T> T[] arrayConcat(T[] a, T[] b) {
+		T[] both = Arrays.copyOf(a, a.length + b.length);
+		System.arraycopy(b, 0, both, a.length, b.length);
+		return both;
+	}
+	
+	public static <T> T[] arrayConcat(T[] a, T b) {
+		@SuppressWarnings("unchecked")
+		T[] c = (T[]) Array.newInstance(b.getClass(),1);
+		c[0] = b;
+		T[] both = Arrays.copyOf(a, a.length + 1);
+		System.arraycopy(c, 0, both, a.length, 1);
+		return both;
+	}
+
 
 /*	private static <T1> List<T1> newConcurrentList() {
 		//return new ArrayList<T1>();

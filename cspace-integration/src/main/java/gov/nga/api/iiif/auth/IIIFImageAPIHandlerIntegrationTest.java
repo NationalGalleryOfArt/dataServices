@@ -21,8 +21,10 @@
 package gov.nga.api.iiif.auth;
 
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,18 +49,30 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.integration.cspace.CSpaceSpringApplication;
 import static gov.nga.utils.CaseInsensitiveSubstringMatcher.containsStringCaseInsensitive;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT, classes = CSpaceSpringApplication.class)
 @AutoConfigureMockMvc
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IIIFImageAPIHandlerIntegrationTest {
 	
 	private static final Logger log = LoggerFactory.getLogger(IIIFImageAPIHandlerIntegrationTest.class);
  
+	@Autowired
+	ArtDataManagerService adms;
+	
     @Autowired
     private MockMvc mvc;
+    
+    @Test // this works well
+    public void _first_Test() throws InterruptedException {
+    	while (adms == null || !adms.isDataReady(false)) {
+    		Thread.sleep(3000);
+    	}
+    }
 
     @Test
     public void iip_long_path_can_access_image_test() throws Exception {
@@ -133,7 +147,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
-        	.andExpect(content().string(containsString("Max-size:438 500")))
+        	.andExpect(content().string(containsString("Max-size:322 367")))
         	;
     }
 
@@ -146,7 +160,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
-        	.andExpect(content().string(containsString("Max-size:3507 4000")))
+        	.andExpect(content().string(containsString("Max-size:10321 11771")))
         	;
     }
 
@@ -180,7 +194,8 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_nonzoom_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-740x560.jpg/full/512,/0/default.jpg"))
+        // mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-740x560.jpg/full/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/manifests/nga_highlights.json/full/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }

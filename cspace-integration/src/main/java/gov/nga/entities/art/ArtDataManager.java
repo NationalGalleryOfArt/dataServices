@@ -26,7 +26,7 @@
 */
 package gov.nga.entities.art;
 
-import gov.nga.entities.art.ArtEntity.OperatingMode;
+
 import gov.nga.entities.art.ArtObject.FACET;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ArtObjectFactoryImpl;
@@ -62,11 +62,10 @@ import org.slf4j.LoggerFactory;
 // to work properly
 //    @Property(name="scheduler.concurrent", boolValue=false, propertyPrivate=true),
 //    @Property(name="scheduler.expression", value="0 15 7 * * ? *", label="Refresh Schedule")
-public class ArtDataManager extends MessageProviderImpl implements Runnable, ArtDataManagerService { 
+public class ArtDataManager extends MessageProviderImpl implements Runnable, ArtDataManagerService, MessageProvider, OperatingModeService { 
 
-// TODO - make the TMS data manager class configurable to run either in private or public exclusively via artdatamanager configuration settings
 // TODO - separate all JCR related calls from the base ArtDataManager to keep it pure and simple and create new art data manager CQ implementation wrapper for OSGI
-// TODO - add a TMS basics JAR dependency in CQ that is generated from my separate GIT repository and simply provided to the AEM team
+// TODO - add a TMS basics JAR dependency in CQ that is generated from a separate GIT repository and simply provided to the AEM team
 
     private static final int CONTENT_SYNC_DELAY = 15;
 //	private static final String TMS_BUNDLE_REFRESH = "tmsBundleRefresh";
@@ -137,6 +136,14 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
     // cache of location data
     private Map<Long, Location> locations = null;
 
+    // cache of web defined location / place definitions which are
+    // also mapped to visual maps and TMS location IDs
+    private Map<String, Place> places = null;
+    private Map<Long, Place> placesTMSLocations = null;
+    
+    private Map<Long, Media> mediaItems = null;
+    private Map<String, List<Media>> mediaRelationships = null;
+    
     public DataSourceService dataSourceService;
     public DataSourceService getDataSourceService() {
         return dataSourceService;
@@ -277,7 +284,13 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
 
             log.info("Loading all location and related data");
             Map<Long, Location> newLocations = loadLocations();
-            
+            Map<String, Place> newPlaces = loadPlaces();
+            Map<Long, Place> newPlacesTMSLocations = loadPlacesTMSLocations(newPlaces);
+
+            log.info("Loading all media and media relationshps");
+            Map<Long, Media> newMediaItems = loadMediaItems();
+            Map<String, List<Media>> newMediaRelationshps = loadMediaRelationships(newMediaItems);
+
             log.info("Loading all components");
             List<ArtObjectComponent> aocomps = loadComponents();
             
@@ -326,6 +339,10 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         	// dump any cached data we might still have before setting the new set in place  
         	unload();
         	setLocations(newLocations);
+        	setPlaces(newPlaces);
+        	setPlacesTMSLocations(newPlacesTMSLocations);
+        	setMediaItems(newMediaItems);
+        	setMediaRelationships(newMediaRelationshps);
         	setArtObjects(newArtObjects);
         	setArtObjectTitleWords (newArtObjectTitleWords);
         	setConstituents(newConstituents);
@@ -1413,6 +1430,24 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         // if the location isn't a public location
     }
 
+    public Place fetchByPlaceKey(String locationKey) {
+        return getPlacesRaw().get(locationKey);   
+        // currently, the TMS extract does not null out the location ID
+        // of objects if that location is not public.  Until we do that
+        // we cannot contingently expect to fetch the location when
+        // it turns out to be null here because we may never get one
+        // if the location isn't a public location
+    }
+
+    public Place fetchByTMSLocationID(long tmsLocationID) {
+        return getPlacesTMSLocationsRaw().get(tmsLocationID);   
+        // currently, the TMS extract does not null out the location ID
+        // of objects if that location is not public.  Until we do that
+        // we cannot contingently expect to fetch the location when
+        // it turns out to be null here because we may never get one
+        // if the location isn't a public location
+    }
+
     public List<Location> fetchByLocationIDs(List<Long> locationIDs) {
         //      List<Long> need = CollectionUtils.newArrayList();
         List<Location> have = CollectionUtils.newArrayList(); 
@@ -1452,10 +1487,55 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         locations = newLocations;
         rooms = null;
     }
-    
+
     public Map<Long, Location> getLocationsRaw() {
         return locations;
     }
+
+    synchronized private void setPlaces(Map<String, Place> newPlaces) {
+        places = newPlaces;
+    }
+
+    public Map<String, Place> getPlacesRaw() {
+        return places;
+    }
+
+    synchronized private void setPlacesTMSLocations(Map<Long, Place> newPlacesTMSLocations) {
+        placesTMSLocations = newPlacesTMSLocations;
+        for (Long tmsid : placesTMSLocations.keySet()) {
+        	Place p = placesTMSLocations.get(tmsid);
+        	p.addTMSLocationID(tmsid);
+        }
+    }
+
+    public Map<Long, Place> getPlacesTMSLocationsRaw() {
+        return placesTMSLocations;
+    }
+
+    synchronized private void setMediaItems(Map<Long, Media> newMediaItems) {
+        this.mediaItems = newMediaItems;
+    }
+
+    public Map<Long, Media> getMediaItemsRaw() {
+        return mediaItems;
+    }
+
+    public Map<String, List<Media>> getMediaRelationshipsRaw() {
+        return mediaRelationships;
+    }
+
+    synchronized private void setMediaRelationships(Map<String, List<Media>> newMediaRelationships) {
+        this.mediaRelationships = newMediaRelationships;
+    }
+
+    public Media fetchByMediaID(Long mediaID) {
+        return getMediaItemsRaw().get(mediaID);   
+    }
+    
+    public List<Media> getMediaByEntityRelationship(String entityUniqueID) {
+        return getMediaRelationshipsRaw().get(entityUniqueID);   
+    }
+
 
 /*  public Map<Long, Location> getLocations() {
         return CollectionUtils.newHashMap(getLocationsRaw());
@@ -1491,6 +1571,64 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         }
         return newLocations;
     }
+
+    // load all web defined places which (mostly) have TMS objects residing in them
+    synchronized protected Map<String, Place> loadPlaces() throws SQLException {
+        Map<String, Place> newPlacesMap = CollectionUtils.newHashMap();
+        EntityQuery<Place> eq = new EntityQuery<Place>(getDataSourceService());
+        log.info("Starting pre-fetch of all place definitions");
+        List<Place> newPlacesList= eq.fetchAll(Place.fetchAllPlacesQuery, new Place(this));
+        log.info("found this many place definitions: " + newPlacesList.size());
+        for (Place l : newPlacesList) {
+            newPlacesMap.put(l.getPlaceKey(), l);
+        }
+        return newPlacesMap;
+    }
+
+    // load all web defined place to tms object location associations
+    synchronized protected Map<Long, Place> loadPlacesTMSLocations(Map<String, Place> places) throws SQLException {
+        Map<Long, Place> newPlaceTMSLocations = CollectionUtils.newHashMap();
+        EntityQuery<PlaceRelationships> eq = new EntityQuery<PlaceRelationships>(getDataSourceService());
+        log.info("Starting pre-fetch of all place to TMS Location relationships");
+        List<PlaceRelationships> newLocations = eq.fetchAll(PlaceRelationships.fetchAllPlaceTMSLocationsQuery, new PlaceRelationships(this));
+        log.info("found this many place to tms location relationships: " + newLocations.size());
+        for (PlaceRelationships l : newLocations) {
+            newPlaceTMSLocations.put(l.getTMSLocationID(), places.get(l.getPlaceKey()));
+        }
+        return newPlaceTMSLocations;
+    }
+    
+    // load all web defined places which (mostly) have TMS objects residing in them
+    synchronized protected Map<Long, Media> loadMediaItems() throws SQLException {
+        Map<Long, Media> newMediaMap = CollectionUtils.newHashMap();
+        EntityQuery<Media> eq = new EntityQuery<Media>(getDataSourceService());
+        log.info("Starting pre-fetch of all media definitions");
+        List<Media> newMediaList = eq.fetchAll(Media.fetchAllMediaQuery, new Media(this));
+        log.info("found this many place definitions: " + newMediaList.size());
+        for (Media m : newMediaList) {
+            newMediaMap.put(m.getMediaID(), m);
+        }
+        return newMediaMap;
+    }
+
+    // load all web defined place to tms object location associations
+    synchronized protected Map<String, List<Media>> loadMediaRelationships(Map<Long, Media> mediaItems) throws SQLException {
+        Map<String, List<Media>> newRelationshipsMap = CollectionUtils.newHashMap();
+        EntityQuery<MediaRelationship> eq = new EntityQuery<MediaRelationship>(getDataSourceService());
+        log.info("Starting pre-fetch of all Media relationships");
+        List<MediaRelationship> newRelationshipsList = eq.fetchAll(MediaRelationship.fetchAllMediaRelationshipsQuery, new MediaRelationship(this));
+        log.info("found this many Media relationships: " + newRelationshipsList.size());
+        for (MediaRelationship mr : newRelationshipsList) {
+        	List<Media> l = newRelationshipsMap.get(mr.getEntityUniqueID());
+        	if ( l == null ) {
+        		l = CollectionUtils.newArrayList();
+        		newRelationshipsMap.put(mr.getEntityUniqueID(), l);
+        	}
+        	l.add(mediaItems.get(mr.getMediaID()));
+        }
+        return newRelationshipsMap;
+    }
+
 
     // load all art object components
     synchronized protected List<ArtObjectComponent> loadComponents() throws SQLException {

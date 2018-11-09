@@ -5,16 +5,15 @@ import java.net.URL;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({ "url", "record", "thumbnail" })
+@JsonPropertyOrder({ "url", "thumbnail", "record" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Item {
+public class SearchResultItem {
 	Record record = null;
 	URL	url = null;
 	String thumbnail = null;
 	
-	public Item(URL url, String thumbnail, Record record) {
+	public SearchResultItem(String thumbnail, Record record) {
 		setRecord(record);
-		setUrl(url);
 		setThumbnail(thumbnail);
 	}
 
@@ -27,11 +26,7 @@ public class Item {
 	}
 
 	public URL getUrl() {
-		return url;
-	}
-
-	public void setUrl(URL url) {
-		this.url = url;
+		return record.getUrl();
 	}
 
 	public String getThumbnail() {

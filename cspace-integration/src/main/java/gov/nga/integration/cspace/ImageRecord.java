@@ -1,5 +1,6 @@
 package gov.nga.integration.cspace;
 
+import java.net.MalformedURLException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -9,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.entities.art.ArtObjectDimension;
+import gov.nga.entities.art.OperatingModeService;
 
 /*
  * according to: https://cs-dev.sirmaplatform.com/emf/service/integrations/dam/model
@@ -26,7 +28,9 @@ import gov.nga.entities.art.ArtObjectDimension;
 */
 
 	 
-@JsonPropertyOrder({ "namespace", "source", "id", "mimetype", "classification", "fingerprint", "width", "height", "title", "lastModified", 
+@JsonPropertyOrder({ "type", "format", "conforms_to", "iiifURL", "classified_as", "referred_to_by", 
+					 "namespace", "source", "id", "mimetype", "classification", "url", "fingerprint", 
+					 "width", "height", "title", "lastModified", 
 					 "viewType", "partner2ViewType", "sequence", "filename", "description", "subjectWidthCM", "subjectHeightCM", 
 					 "originalSource", "originalSourceType", "originalFilename", "projectDescription", "lightQuality",
 					 "spectrum", "captureDevice", "originalSourceInstitution", "photographer", "productionDate", "creator", 
@@ -39,7 +43,6 @@ public class ImageRecord extends AbridgedImageRecord {
     // as far as the CSPACE API is concerned the following fields are ALL optional
     // and only appear with the unabridged version of the cultural object record
 	private String
-		sequence,
 		subjectWidthCM,
 		subjectHeightCM,
 		creator,
@@ -52,26 +55,17 @@ public class ImageRecord extends AbridgedImageRecord {
 		photographer,
 		productType;
 
-    public ImageRecord(CSpaceImage d, boolean references, CSpaceTestModeService ts, List<CSpaceImage> images) throws InterruptedException, ExecutionException {
-    	super(d,references,ts);
+    public ImageRecord(CSpaceImage d, boolean references, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+    	super(d,references,om,ts,urlParts);
     	if (d == null)
     		return;
     	BeanUtils.copyProperties(d, this);
-    	setSequence(d.getSequence());
     	setFilename(d.getFilename());
     	setDescription(d.getDescription());
     	setSubjectWidthCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.WIDTH));
     	setSubjectHeightCM(d.getDimensionOfSubject(ArtObjectDimension.DIMENSION_TYPE.HEIGHT));    	
     }
 
-	public String getSequence() {
-		return sequence;
-	}
-
-	private void setSequence(String sequence) {
-		this.sequence = sequence;
-	}
-	
 	public String getSubjectWidthCM() {
 		return subjectWidthCM;
 	}
@@ -93,7 +87,7 @@ public class ImageRecord extends AbridgedImageRecord {
 	public String getCreator() {
 		return creator;
 	}
-
+	
 	public void setCreator(String creator) {
 		this.creator = creator;
 	}

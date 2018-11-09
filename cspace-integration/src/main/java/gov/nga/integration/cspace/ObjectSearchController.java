@@ -1,7 +1,5 @@
 package gov.nga.integration.cspace;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -15,8 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpHeaders;
@@ -26,11 +24,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.ArtObject.SORT;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
@@ -48,7 +48,7 @@ import gov.nga.utils.StringUtils;
 @RestController
 public class ObjectSearchController extends RecordSearchController {
 
-	private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
+	//private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
 	
 	private static Pattern sourcePattern = Pattern.compile("/art/(.*)/objects");
 	public Pattern getSourcePattern() {
@@ -73,7 +73,10 @@ public class ObjectSearchController extends RecordSearchController {
     
     @Autowired
     private CSpaceTestModeService ts;
-    
+
+    @Autowired
+    private OperatingModeService om;
+
     @Autowired
     ImageSearchController imgCtrl;
 
@@ -82,7 +85,7 @@ public class ObjectSearchController extends RecordSearchController {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
     }
     
-    @RequestMapping(value={"/art/objects.json","/art/{source}/objects.json"})
+    @RequestMapping(value={"/art/objects.json","/art/{source}/objects.json"},method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<Items> objectRecordsSource (
     		
     		@RequestParam(value="id", 					required=false) String[] ids,
@@ -100,6 +103,15 @@ public class ObjectSearchController extends RecordSearchController {
 			@RequestParam(value="number", 				required=false) String[] numbers,
 			@RequestParam(value="cultObj:number",		required=false) String[] cultObj_numbers,
 
+			@RequestParam(value="onView", 				required=false) String[] onView,
+			@RequestParam(value="cultObj:onView",		required=false) String[] cultObj_onView,
+
+			@RequestParam(value="overviewText", 		required=false) String[] overviewText,
+			@RequestParam(value="cultObj:overviewText",	required=false) String[] cultObj_overviewText,
+
+			@RequestParam(value="hasOverviewText", 		required=false) String[] hasOverviewText,
+			@RequestParam(value="cultObj:hasOverviewText",	required=false) String[] cultObj_hasOverviewText,
+			
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
 			@RequestParam(value="base64", 				required=false, defaultValue="true") boolean base64,
@@ -132,14 +144,17 @@ public class ObjectSearchController extends RecordSearchController {
     	//processSuggestableField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
     	//processSuggestableField(searchHelper, titles, cultObj_titles, ArtObject.SEARCH.TITLE);
     	processTextField(searchHelper, numbers, cultObj_numbers, ArtObject.SEARCH.ACCESSIONNUM);
+    	processTextField(searchHelper, onView, cultObj_onView, ArtObject.SEARCH.ONVIEW);
     	processLastModified(searchHelper, lastModified, cultObj_lastModified);
     	processTextField(searchHelper, titles, cultObj_titles, ArtObject.SEARCH.TITLE);
+    	processTextField(searchHelper, overviewText, cultObj_overviewText, ArtObject.SEARCH.OVERVIEW);
+    	processTextField(searchHelper, hasOverviewText, cultObj_hasOverviewText, ArtObject.SEARCH.HASOVERVIEWTEXT);
     	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
     	
     	SortHelper<ArtObject> sortHelper = getSortHelper(order);
     	
     	// the list of items that will be returned (constructed from art object records)
-		List<Item> partialResults = CollectionUtils.newArrayList();
+		List<SearchResultItem> partialResults = CollectionUtils.newArrayList();
 
     	// execute the search using the prepared search helper, but only if we actually have search criteria
 		// otherwise, we return an empty result set
@@ -193,23 +208,13 @@ public class ObjectSearchController extends RecordSearchController {
     				}
     			}
     			for (ArtObject o : artObjects) {
-    				URL objectURL = null;
-    				String[] parts = RecordSearchController.getRequestingServer(request);
-    				
-    				try {
-    					if (parts[2] != null)
-    						objectURL = new URL(parts[0], parts[1], Integer.parseInt(parts[2]),"/art/tms/objects/"+o.getObjectID()+".json");
-    					else
-    						objectURL = new URL(parts[0], parts[1], "/art/tms/objects/"+o.getObjectID()+".json");
-    				}
-    				catch (MalformedURLException me) {
-    					log.error("Problem creating object URL: " + me.getMessage());
-    				}
-    				
-    				Record objectRecord = new AbridgedObjectRecord(o, references, ts, imagesMap.get(o.getObjectID()));
+    				AbridgedObjectRecord objectRecord = new AbridgedObjectRecord(
+    						o, references, om, 
+    						ts, imagesMap.get(o.getObjectID()), RecordSearchController.getRequestingServer(request)
+    				);
     				Future<String> thumb = thumbnailMap.get(o.getObjectID());
     				String thumbVal = (thumb == null ? null : thumb.get());
-    				partialResults.add(new Item(objectURL, thumbVal, objectRecord));
+    				partialResults.add(new SearchResultItem(thumbVal, objectRecord));
     			}
     		}
     		finally {
@@ -234,7 +239,8 @@ public class ObjectSearchController extends RecordSearchController {
     			return ArtObject.SORT.TITLE_ASC;
     		else
     			return ArtObject.SORT.TITLE_DESC;
-    	case "cultObj:number" :
+    	case "cultObj:number":
+    	case "cultObj:onView" :
     		if (f.ascending)
     			return ArtObject.SORT.ACCESSIONNUM_ASC;
     		else

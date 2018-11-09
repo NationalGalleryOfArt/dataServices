@@ -654,7 +654,7 @@ public class IIIFImageAPIHandler {
 				response.setHeader(EXCLUDEHEADER.CACHE_CONTROL.getLabel(), "no-cache");
 			
 			return ResponseEntity.status(urlConnection.getResponseCode())
-					.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
+					.contentType(MediaType.parseMediaType(urlConnection.getContentType() != null ? urlConnection.getContentType() : MediaType.TEXT_PLAIN.toString()))
 					.body(new InputStreamResource(urlConnection.getInputStream()));
 		}
 		catch (URISyntaxException se) {
@@ -663,11 +663,11 @@ public class IIIFImageAPIHandler {
 		catch (IOException ie) {
 			if ( urlConnection.getErrorStream() != null)
 				return ResponseEntity.status(urlConnection.getResponseCode())
-						.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
+						.contentType(MediaType.parseMediaType(urlConnection.getContentType() != null ? urlConnection.getContentType() : MediaType.TEXT_PLAIN.toString()))
 						.body(new InputStreamResource(urlConnection.getErrorStream()));
 			else 
 				return ResponseEntity.status(urlConnection.getResponseCode())
-						.contentType(MediaType.parseMediaType(urlConnection.getContentType()))
+						.contentType(MediaType.parseMediaType(urlConnection.getContentType() != null ? urlConnection.getContentType() : MediaType.TEXT_PLAIN.toString()))
 						.body(null);
 		}
 	}

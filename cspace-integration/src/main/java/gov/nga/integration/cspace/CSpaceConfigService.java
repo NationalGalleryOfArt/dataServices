@@ -30,7 +30,18 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 		
 		return env.getProperty("ngaweb."+propertyName);
 	}
-	
+
+	public String[] getStrings(String propertyName, String splitOn) {
+		String propVal = null;
+		if (env.getProperty("ngaweb."+propertyName) == null)
+			propVal = env.getProperty(propertyName);
+		else
+			propVal = env.getProperty("ngaweb."+propertyName);
+		if (propVal != null)
+			return propVal.split(splitOn);
+		return null;
+	}
+
 	public Integer getInteger(String propertyName) {
 		if (env.getProperty("ngaweb."+propertyName) == null)
 			return env.getProperty(propertyName, Integer.class);

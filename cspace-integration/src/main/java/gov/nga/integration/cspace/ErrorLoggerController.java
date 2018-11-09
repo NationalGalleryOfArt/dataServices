@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -80,7 +81,7 @@ public class ErrorLoggerController {
 		return true;
 	}
 	
-	@RequestMapping("/system/logger.json")
+	@RequestMapping(value="/system/logger.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
 	public ResponseEntity<ErrorLoggerResponse> logger(
 			@RequestParam(value="severity", required=true) String severity,
 			@RequestParam(value="origin", 	required=true) String origin,

@@ -54,6 +54,10 @@ public class Location extends ArtEntityImpl {
 		unitPosition 	= rs.getString(7);
 	}
 	
+	public Place getPlace() {
+		return this.getManager().fetchByTMSLocationID(getLocationID());
+	}
+	
 	public Location factory(ResultSet rs) throws SQLException {
 		Location at = new Location(getManager(),rs);
 		return at;

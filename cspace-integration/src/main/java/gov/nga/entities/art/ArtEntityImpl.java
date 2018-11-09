@@ -89,10 +89,22 @@ public abstract class ArtEntityImpl extends FingerprintedEntity implements ArtEn
 		return null;
 	}
 
+	Long entityID = null;
+	public void setEntityID(Long entityID) {
+		this.entityID = entityID;
+	}
 	public Long getEntityID() {
+		return this.entityID;
+	}
+	
+	public String getEntityKey() {
 		return null;
 	}
-
+	
+	public String getEntityUniqueID() {
+		return getEntityKey() + ":" + getEntityID();
+	}
+	
 	public String getJCREntityType() 
 	{
 		return this.getClass().getSimpleName();

@@ -84,7 +84,7 @@ public class ArtObjectImage extends Derivative {
         setTargetWidth(targetWidth);
         setTargetHeight(targetHeight);
         setSequence(sequence);
-        setTmsObjectID(tmsObjectID);
+        setArtObjectID(tmsObjectID);
         setCatalogued(catalogued);
         
 

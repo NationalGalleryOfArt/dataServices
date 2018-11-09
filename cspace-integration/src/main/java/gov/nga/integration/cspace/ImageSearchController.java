@@ -1,7 +1,5 @@
 package gov.nga.integration.cspace;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -16,8 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.context.ApplicationContext;
@@ -28,11 +26,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
+import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.ArtObject.SORT;
 import gov.nga.entities.art.Derivative;
 import gov.nga.search.ResultsPaginator;
@@ -48,7 +48,7 @@ import gov.nga.utils.StringUtils;
 @RestController
 public class ImageSearchController extends RecordSearchController {
 
-	private static final Logger log = LoggerFactory.getLogger(ImageSearchController.class);
+	//private static final Logger log = LoggerFactory.getLogger(ImageSearchController.class);
 	
 	private static Pattern sourcePattern = Pattern.compile("/media/(.*)/images");
 	public Pattern getSourcePattern() {
@@ -86,13 +86,16 @@ public class ImageSearchController extends RecordSearchController {
     
     @Autowired
     private CSpaceTestModeService ts;
+
+    @Autowired
+    private OperatingModeService om;
     
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
     }
 
-    @RequestMapping(value={"/media/images.json","/media/{source}/images.json"})
+    @RequestMapping(value={"/media/images.json","/media/{source}/images.json"},method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<Items> imageRecordsSource (
     		
     		@RequestParam(value="id", 					required=false) String[] ids,
@@ -141,7 +144,7 @@ public class ImageSearchController extends RecordSearchController {
     	
     	ResultsPaginator paginator = getPaginator(skip, limit);
     	// the list of items that will be returned (constructed from art object records)
-		List<Item> resultPage = CollectionUtils.newArrayList();
+		List<SearchResultItem> resultPage = CollectionUtils.newArrayList();
 		HttpHeaders headers = new HttpHeaders();
 
     	// fetch all of the art objects matching the query and order those objects
@@ -190,21 +193,10 @@ public class ImageSearchController extends RecordSearchController {
     				}
     			}
     			for (CSpaceImage d : images) {
-    				URL imageURL = null;
-    				String[] parts = RecordSearchController.getRequestingServer(request);
-    				try {
-    					if (parts[2] != null)
-    						imageURL = new URL(parts[0], parts[1], Integer.parseInt(parts[2]),"/media/"+d.getSource()+"/images/"+d.getImageID()+".json");
-    					else
-    						imageURL = new URL(parts[0], parts[1], "/media/"+d.getSource()+"/images/"+d.getImageID()+".json");
-    				}
-    				catch (MalformedURLException me) {
-    					log.error("Problem creating image URL: " + me.getMessage());
-    				}
-    				Record imageRecord = new AbridgedImageRecord(d, references, ts);
+    				Record imageRecord = new AbridgedImageRecord(d, references, om, ts, RecordSearchController.getRequestingServer(request) );
     				Future<String> thumb = thumbnailMap.get(d);
     				String thumbVal = (thumb == null ? null : thumb.get());
-    				resultPage.add(new Item(imageURL, thumbVal, imageRecord));
+    				resultPage.add(new SearchResultItem(thumbVal, imageRecord));
     			}
     		}
     		finally {

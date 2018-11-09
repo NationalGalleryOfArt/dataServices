@@ -19,8 +19,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.Derivative;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SearchHelper.SEARCHOP;
@@ -34,10 +36,13 @@ public class ImageRecordController {
 	
 	@Autowired
 	private CSpaceTestModeService ts;
-	
+
+	@Autowired
+	private OperatingModeService om;
+
 	private static final Logger log = LoggerFactory.getLogger(ImageRecordController.class);
     
-    @RequestMapping("/media/images/{id}.json")
+    @RequestMapping(value="/media/images/{id}.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<RecordContainer> objectRecordNoSource(
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
@@ -48,7 +53,7 @@ public class ImageRecordController {
 
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
     // IMAGE CONTENT SERVICE
-    @RequestMapping("/media/{source}/images/{id}.json")
+    @RequestMapping(value="/media/{source}/images/{id}.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<RecordContainer> imageRecordSource(
     		@PathVariable(value="source") String source,
     		@PathVariable(value="id") String id,
@@ -83,7 +88,7 @@ public class ImageRecordController {
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
     	
     	// if we have gotten to this point, then we found the unique image and can construct an appropriate response
-    	ImageRecord ir = new ImageRecord(images.get(0), true, ts, images);
+    	ImageRecord ir = new ImageRecord(images.get(0), true, om, ts, images, RecordSearchController.getRequestingServer(request));
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
@@ -95,7 +100,7 @@ public class ImageRecordController {
     // IMAGE CONTENT SERVICE
     // catch the case where someone requests the content of an image without specifying the source.  We don't redirect in this case, we just
     // return 400 error
-    @RequestMapping("/media/images/{id:.+}")
+    @RequestMapping(value="/media/images/{id:.+}",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<InputStreamResource> imageContentNoSource(
     		@PathVariable(value="id") String id,
 			HttpServletRequest request,
@@ -106,7 +111,7 @@ public class ImageRecordController {
 
     // IMAGE CONTENT SERVICE
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
-    @RequestMapping("/media/{source}/images/{id:.+}")
+    @RequestMapping(value="/media/{source}/images/{id:.+}",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<InputStreamResource> imageContent(
     		@PathVariable(value="source") String source,
     		@PathVariable(value="id") String id,

@@ -37,8 +37,10 @@ import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.DateUtils;
 import gov.nga.utils.StringUtils;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,7 +53,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Derivative extends ArtEntityImpl implements Searchable, Sortable, Faceted  {
+public abstract class Derivative extends SupplementingEntityImpl implements Searchable, Sortable, Faceted  {
 
 	private static final Logger log = LoggerFactory.getLogger(Derivative.class);
 
@@ -67,7 +69,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 		ARTOBJECTIMAGE, RESEARCHIMAGE, CONSERVATIONIMAGE
 	}
 
-	// art object search fields
+	// derivative search fields
 	public static enum SEARCH {
 		CATALOGUED,
 		IMAGEID,
@@ -204,7 +206,7 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 	}
 
 	public Derivative(ArtDataManagerService manager) {
-		super(manager);
+		super(manager,null);
 	}
 
 	protected abstract String getAllImagesQuery();
@@ -524,26 +526,33 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 				this.getImgVolumePath() + this.getFilename()	// and no host - only relative path
 				);
 	}
+	
+	public URL getIIIFBaseURL() throws MalformedURLException {
+		return new URL("https:" + getProtocolRelativeiiifURL(null,  null, null, null).toString());
+	}
 
 	public URI getProtocolRelativeiiifURL(String region, String size, String rotation, String quality) {
 		// iiif URLs are only valid for PTIF files that are on a IIIF enabled server
 		if (format != IMGFORMAT.PTIF)
 			return null;
 
-		if (StringUtils.isNullOrEmpty(region))
-			region = "full";
-		if (StringUtils.isNullOrEmpty(size))
-			size = "full";
-		if (StringUtils.isNullOrEmpty(rotation))
-			rotation = "0";
-		if (StringUtils.isNullOrEmpty(quality))
-			quality = "default";
+		if (region != null || size != null || rotation != null || quality != null) { 
+			if (StringUtils.isNullOrEmpty(region))
+				region = "full";
+			if (StringUtils.isNullOrEmpty(size))
+				size = "full";
+			if (StringUtils.isNullOrEmpty(rotation))
+				rotation = "0";
+			if (StringUtils.isNullOrEmpty(quality))
+				quality = "default";
+		}
 
 		try {
 			String iiifPath = 
 					getManager().getConfig().getString(imagingServerURLPropertyName) 
-					+ "/iiif" + getRelativeSourceImageURI().toString() 
-					+ "/" + region + "/" + size + "/" + rotation + "/" + quality + ".jpg";
+					+ "/iiif" + getRelativeSourceImageURI().toString();
+			if (region != null && size != null && rotation != null && quality != null)
+				iiifPath += "/" + region + "/" + size + "/" + rotation + "/" + quality + ".jpg";
 			return new URI(iiifPath);
 		}
 		catch (URISyntaxException ue) {
@@ -609,10 +618,6 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 		this.sequence = sequence;
 	}
 
-	public void setTmsObjectID(Long tmsObjectID) {
-		this.artObjectID = tmsObjectID;
-	}
-
 	public String getFilename() {
 		return filename;
 	}
@@ -658,20 +663,6 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 	private String sequence = null;
 	public String getSequence() {
 		return sequence;
-	}
-
-	private Long artObjectID = null;
-	public Long setArtObjectID(Long artObjectID) {
-		return this.artObjectID = artObjectID;
-	}
-	public Long getArtObjectID() {
-		return artObjectID;
-	}
-
-	public ArtObject getArtObject() {
-		if (getArtObjectID() == null)
-			return null;
-		return getManager().fetchByObjectID(getArtObjectID());
 	}
 
 	private String catalogued = null;

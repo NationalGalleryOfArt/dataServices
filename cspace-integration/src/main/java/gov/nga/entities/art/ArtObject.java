@@ -41,6 +41,7 @@ import gov.nga.entities.art.ArtObjectTerm.TERMTYPES;
 import gov.nga.entities.art.Derivative.IMAGECLASS;
 import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.entities.art.TextEntry.TEXT_ENTRY_TYPE;
 import gov.nga.search.Faceted;
 import gov.nga.search.SearchFilter;
@@ -93,6 +94,8 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		ACCESSIONNUM,
 		ATTRIBUTION_INV,
 		PROVENANCE,
+		OVERVIEW,
+		HASOVERVIEWTEXT,
 		CREDITLINE,
 		LOCATION_ID,
 		LOCATION_SITE,
@@ -393,6 +396,15 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 
 	private static final String JCRNODENAME = "ArtObject";
 
+	@Override
+	public String getEntityKey() {
+		return getEntityKeyStatic();
+	}
+
+	public static String getEntityKeyStatic() {
+		return "nga:art:tms:objects";
+	}
+	
 	protected enum RELATEDASPECT {
 		STYLE(100000000),
 		THEME(1000000),
@@ -1140,6 +1152,11 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			return f.filterMatch(getAttributionInverted());
 		case PROVENANCE:
 			return f.filterMatch(StringUtils.removeOnlyHTMLAndFormatting(getProvenanceText()));
+		case OVERVIEW:
+			return f.filterMatch(StringUtils.removeOnlyHTMLAndFormatting(getOverviewText()));
+		case HASOVERVIEWTEXT:
+			Boolean hasOverview = !StringUtils.isNullOrEmpty(getOverviewText());
+			return f.filterMatch(hasOverview.toString());
 		case CREDITLINE:
 			return f.filterMatch(creditLine);
 		case DONORCONSTITUENTID:
@@ -1513,6 +1530,10 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			return null;
 		return new ArrayList<Derivative>(getImagesRaw());
 	}
+	
+	public List<Media> getRelatedMedia() {
+		return getManager().getMediaByEntityRelationship(getEntityUniqueID());
+	}
 
 	private List<ResearchImage> getResearchImagesRaw() {
 		List<ResearchImage> rList = CollectionUtils.newArrayList();
@@ -1756,6 +1777,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		return objectID;
 	}
 
+	@Override
 	public Long getEntityID() {
 		return getObjectID();
 	}
