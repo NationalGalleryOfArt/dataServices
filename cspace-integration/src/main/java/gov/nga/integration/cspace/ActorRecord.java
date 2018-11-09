@@ -1,7 +1,5 @@
 package gov.nga.integration.cspace;
 
-
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -82,6 +80,8 @@ public class ActorRecord extends LinkedArtRecord implements NamespaceInterface {
 		return "Actor";
 	}
 	
+	// TODO - for each type of private entity, we need a way to detect within the
+	// entity itself whether the entity is public or private and return an ID accordingly
 	public String getId() {
 		return "https://api.nga.gov/art/tms/actor/" + constituent.getConstituentID();
 	}

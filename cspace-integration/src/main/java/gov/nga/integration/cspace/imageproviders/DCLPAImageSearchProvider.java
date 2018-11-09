@@ -129,6 +129,13 @@ public class DCLPAImageSearchProvider extends SourceProviderImpl {
 		// fill the object IDs with dummy data so they are compatible with the JDBC calls but won't impact anything
 		byte[] objectIDs = new byte[4];
 		ByteUtils.fillBytes(objectIDs, 0, Integer.MIN_VALUE);
+		
+		// let the error propagate because we might otherwise return an incorrect response and we'd rather have an error
+		// than return bad data
+		//if (dclpaDataSource == null || dclpaDataSource.getConnection() == null) {
+		//	log.warn("Database configuration problem.  There appears to be no active configuration for dclpa database but the api is running in a mode that expects one to be present.");
+		//	return null;
+		//}
 
 		try ( Connection conn = dclpaDataSource.getConnection() ) {
 			

@@ -24,7 +24,6 @@ public class ProductionRecord extends LinkedArtBaseClass {
 		super(defaultNamespace);
 		if (artObjectRecord != null) {
 			setArtObjectRecord(artObjectRecord);
-			setSource(artObjectRecord.getSource());
 			setId(artObjectRecord.getUrl().toString().replaceAll("\\.json", "") + "/" + predicate);
 		}
 	}

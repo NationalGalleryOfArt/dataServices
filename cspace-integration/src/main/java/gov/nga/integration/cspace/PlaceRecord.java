@@ -23,6 +23,9 @@ public class PlaceRecord extends LinkedArtRecord {
 		super("Place");
 		if ( pl == null)
 			return;
+		// TODO - for each type of private entity, we need a way to detect within the
+		// entity itself whether the entity is public or private and return an ID accordingly
+		// locations / places are one example
 		setId("https://api.nga.gov/places/"+pl.getPlaceKey());
 		setPlace(pl);
 		addMapInfo(new MapInfoRecord(pl));

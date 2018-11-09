@@ -20,14 +20,12 @@ public class MediaRecord extends LinkedArtInformationObject {
 	// mandatory fields of the API - source and id are also mandatory and are inherited from the base object Record
 	private Media media;
 	
-	
-	
 	public MediaRecord(Media media)  {
 		if (media == null)
 			return;
 		setMedia(media);
 		setLabel(media.getTitle());
-		setId("https://api.nga.gov/media/"+media.getMediaType()+"/"+media.getStreamingProvider()+"/"+media.getMediaID());
+		setId("https://api.nga.gov/media/"+media.getStreamingProvider()+"/"+media.getMediaType()+"/"+media.getMediaID());
 		addIdentity(
 			new LinkedArtName(media.getTitle(),
 				new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300404670", "preferred terms")

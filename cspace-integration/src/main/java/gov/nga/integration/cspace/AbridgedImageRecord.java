@@ -1,6 +1,5 @@
 package gov.nga.integration.cspace;
 
-
 import java.net.MalformedURLException;
 
 import java.net.URL;
@@ -20,7 +19,9 @@ import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.Derivative.IMGFORMAT;
 import gov.nga.integration.cspace.MediaPredicates.MEDIAPREDICATES;
+import gov.nga.integration.cspace.imageproviders.DCLPAImage;
 import gov.nga.utils.CollectionUtils;
+import gov.nga.utils.StringUtils;
 
 
 // See ImageRecord for details of alignment between this implementation and Sirma's CS integration services implementation
@@ -88,7 +89,7 @@ public class AbridgedImageRecord extends LinkedArtVisualItem implements Namespac
 		setTitle(d.getTitle());
 		setWidth(d.getWidth());
 		setHeight(d.getHeight());
-
+		
 		if (references)
 			setReferences(d,om,ts,urlParts);
 		
@@ -116,7 +117,7 @@ public class AbridgedImageRecord extends LinkedArtVisualItem implements Namespac
 			if (urlParts[2] != null)
 				objectURL = new URL(urlParts[0], urlParts[1], Integer.parseInt(urlParts[2]),"/media/" + d.getSource() + "/images/" + d.getImageID() + ".json");
 			else
-				objectURL = new URL(urlParts[0], urlParts[1], "/art/" + d.getSource() + "/objects/" + d.getImageID() + ".json");
+				objectURL = new URL(urlParts[0], urlParts[1], "/media/" + d.getSource() + "/images/" + d.getImageID() + ".json");
 			setUrl(objectURL);
 		}
 		catch (MalformedURLException me) {
@@ -126,34 +127,39 @@ public class AbridgedImageRecord extends LinkedArtVisualItem implements Namespac
 		setIIIFImageAPIURL(d);
 		
 		addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300215302","digital images"));
+		if ( d instanceof DCLPAImage ) {
+			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300054238", "conservation (discipline)"));
+		}
 		
-		switch (derivative.getViewType()) {
-		case PRIMARY : 
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300404450", "primary (general designation)"));
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
-			break;
-		case ALTERNATE:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300034364", "auxilliary views" ));
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum" ));
-			break;
-		case COMPFIG:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum" ));
-			break;
-		case CROPPED:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300015551", "partial views" ));
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
-			break;
-		case INSCRIPTION:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300028702", "inscriptions"));
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
-			break;
-		case TECHNICAL:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300179535", "spectroscopy"));
-			break;
-		default:
-			addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
-			break;
-		
+		if (derivative.getViewType() != null) {
+			switch (derivative.getViewType()) {
+			case PRIMARY : 
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300404450", "primary (general designation)"));
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
+				break;
+			case ALTERNATE:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300034364", "auxilliary views" ));
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum" ));
+				break;
+			case COMPFIG:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum" ));
+				break;
+			case CROPPED:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300015551", "partial views" ));
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
+				break;
+			case INSCRIPTION:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300028702", "inscriptions"));
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
+				break;
+			case TECHNICAL:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300179535", "spectroscopy"));
+				break;
+			default:
+				addClassifiedAs(new LinkedArtClassifiedType("http://vocab.getty.edu/aat/300210700", "visible spectrum"));
+				break;
+
+			}
 		}
 	
 		if (getIIIFUrl() != null) {
@@ -163,14 +169,15 @@ public class AbridgedImageRecord extends LinkedArtVisualItem implements Namespac
 			);
 		}
 		
-		LinkedArtInformationObject io = new LinkedArtInformationObject();
-		io.setLabel("sequence");
-		io.addClassifiedAs(
-				new LinkedArtClassifiedType("Type", "sequences", "http://vocab.getty.edu/aat/300192339")
-		);
-		io.setValue(derivative.getSequence());
-		addReferredToBy(io);
-		
+		if ( !StringUtils.isNullOrEmpty(derivative.getSequence())) {
+			LinkedArtInformationObject io = new LinkedArtInformationObject();
+			io.setLabel("sequence");
+			io.addClassifiedAs(
+					new LinkedArtClassifiedType("Type", "sequences", "http://vocab.getty.edu/aat/300192339")
+					);
+			io.setValue(derivative.getSequence());
+			addReferredToBy(io);
+		}
 		// this.addRepresentation(v);
 		
 	}
@@ -187,10 +194,6 @@ public class AbridgedImageRecord extends LinkedArtVisualItem implements Namespac
 //	                       "conforms_to": {"id": "http://iiif.io/api/image"}
 //	                     }
 //	                   ]
-	public void populate() {
-
-		
-	}
 	
 	@JsonProperty("iiifURL")
 	public URL getIIIFUrl() {

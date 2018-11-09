@@ -87,6 +87,7 @@ public class DCLPAImage extends CSpaceImage {
 		setPhotographer(		rs.getString(i++));
 		setProductionDate(		rs.getDate(i++));
 		setProductType(			rs.getString(i++));
+		
 	}
 
 //    public DCLPAImage factory(ResultSet rs, CS) throws SQLException {

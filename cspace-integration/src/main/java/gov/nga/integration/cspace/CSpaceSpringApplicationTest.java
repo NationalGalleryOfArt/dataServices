@@ -75,13 +75,13 @@ public class CSpaceSpringApplicationTest {
     	"BOTH",		"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"212998",						"",
     	"PUBLIC",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"207851",						"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 66", 		"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 66", 		"\"title\" : \"Toy Bank: Frog\"",			"/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQ",	"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 64", 		"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 64", 		"\"title\" : \"Toy Bank: Frog\"",			"/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQ",	"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		
     																							"200",			"\"total\" : 10", 		"\"accessionNum\" : \"X.12827\"",					"!\"thumbnail\"",	"",
     	"PRIVATE",	"/art/objects.json",			"number=19&skip=8000&limit=2000&thumbnails=0&references=0",
         																						"200",			"\"total\" : 10",		"\"limit\" : 1000",	"\"skip\" : 8000", "",
-        "PRIVATE",	"/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//vm-imgrepotst-tdp", "",
+        "PRIVATE",	"/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//", "",
         "BOTH",		"/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
         "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "F777D90F-7B95-4404-AFC0-F05C0E8ADDBB", "",
         "PRIVATE",	"/art/objects.json",			"id=93013", 											"200",			"hasDepiction",  "hasPrimaryDepiction", "id\" : \"6799", 	"!://[",	"",
@@ -89,7 +89,7 @@ public class CSpaceSpringApplicationTest {
 
         
         // SERVICE #3: IMAGE CONTENT
-        "PRIVATE",	"/media/web-images-repository/images/2C5EE199-D447-43F5-BB93-D2896EBB6483", "",			"200",			"image/tiff",			"",
+        "PRIVATE",	"/media/web-images-repository/images/AFD0E48D-E522-4B75-97FA-3E085D766642", "",			"200",			"image/tiff",			"",
         "BOTH",		"/media/images/A9A25EA6-B078-43AC-A178-86681E56769A",	"",								"400",			"",
         "PRIVATE",	"/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
         "BOTH",		"/media/images/2566",									"",								"400",			"",
@@ -118,7 +118,7 @@ public class CSpaceSpringApplicationTest {
         
         // SERVICE #5: IMAGE RECORD SEARCH
         "PRIVATE",	"/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
-        "PRIVATE",	"/media/images.json",									"id=ACD3C8B9-F7D0-43FD-AC31-3E6F371F09FD",						
+        "PRIVATE",	"/media/images.json",									"id=06C7F451-E12D-470A-8DA7-99CD7D8ED41B",						
         																						"200",			"\"references",			"\"thumbnail", "publishedImage", "\"viewType\"", "",
         "BOTH",		"/media/images.json",									"id=FEFA",						
         																						"200",			"total\" : 0", "",

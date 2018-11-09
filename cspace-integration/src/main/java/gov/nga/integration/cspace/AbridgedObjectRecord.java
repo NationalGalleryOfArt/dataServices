@@ -44,7 +44,6 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 	private String title;						// optional field, but searchable, so including it in abridged object used in search results
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
-    private URL url;							// url of this object's record
     private PlaceRecord current_location;		// the place where this object is located
     
     @JsonIgnore
@@ -144,13 +143,9 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 		this.accessionNum = accessionNum;
 	}
 
-	public URL getUrl() {
-		return url;
-	}
-
-	public void setUrl(URL objectURL) {
-		this.url = objectURL;
-	}
+//	public URL getUrl() {
+//		return super.getUrl();
+//	}
 
 	public String constituentNames(List<ArtObjectConstituent> constituents, String filterRoleType) {
 		String cNames=null;

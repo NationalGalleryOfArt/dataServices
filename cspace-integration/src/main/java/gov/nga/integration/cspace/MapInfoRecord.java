@@ -16,7 +16,7 @@ public class MapInfoRecord extends Record {
 		if (pl == null)
 			return;
 		setPlace(pl);
-		setSource("www.nga.gov");
+		setSource(null);
 	}
 	
 	public void setPlace(Place pl) {

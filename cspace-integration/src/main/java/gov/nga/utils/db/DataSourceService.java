@@ -24,6 +24,9 @@ public abstract class DataSourceService {
 	static { log.info("DataSourceService loaded"); }
 	
 	public void init(String url, String username, String password, String validationQuery) {
+		if ( url == null )
+			return;
+		
 		setUrl(url);
 		setUsername(username);
 		setPassword(password);
@@ -95,11 +98,13 @@ public abstract class DataSourceService {
 	}
     
     public Connection getConnection() throws SQLException {
-    	return dataSource.getConnection();
+    	return dataSource == null ? null : dataSource.getConnection();
     }
-    
+
+    // TODO - this seems to be unused and the dataSourceName certainly is not so at
+    // best this is probably misleading and should be deprecated / removed if that's the case
     public Connection getConnection(String dataSourceName) throws SQLException {
-    	return dataSource.getConnection();
+    	return dataSource == null ? null :  dataSource.getConnection();
     }
     
 }

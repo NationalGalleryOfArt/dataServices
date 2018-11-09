@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 @JsonPropertyOrder({ "namespace", "id", "source", "lastModifiedOn", "fingerprint", "references" })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class Record implements NamespaceInterface {
-
+	
 	private String namespace;
 	private String id;
 	private String fingerprint;
@@ -34,7 +34,11 @@ public abstract class Record implements NamespaceInterface {
 	public String getSource() {
 		return source;
 	}
-	public void setSource(String source) {
+	protected void setSource(String source) {
+//		if ( this.source != null)
+//			log.info("source was: " + this.source + " and changing to it to: " + source + " for class: " + this.getClass().getName());
+//		else
+//			log.info("source is null and changing to it to: " + source + " for class: " + this.getClass().getName());
 		this.source = source;
 	}
 	public URL getUrl() {

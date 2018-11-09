@@ -528,7 +528,8 @@ public abstract class Derivative extends SupplementingEntityImpl implements Sear
 	}
 	
 	public URL getIIIFBaseURL() throws MalformedURLException {
-		return new URL("https:" + getProtocolRelativeiiifURL(null,  null, null, null).toString());
+		URI u = getProtocolRelativeiiifURL();
+		return u == null ? null : new URL("https:" + u.toString());
 	}
 
 	public URI getProtocolRelativeiiifURL(String region, String size, String rotation, String quality) {
@@ -559,6 +560,10 @@ public abstract class Derivative extends SupplementingEntityImpl implements Sear
 			log.error("URISyntaxException when creating iiif source image URL: ", ue);
 			return null;
 		}
+	}
+	
+	public URI getProtocolRelativeiiifURL() {
+		return getProtocolRelativeiiifURL(null,null,null,null);
 	}
 
 	public abstract IMAGECLASS getImageClass();

@@ -20,11 +20,6 @@ public abstract class LinkedArtBaseClass extends Record {
 		setType(type);
 	}
 	
-	@Override
-	public String getSource() {
-		return null;
-	}
-
 	private void setType(String type) {
 		this.type = type;
 	}
