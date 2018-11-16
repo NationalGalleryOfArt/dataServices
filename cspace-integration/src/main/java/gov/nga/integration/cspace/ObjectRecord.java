@@ -1,3 +1,23 @@
+/*
+    NGA ART DATA API: ObjectRecord is the JSON bean for a full art object record
+
+    Copyright (C) 2018 National Gallery of Art Washington DC
+    Developers: David Beaudet
+
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 package gov.nga.integration.cspace;
 
 import java.net.MalformedURLException;
@@ -59,15 +79,6 @@ import gov.nga.utils.StringUtils;
 					 "location",	"homeLocation",		"current_location",	"ownerNames",  		"creditLine",		"description",	"inscription",
 					 "markings",	"portfolio",		"overviewText",		"provenanceText",	"curatorialRemarks",
 					 "watermarks",	"bibliography", 	"catalogueRaisonneRef",	"produced_by", "references" })
-
-// TODO
-/*Need to look for document from Guidekick
-Need to add artist nationality
-Need to break out the list of artists into an array and call it "artists" rather than artistnames
-Need display date for art objects
-add language back to specs
-also look through my responses to john that are currently open in my inbox
-*/
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObjectRecord extends AbridgedObjectRecord {

@@ -1,3 +1,32 @@
+// TODO - in the future, re-architect this class to pull entity IDs from SOLR and then fetch those
+// entities from the database in real-time rather than having to cache all the data in memory - so long
+// as the AEM classes are changed to call the NGA data API implementation rather than caching the data
+// in RAM themselves, I'm less concerned about this component's refactoring as in-memory operations are
+// much faster and we don't have any real-time data synchronization requirements (yet).
+/*
+    NGA ART DATA API: CSpaceArtDataManager.java provides an extension to the ArtDataManager class
+    that binds it to Spring configurations and creates it as a SpringBoot service so it can be 
+    referenced / injected into other classes that need it.  This class is responsible for controlling
+    the timing of loading / unloading the in-memory cache of all art entities from the database. 
+
+    Copyright (C) 2018 National Gallery of Art Washington DC
+    Developers: David Beaudet
+
+	This library is free software; you can redistribute it and/or
+	modify it under the terms of the GNU Lesser General Public
+	License as published by the Free Software Foundation; either
+	version 2.1 of the License, or (at your option) any later version.
+
+	This library is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	Lesser General Public License for more details.
+
+	You should have received a copy of the GNU Lesser General Public
+	License along with this library; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 package gov.nga.integration.cspace;
 
 import java.util.Date;
