@@ -164,11 +164,13 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 		}
 
 		public static IMGFORMAT formatFromExtension(String ext) {
-			ext = ext.toLowerCase();
-			for (IMGFORMAT f : IMGFORMAT.values() ) {
-				for (String e : f.getExtensions() ) {
-					if (e.equals(ext) || e.equals("." + ext))
-						return f;
+			if ( ext != null) {
+				ext = ext.toLowerCase();
+				for (IMGFORMAT f : IMGFORMAT.values() ) {
+					for (String e : f.getExtensions() ) {
+						if (e.equals(ext) || e.equals("." + ext))
+							return f;
+					}
 				}
 			}
 			return IMGFORMAT.BIN;	// use a generic binary format as the default when one cannot be found
