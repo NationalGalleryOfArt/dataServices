@@ -128,12 +128,12 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iip_nosample_openaccess_image_metadata() throws Exception {
-        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/5/1/51-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
+        mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/5/7/57-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
-        	.andExpect(content().string(containsString("Max-size:4217 5770")))
+        	.andExpect(content().string(containsString("Max-size:16889 21201")))
         	;
     }
 
@@ -178,35 +178,35 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_unsupported_quality() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/normal.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/normal.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
 
     @Test
     public void iiif_unsupported_rotation() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/10.2/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/10.2/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
 
     @Test
     public void iiif_bogus_region() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/adffull/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/adffull/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
 
     @Test
     public void iiif_bogus_image() throws Exception {
-        mvc.perform(get("/iiif/public/objedafcts/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objedafcts/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
         	.andExpect(status().isNotFound())
         	;
     }
     
     @Test
     public void iiif_nonzoom_image() throws Exception {
-        // mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-740x560.jpg/full/512,/0/default.jpg"))
+        // mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-740x560.jpg/full/512,/0/default.jpg"))
         mvc.perform(get("/iiif/public/manifests/nga_highlights.json/full/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
@@ -215,7 +215,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_get() throws Exception {
-        mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+        mvc.perform(options("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
@@ -239,7 +239,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_head() throws Exception {
-        mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+        mvc.perform(options("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "HEAD")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
@@ -251,7 +251,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_post() throws Exception {
-        mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+        mvc.perform(options("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg")
            	.header("Access-Control-Request-Method", "POST")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
@@ -275,7 +275,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     @SuppressWarnings("unchecked")
 	@Test
     public void iiif_nosample_openaccess_image_options() throws Exception {
-        mvc.perform(options("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
+        mvc.perform(options("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg")
         	.header("Access-Control-Request-Method", "GET")
         	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
@@ -286,7 +286,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_nosample_openaccess_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -314,9 +314,9 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_nosample_openaccess_image_to_infojson_redirect() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif"))
         	.andExpect(status().is(303))
-        	.andExpect(redirectedUrl("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
+        	.andExpect(redirectedUrl("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/info.json"))
         	;
     }
 
@@ -341,9 +341,9 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_sample_openaccess_image_to_infojson_redirect() throws Exception {
-        mvc.perform(get("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif"))
+        mvc.perform(get("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif"))
         	.andExpect(status().is(303))
-        	.andExpect(redirectedUrl("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
+        	.andExpect(redirectedUrl("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif/info.json"))
         	;
     }
 
@@ -357,11 +357,11 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_nosample_openaccess_infojson() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/info.json"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/ld+json"))
         	//.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        	.andExpect(jsonPath("$.width", equalTo(4217)));
+        	.andExpect(jsonPath("$.width", equalTo(16889)));
         	;
     }
 
@@ -386,7 +386,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 
     @Test
     public void iiif_private_image_should_defer_to_iip_server() throws Exception {
-        mvc.perform(get("/iiif/private/objects/1/6/7/8/8/2/167882-primary-0-nativeres.ptif/full/!100,100/0/default.jpg"))
+        mvc.perform(get("/iiif/private/objects/1/6/4/2/3/2/164232-primary-0-nativeres.ptif/full/!100,100/0/default.jpg"))
     	.andExpect(status().isOk())
     	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
     	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -396,7 +396,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_sample_openaccess_infojson() throws Exception {
-        mvc.perform(get("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/info.json"))
+        mvc.perform(get("/iiif/640/public/objects/5/7/57-primary-0-nativeres.ptif/info.json"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/ld+json"))
         	//.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -431,21 +431,21 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_nosample_openaccess_region_outside_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,5,5/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/-10,-10,5,5/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
 
     @Test
     public void iiif_nosample_openaccess_region_tangential_to_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,10,50/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/-10,-10,10,50/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
 
     @Test
     public void iiif_nosample_openaccess_region_one_pixel_image() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,50/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/-10,-10,11,50/512,/0/default.jpg"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -455,14 +455,14 @@ public class IIIFImageAPIHandlerIntegrationTest {
     
     @Test
     public void iiif_nosample_openaccess_region_tangential_to_image_on_y() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,10/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/-10,-10,11,10/512,/0/default.jpg"))
         	.andExpect(status().isBadRequest())
         	;
     }
     
     @Test
     public void iiif_nosample_openaccess_region_one_pixel_image_on_x_and_y() throws Exception {
-        mvc.perform(get("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/-10,-10,11,11/512,/0/default.jpg"))
+        mvc.perform(get("/iiif/public/objects/5/7/57-primary-0-nativeres.ptif/-10,-10,11,11/512,/0/default.jpg"))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType(MediaType.IMAGE_JPEG))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
