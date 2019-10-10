@@ -15,9 +15,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
+//import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+//import org.springframework.context.annotation.Scope;
+//import org.springframework.stereotype.Service;
 
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtEntity.OperatingMode;
@@ -34,9 +34,11 @@ import gov.nga.utils.db.DataSourceService;
 
 // we have to register this with Spring in order to use Spring's bean services to get access to it later as an implementer
 // in this case, it doesn't really matter technically whether it's a generic component, a bean, a service, etc. but 
-// since it most closely resembles a service, we'll use that component type 
-@Service
-@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)  // default is singleton, but best to be explicit
+// since it most closely resembles a service, we'll use that component type
+
+// DEPRECATED THIS SERVICE SINCE PORTFOLIO HAS BEEN RETIRED
+//@Service
+//@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)  // default is singleton, but best to be explicit
 public class DCLPAImageSearchProvider extends ImageSearchProviderImpl {
 
 	private static final String[] providesSource = {"portfolio-dclpa"};

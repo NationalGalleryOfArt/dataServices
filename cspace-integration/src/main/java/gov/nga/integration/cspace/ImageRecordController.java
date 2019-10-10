@@ -58,9 +58,9 @@ public class ImageRecordController {
     	
     	log.debug("SOURCE: " + source);
     	
-    	// if the source is not specified or too many sources are specified, then redirect to the generic search for image records service
+    	// if the source is not specified then redirect to the generic search for image records service
     	String [] sourceScope = imgCtrl.getSources(request); 
-    	if (sourceScope.length != 1) {
+    	if (sourceScope.length != 1 || source == null ) {
     		try {
     			return ResponseEntity.status(HttpStatus.PERMANENT_REDIRECT).location(new URI(response.encodeRedirectURL("/media/images.json?id="+id))).body(null);
     		}

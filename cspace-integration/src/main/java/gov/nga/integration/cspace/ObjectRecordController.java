@@ -65,7 +65,8 @@ public class ObjectRecordController {
     		}
     		catch (Exception ue) {
     			log.error("Unexpected exception with URI: " + ue.getMessage());
-    			return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
+    			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+    			//return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(null);
     		}
     	}
     	

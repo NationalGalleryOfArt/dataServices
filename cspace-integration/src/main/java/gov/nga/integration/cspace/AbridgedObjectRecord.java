@@ -93,6 +93,8 @@ public class AbridgedObjectRecord extends Record implements NamespaceInterface {
 				classification = "Drawing";
 			else if ( classification.startsWith("Ephemera") )
 				classification = "Ephemera";
+			else if ( classification.startsWith("Time-Based") )
+				classification = "Media Art";
 		}
 		this.classification = classification;
 	}
