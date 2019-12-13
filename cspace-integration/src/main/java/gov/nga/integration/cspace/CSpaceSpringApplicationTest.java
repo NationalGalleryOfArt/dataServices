@@ -68,7 +68,7 @@ public class CSpaceSpringApplicationTest {
     	// SERVICE #1 : art object record
     	"BOTH", 	"/art/tms/objects/1138.json", 	"", 													"200", 			"\"artistNames\" : \"Giovanni Bellini (painter);", 		"\"predicate\" : \"hasPrimaryDepiction\"",	"",
     	"BOTH", 	"/art/tms/objects/999999.json", "", 													"404",			"",
-    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2017-08-04T22:19:40-04:00\"", "",
+    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2019-10-28T22:01:34-04:00\"", "",
     	"BOTH",		"/art/tms2/objects/1138.json", 	"", 													"404",			"",
     	"BOTH",		"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"BOTH",		"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
@@ -95,7 +95,7 @@ public class CSpaceSpringApplicationTest {
     	"BOTH",		"/art/objects.json", 	  		"number=1992.51.9&references=0&thumbnails=0",			"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"!references",				"!thumbnail",	"",
     	"BOTH",		"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"212998",						"",
-    	"PUBLIC",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"207851",						"",
+    	"PUBLIC",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"218908",						"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 64", 		"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 64", 		"\"title\" : \"Toy Bank: Frog\"",			"/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQ",	"",
     	"PRIVATE",	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		
@@ -104,7 +104,7 @@ public class CSpaceSpringApplicationTest {
         																						"200",			"\"total\" : 10",		"\"limit\" : 1000",	"\"skip\" : 8000", "",
         "PRIVATE",	"/art/objects.json",			"id=125133&base64=0",									"200",			"\"thumbnail\" : \"//", "",
         "BOTH",		"/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
-        "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "F777D90F-7B95-4404-AFC0-F05C0E8ADDBB", "",
+        "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "52A811A4-B499-4DF0-B4AF-17B5346F757E", "",
         "PRIVATE",	"/art/objects.json",			"id=93013", 											"200",			"hasDepiction",  "hasPrimaryDepiction", "id\" : \"6799", 	"!://[",	"",
         "PRIVATE",	"/art/objects.json", 			"artistNames=Hopper, Edward",							"200",			"total\" : 190",	"",		
 
@@ -112,16 +112,16 @@ public class CSpaceSpringApplicationTest {
         // SERVICE #3: IMAGE CONTENT
         "PRIVATE",	"/media/web-images-repository/images/AFD0E48D-E522-4B75-97FA-3E085D766642", "",			"200",			"image/tiff",			"",
         "BOTH",		"/media/images/A9A25EA6-B078-43AC-A178-86681E56769A",	"",								"400",			"",
-        "PRIVATE",	"/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
+        // "PRIVATE",	"/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
         "BOTH",		"/media/images/2566",									"",								"400",			"",
-        "PRIVATE",	"/media/portfolio-dclpa/images/2774",					"",								"200",			"image/x-adobe-dng", "", // has space in the file name
-        "PRIVATE",	"/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "",
-        "PRIVATE",	"/media/portfolio-dclpa/images/7007",					"",								"404",			"", 
+        //"PRIVATE",	"/media/portfolio-dclpa/images/2774",					"",								"200",			"image/x-adobe-dng", "", // has space in the file name
+        //"PRIVATE",	"/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "",
+        //"PRIVATE",	"/media/portfolio-dclpa/images/7007",					"",								"404",			"", 
         
         // SERVICE #4: IMAGE RECORD
-        "BOTH",		"/media/images/2556.json", 								"",								"308",			"Location", "media/images.json?id=2556", "",
-        "PRIVATE",		"/media/portfolio-dclpa/images/2556.json",				"",								"200",			"!\"references", "",
-        "BOTH",		"/media/web-images-repository/images/0A78FF5D-1053-47AD-BA3D-D1C2AF4D4ADD.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
+        // "BOTH",		"/media/images/AF0BDE80-23AA-4045-A5B4-D395B94C0EB7.json", 								"",								"308",			"Location", "media/images.json?id=AF0BDE80-23AA-4045-A5B4-D395B94C0EB7", "",
+        //"PRIVATE",		"/media/portfolio-dclpa/images/2556.json",				"",								"200",			"!\"references", "",
+        "BOTH",		"/media/web-images-repository/images/AF0BDE80-23AA-4045-A5B4-D395B94C0EB7.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
         "BOTH",		"/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "BOTH",		"/media/web-images-repository/images/234234.json",		"",								"404",			"",
         "PRIVATE",	"/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
@@ -135,7 +135,7 @@ public class CSpaceSpringApplicationTest {
         "PRIVATE",	"/media/portfolio-dclpa/images/5004.json",				"",								"200",
         								"!\"references", "!\"subjectWidthCM", "\"originalSource\"", "\"originalSourceInstitution\"", "\"classification\" : \"conservationImage\"", "",
         "PRIVATE",	"/media/web-images-repository/images/1EA96663-F651-41C0-A35C-5CBF5EE22970.json", "",	"200", "predicate\" : \"primarilyDepicts\"", "viewType\" : \"primary\"", "\"5177\"", "!subjectWidthCM", "",
-        "BOTH",		"/media/web-images-repository/images/F777D90F-7B95-4404-AFC0-F05C0E8ADDBB.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
+        "BOTH",		"/media/web-images-repository/images/52A811A4-B499-4DF0-B4AF-17B5346F757E.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
         
         // SERVICE #5: IMAGE RECORD SEARCH
         "PRIVATE",	"/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
@@ -152,7 +152,7 @@ public class CSpaceSpringApplicationTest {
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-title",
         																						"400",																	"",
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&limit=1",
-        																						"200",			"0A78FF5D-1053-47AD-BA3D-D1C2AF4D4ADD", 				"",
+        																						"200",			"AF0BDE80-23AA-4045-A5B4-D395B94C0EB7", 				"",
         "PRIVATE",	"/media/portfolio-dclpa/images.json", 					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&skip=4",
         																						"200",			"\"items\" : [ ]", 										"",
         "PRIVATE",	"/media/portfolio-dclpa/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title,-image:id&skip=9&limit=1",
@@ -165,7 +165,7 @@ public class CSpaceSpringApplicationTest {
         "PRIVATE",	"/media/images.json",									"id=E7F34278-89BC-4120-BB15-8980561AEC6A", "200", "image/tiff\"", 	"",
         "BOTH",		"/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", "200", "total\" : 0", 	"",
         "BOTH",		"/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			   "404", "",
-        "BOTH",		"/media/images.json",									"id=55BC5DB5-B4DB-41C6-81AC-4AE2F55DD66F", "200",			
+        "BOTH",		"/media/images.json",									"id=C63D03DA-A8F2-410E-9719-7ABE33D92778", "200",			
 																"\"filename", "\"title", "\"George Romney; 1937.1.105", "",
 		"PRIVATE",	"/media/images.json",									"id=3924",						"200",			
 																"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 

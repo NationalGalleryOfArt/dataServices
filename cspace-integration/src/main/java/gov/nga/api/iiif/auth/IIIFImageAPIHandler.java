@@ -97,7 +97,9 @@ public class IIIFImageAPIHandler {
 
 	}
 	
-	private static Pattern IMGFILENAMEPATTERN = Pattern.compile("(.*\\/)(.*ptif)");
+	// private static Pattern IMGFILENAMEPATTERN = Pattern.compile("(.*\\/)(.*ptif)");
+	// removed to support image identifiers without a file extension as that's not really necessary when using IIIF
+	private static Pattern IMGFILENAMEPATTERN = Pattern.compile("(.*\\/)?(.*)");
 	private static Pattern SAMPLESIZEPATTERN = null;
 	
 	private static final Map<IIIFAuthParameters, Object> UNAUTHORIZED 	
@@ -268,6 +270,7 @@ public class IIIFImageAPIHandler {
 				else
 					redirectURL = String.format("/%s%s/%s/info.json",iiifPublicPrefix, imgVolPath, imgFilename);
 			}
+			redirectURL = redirectURL.replaceAll("//", "/");
 
 			// redirect using a temporary redirect if appropriate - use temporary since we don't want browsers to cache the redirect since the
 			// response will be different depending on the conditions by which the request was made
@@ -455,10 +458,39 @@ public class IIIFImageAPIHandler {
 		return proxyIIPRequest(proxyURL, requestedSamplingSize, (Boolean) imgAuthData.get(IIIFAuthParameters.OKTOCACHE), request, response, serverScheme, serverURL, iiif_request );
 	}
 	
+//	@RequestMapping(value={
+//			"/{sampleSize}/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}",
+//			"/{sampleSize}/*/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}",
+//			"/{sampleSize}/*/*/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}",
+//			"/{sampleSize}/*/*/*/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}",
+//			"/{sampleSize}/*/*/*/*/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}",
+//			"/{sampleSize}/*/*/*/*/*/{p1:[A-Z0-9]{3}}/{p2:[A-Z0-9]{3}}/{id:[A-Z0-9]{8}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{12}}"
+//		}, 
+//		method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}
+//	)
+//	public ResponseEntity<InputStreamResource> iiifIDHandler (
+//			@PathVariable(value="sampleSize") String sampleSize,
+//			@PathVariable(value="p1", 		required=true) String p1,
+//			@PathVariable(value="p2", 		required=true) String p2,
+//			@PathVariable(value="id", 		required=true) String id,
+//			HttpServletRequest request,
+//			HttpServletResponse response
+//			) throws Exception {
+//
+//		log.trace("entering iiifIDHandler");
+//
+//		return iiifInfoJsonHandler(sampleSize, id, null, request, response);
+//		
+//	}
+
+	
 	// in the future, e.g. eDAM context, we can easily create a method that accepts the image ID
 	public Map<IIIFAuthParameters, Object> getImageAuthorizationProfile(String imgVolPath, String imgFilename, Long requestedSamplingSize, HttpServletRequest request, HttpServletResponse response) {
 
 		Map<IIIFAuthParameters, Object> returnMap = CollectionUtils.newHashMap();
+		
+		if (imgVolPath == null)
+			imgVolPath = "/";
 		
 		SearchHelper<CSpaceImage> dSearchHelper = new SearchHelper<CSpaceImage>();
 		if ( !imgVolPath.startsWith("/") )
