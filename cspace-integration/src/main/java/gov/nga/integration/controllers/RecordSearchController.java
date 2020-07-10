@@ -19,7 +19,7 @@
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
-package gov.nga.integration.cspace;
+package gov.nga.integration.controllers;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +32,9 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nga.integration.cspace.APIUsageException;
+import gov.nga.integration.cspace.NamespaceUtils;
+import gov.nga.integration.cspace.OrderField;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
@@ -90,7 +93,7 @@ public abstract class RecordSearchController {
 
     // read the source from the URL and valid it if present.  If it's not present
     // return all of the sources supported for the subclass extending us
-    protected String[] getSources(HttpServletRequest req) throws APIUsageException {
+    public String[] getSources(HttpServletRequest req) throws APIUsageException {
     	String source = null;
     	Matcher m = getSourcePattern().matcher(req.getRequestURI());
     	if (m.find())

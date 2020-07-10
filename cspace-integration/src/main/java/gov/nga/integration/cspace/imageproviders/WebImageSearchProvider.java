@@ -74,12 +74,12 @@ public class WebImageSearchProvider extends SourceProviderImpl implements Messag
 	
 	public synchronized void receiveMessage(EVENTTYPES event) {
 		if (event == EVENTTYPES.DATAREFRESHED) {
-		//	if (artDataManager != null) {
+			//if (artDataManager != null) {
 				// re-cache the image list and object marker
 				Collection<ArtObject> newObjectMarker = artDataManager.getArtObjectsRaw().values();
 				List<CSpaceImage> newImageCache = getLargestImagesOfArtObjects(newObjectMarker);
 				imageCache = newImageCache;
-		//	}
+			//}
 		}
 	}
 	

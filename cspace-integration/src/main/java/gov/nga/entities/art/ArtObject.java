@@ -34,6 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nga.entities.art.ArtObjectAssociation.ARTOBJECTRELATIONSHIPROLE;
+import gov.nga.common.entities.art.ArtObject.TMSSTATUS;
+import gov.nga.common.entities.art.ArtObjectLocation;
+import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.utils.CollectionUtils;
 import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectDimension.DIMENSION_TYPE;
 import gov.nga.entities.art.ArtObjectHistoricalData.HISTORICAL_DATA_TYPE;
@@ -50,7 +54,6 @@ import gov.nga.search.SortHelper;
 import gov.nga.search.SortOrder;
 import gov.nga.search.Sortable;
 import gov.nga.search.Sorter;
-import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.DateUtils;
 import gov.nga.utils.MutableInt;
 import gov.nga.utils.StringUtils;
@@ -113,7 +116,8 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		VISUALBROWSERCLASSIFICATION, 
 		VISUALBROWSERTHEMEORKEYWORD,
 		NATIONALITY,
-		LASTDETECTEDMODIFICATION
+		LASTDETECTEDMODIFICATION,
+		ISEXHIBITIONMEMBER
 	}
 
 	// free text searches
@@ -343,7 +347,10 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		this.imageCopyright             = source.imageCopyright;
 		this.inscription                = source.inscription;
 		this.isIAD                      = source.isIAD;
-		this.location 					= source.location;
+		this.locationID					= source.locationID;
+		this.currentLocation 			= source.currentLocation;
+		this.homeLocation			    = source.homeLocation;
+		this.homeLocationID				= source.homeLocationID;
 		this.locationID                 = source.locationID;
 		this.markings                   = source.markings;
 		this.maxDerivativeExtent        = source.maxDerivativeExtent;
@@ -370,6 +377,8 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		this.watermarks					= source.watermarks;
 		this.lastDetectedModification	= source.lastDetectedModification;
 		this.isPublic					= source.isPublic;
+		this.exhibitions				= source.exhibitions;
+		this.altNumsMap					= CollectionUtils.newHashMap(source.altNumsMap);
 	}
 
 
@@ -393,6 +402,27 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		ArtObject ao = new ArtObject(this.getManager(),rs);
 		return ao;
 	} 
+	private Map<String, String> altNumsMap = CollectionUtils.newHashMap();
+	protected void setAlternateNumbers(final Map<String, String> newMap)
+	{
+	    altNumsMap.clear();
+	    if (newMap != null)
+	    {
+	        altNumsMap.putAll(newMap);
+	    }
+	}
+	public Map<String, String> getAlternateNumbers()
+	{
+	    return CollectionUtils.newHashMap(altNumsMap);
+	}
+	
+	private List<Long> exhibitions = CollectionUtils.newArrayList();
+	public void addExhibition(final Long ex) {
+	    exhibitions.add(ex);
+	}
+	public List<Exhibition> getExhibitions() {
+	    return getManager().fetchByExhibitionIDS(exhibitions);
+	}
 
 	private static final String JCRNODENAME = "ArtObject";
 
@@ -1120,6 +1150,8 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			return hasConstituentName(getArtistsRaw(), f, false);
 		case ARTIST_ALLNAMES: 
 			return hasConstituentName(getArtistsRaw(), f, true);
+		case ISEXHIBITIONMEMBER:
+			return CollectionUtils.intersection(f.getLongSearchValues(), exhibitions).size() > 0;
 		case OWNER_ALLNAMES:
 			return hasConstituentName(getOwnersRaw(), f, true);
 		case HASLARGERIMAGERY: 
@@ -1167,17 +1199,18 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			Long i = getLocationID();
 			return f.filterMatch(i != null ? i.toString() : null);
 		case LOCATION_SITE:
-			Location l = getLocation();
-			return f.filterMatch(l != null ? l.getSite() : null);
+			//Location l = getLocation();
+			ArtObjectLocation l = getLocation();
+			return f.filterMatch(l != null ? l.getLocationInfo().getSite() : null);
 		case LOCATION_ROOM:
 			l = getLocation();
-			return f.filterMatch(l != null ? l.getRoom() : null);
+			return f.filterMatch(l != null ? l.getLocationInfo().getRoom() : null);
 		case LOCATION_DESCRIPTION:
 			l = getLocation();
-			return f.filterMatch(l != null ? l.getDescription() : null);
+			return f.filterMatch(l != null ? l.getLocationInfo().getDescription() : null);
 		case LOCATION_UNITPOSITION:
 			l = getLocation();
-			return f.filterMatch(l != null ? l.getUnitPosition() : null);
+			return f.filterMatch(l != null ? l.getLocationInfo().getUnitPosition() : null);
 		case SUBCLASSIFICATION:
 			return hasSubClassification(f);
 		case VISUALBROWSERTIMESPAN:
@@ -1798,6 +1831,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 //	public String getTitle(StringFilter sf) {
 //		return sf.getFilteredString(title);
 //	}
+	/*
 	private Long locationID = null;
 	public Long getLocationID() {
 		return locationID;
@@ -1816,10 +1850,52 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 
 		return location;
 	}
+	*/
+    private Long locationID = null;
+    public Long getLocationID() {
+        return locationID;
+    }
+    
+    private Long homeLocationID = null;
+    public Long getHomeLocationID() {
+        return locationID;
+    }
 
+    public ArtObjectLocation getLocation() {
+        return getCurrentLocation();
+    }
+    
+    ArtObjectLocation currentLocation;
+    public ArtObjectLocation getCurrentLocation() {
+        return currentLocation;
+    }
+    
+    ArtObjectLocation homeLocation;
+    public ArtObjectLocation getHomeLocation() {
+        return homeLocation;
+    }
+    
+    private String departmentCode = null;
+    public String getDepartmentCode() {
+        return departmentCode;
+    }
+    
+    private TMSSTATUS tmsStatus = TMSSTATUS.NULL;
+    public TMSSTATUS getTMSStatus()
+    {
+        return tmsStatus;
+    }
 	public Boolean isOnView() {
+		/*
 		Location loc = getLocation();
 		return loc == null ? false : loc.isPublicLocation();
+		*/
+		boolean onView = false;
+	    if (getLocation() != null)
+	    {
+	        onView = getLocation().getLocationInfo().isPublicLocation();
+	    }
+		return onView;
 	}
 
 	private String displayDate = null;
@@ -1857,7 +1933,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 	}
 
 	private Long parentID = null;
-	private Long getParentID() {
+	protected Long getParentID() {
 		return parentID;
 	}
 

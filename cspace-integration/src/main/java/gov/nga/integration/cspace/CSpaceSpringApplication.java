@@ -31,7 +31,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @EnableScheduling
-@ComponentScan({"gov.nga.integration.cspace","gov.nga.api.iiif.auth"})
+@ComponentScan({"gov.nga.integration","gov.nga.api.iiif.auth"})
 public class CSpaceSpringApplication {
 
     public static void main(String[] args) {

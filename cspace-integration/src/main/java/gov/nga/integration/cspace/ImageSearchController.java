@@ -54,6 +54,7 @@ import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.ArtObject.SORT;
+import gov.nga.integration.controllers.RecordSearchController;
 import gov.nga.entities.art.Derivative;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;

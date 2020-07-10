@@ -32,7 +32,7 @@ import java.util.Comparator;
 
 public class ArtObjectConstituent extends ArtEntityImpl {
 	
-	private Constituent constituent;
+	protected Constituent constituent;
 	
 	// private static final Logger log = LoggerFactory.getLogger(ArtObjectConstituent.class);
 	

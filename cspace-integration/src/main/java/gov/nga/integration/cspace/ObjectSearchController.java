@@ -55,6 +55,7 @@ import gov.nga.entities.art.OperatingModeService;
 import gov.nga.entities.art.Derivative;
 import gov.nga.entities.art.ArtObject.SORT;
 import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.integration.controllers.RecordSearchController;
 import gov.nga.integration.cspace.imageproviders.WebImage;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchFilter;
@@ -64,7 +65,7 @@ import gov.nga.search.SortHelper;
 
 import gov.nga.utils.CollectionUtils;
 
-import gov.nga.utils.StringUtils;
+import gov.nga.common.utils.StringUtils;
 
 @RestController
 public class ObjectSearchController extends RecordSearchController {
@@ -133,6 +134,9 @@ public class ObjectSearchController extends RecordSearchController {
 			@RequestParam(value="hasOverviewText", 		required=false) String[] hasOverviewText,
 			@RequestParam(value="cultObj:hasOverviewText",	required=false) String[] cultObj_hasOverviewText,
 			
+			@RequestParam(value="isExhbitionMember",	required=false) String[] exhIDS,
+    		@RequestParam(value="cultObj:isExhibitionMember", required=false) String[] cultObj_exhIDS,
+			
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
 			@RequestParam(value="base64", 				required=false, defaultValue="true") boolean base64,
@@ -171,6 +175,7 @@ public class ObjectSearchController extends RecordSearchController {
     	processTextField(searchHelper, overviewText, cultObj_overviewText, ArtObject.SEARCH.OVERVIEW);
     	processTextField(searchHelper, hasOverviewText, cultObj_hasOverviewText, ArtObject.SEARCH.HASOVERVIEWTEXT);
     	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
+    	processExhibitionField(searchHelper, exhIDS, cultObj_exhIDS);
     	
     	SortHelper<ArtObject> sortHelper = getSortHelper(order);
     	
@@ -252,7 +257,7 @@ public class ObjectSearchController extends RecordSearchController {
 	}
     
     protected static ArtObject.SORT fieldNameToSortEnum(OrderField f) {
-    	if (StringUtils.isNullOrEmpty(f.fieldName))
+    	if (StringUtils.isBlank(f.fieldName))
     		return null;
     	switch (f.fieldName) {
     	case "cultObj:title" :
@@ -309,11 +314,21 @@ public class ObjectSearchController extends RecordSearchController {
 
     	List<String> nList = CollectionUtils.newArrayList();
     	for (String an : aList) {
-    		if (!StringUtils.isNullOrEmpty(an))
+    		if (StringUtils.isNotBlank(an))
     			nList.add(an);
     	}
     	if (nList != null && nList.size() > 0)
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.LIKE, field, nList, true));
+    }
+    
+    //Exhibitions
+    protected static void processExhibitionField(final SearchHelper<ArtObject> searchHelper, final String[] idValues1, final String[] idValues2) {
+    	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(idValues1, idValues2));
+    	
+    	if (aList.size() > 0)
+    	{
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.ISEXHIBITIONMEMBER, aList));
+    	}
     }
 
 	// ID FIELD

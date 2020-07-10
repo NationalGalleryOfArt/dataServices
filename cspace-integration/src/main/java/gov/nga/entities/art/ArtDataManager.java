@@ -28,6 +28,7 @@ package gov.nga.entities.art;
 
 
 import gov.nga.entities.art.ArtObject.FACET;
+import gov.nga.entities.art.TMSFetcher.TMSData;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ArtObjectFactoryImpl;
 import gov.nga.entities.art.factory.ConstituentFactory;
@@ -38,13 +39,17 @@ import gov.nga.search.FreeTextSearchable;
 import gov.nga.search.ResultsPaginator;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SortHelper;
-import gov.nga.utils.CollectionUtils;
+import gov.nga.common.utils.CollectionUtils;
 import gov.nga.utils.ConfigService;
 import gov.nga.utils.MutableInt;
-import gov.nga.utils.StringUtils;
+import gov.nga.common.utils.StringUtils;
 import gov.nga.utils.SystemUtils;
-import gov.nga.utils.TypeUtils;
 import gov.nga.utils.db.DataSourceService;
+import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.Location;
+import gov.nga.common.entities.art.SuggestType;
+import gov.nga.common.suggest.Suggest;
+import gov.nga.common.suggest.Suggestion;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -74,7 +79,8 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
 	private static ArtObjectFactory<ArtObject> artObjFactory = new ArtObjectFactoryImpl();
     
     private static ConstituentFactory<Constituent> constFactory = new ConstituentFactoryImpl();
-    
+
+    /*
     private static Comparator<Suggestion> suggestionAlphaDiacriticNormalizedComparator =
         new Comparator<Suggestion>() {
             public int compare(Suggestion a, Suggestion b) {
@@ -82,7 +88,6 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
                 return j;
             }
         };
-    
     public class Suggestion {
         private Long entityID = null;
         private String string = null;
@@ -119,7 +124,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
             return (Long.valueOf(entityID).hashCode() >> 13) ^ string.hashCode();
         };
     }
-
+	*/
     private static final Logger log = LoggerFactory.getLogger(ArtDataManager.class);
 
     // cache of art object data
@@ -135,6 +140,9 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
 
     // cache of location data
     private Map<Long, Location> locations = null;
+    
+    // cache of exhibition data
+    private Map<Long, Exhibition> exhibitions = null;
 
     // cache of web defined location / place definitions which are
     // also mapped to visual maps and TMS location IDs
@@ -163,7 +171,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
     public final String operatingModePropertyName = "operatingMode"; 
     public OperatingMode getOperatingMode() {
     	String opmode = getConfig().getString(operatingModePropertyName);
-    	if ( !StringUtils.isNullOrEmpty(opmode) && opmode.equals(OperatingMode.PRIVATE.toString()) )
+    	if (StringUtils.isNotBlank(opmode) && opmode.equals(OperatingMode.PRIVATE.toString()) )
     		return OperatingMode.PRIVATE;
     	else
     		return OperatingMode.PUBLIC;
@@ -235,7 +243,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         }
         finally {
             if (!loaded) {
-                unload();
+    			unload();
                 // attempt to reschedule the bundle load in 30 seconds
                 // since we failed to load the first time
                 try { 
@@ -254,7 +262,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
     }
 
     synchronized public void unload() {
-        log.info("**************************** Unloading Previous Art Data Manager cached data *************************************************");
+        log.info("**************************** Unloading Previous Art Data Manager cached data--- *************************************************");
         setDataReady(false);
         setArtObjects(null);
         setLocations(null);
@@ -265,6 +273,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         setArtObjectTitleWords(null);
         setArtistAltNames(null);
         setOwnerAltNames(null);
+        setSuggestionManager(null);
         System.gc();
         log.info(SystemUtils.freeMemorySummary());
 //        clearDerivativesRaw();
@@ -277,77 +286,28 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         // load all art object constituent data first, then pass that
         // map to both the object manager and constituent manager
         try {
-            log.info("Loading all object constituent relationships");
-            EntityQuery<ArtObjectConstituent> eq = new EntityQuery<ArtObjectConstituent>(getDataSourceService());
-            List<ArtObjectConstituent> ocs = eq.fetchAll(ArtObjectConstituent.fetchAllObjectsConstituentsQuery, new ArtObjectConstituent(this));
-            log.info("found this many object constituent relationships: " + ocs.size());
-
-            log.info("Loading all location and related data");
-            Map<Long, Location> newLocations = loadLocations();
-            Map<String, Place> newPlaces = loadPlaces();
-            Map<Long, Place> newPlacesTMSLocations = loadPlacesTMSLocations(newPlaces);
-
-            log.info("Loading all media and media relationshps");
-            Map<Long, Media> newMediaItems = loadMediaItems();
-            Map<String, List<Media>> newMediaRelationshps = loadMediaRelationships(newMediaItems);
-
-            log.info("Loading all components");
-            List<ArtObjectComponent> aocomps = loadComponents();
-            
-            log.info("Loading all art object text entries");
-            EntityQuery<ArtObjectTextEntry> teq = new EntityQuery<ArtObjectTextEntry>(getDataSourceService());
-            List<ArtObjectTextEntry> teList = teq.fetchAll(ArtObjectTextEntry.allTextEntryQuery, new ArtObjectTextEntry(this));
-            log.info("found this many art object text entries: " + teList.size());
-
-            log.info("Loading all art object historical data entries");
-            EntityQuery<ArtObjectHistoricalData> aohistq = new EntityQuery<ArtObjectHistoricalData>(getDataSourceService());
-            List<ArtObjectHistoricalData> aohist = aohistq.fetchAll(ArtObjectHistoricalData.allHistoricalDataQuery, new ArtObjectHistoricalData(this));
-            log.info("found this many art object historical data entries: " + aohist.size());
-
-            log.info("Loading all art object dimensions");
-            EntityQuery<ArtObjectDimension> aoDimsq = new EntityQuery<ArtObjectDimension>(getDataSourceService());
-            List<ArtObjectDimension> aoDims = aoDimsq.fetchAll(ArtObjectDimension.allObjectsDimensionsQuery, new ArtObjectDimension(this));
-            log.info("found this many art object dimensions: " + aoDims.size());
-
-            log.info("Loading all inter art object associations");
-            EntityQuery<ArtObjectAssociationRecord> aq = new EntityQuery<ArtObjectAssociationRecord>(getDataSourceService());
-            List<ArtObjectAssociationRecord> aoas = aq.fetchAll(ArtObjectAssociationRecord.fetchAllArtObjectAssociationsQuery, new ArtObjectAssociationRecord(this));
-            log.info("found this many art object assocations: " + aoas.size());
-
-            log.info("Loading all art objects and related data");
-            Map<Long, ArtObject> newArtObjects = getArtObjects(ocs, teList, aohist, aoDims, aoas, aocomps);
-            
-            EntityQuery<ConstituentAltName> ceq = new EntityQuery<ConstituentAltName>(getDataSourceService());
-            log.info("Loading all constituent alternate names");
-            List<ConstituentAltName> alts = ceq.fetchAll(ConstituentAltName.fetchAllConstituentAltNamessQuery, new ConstituentAltName(this));
-            log.info("found this many constituent alternate names: " + alts.size());
-
-            log.info("Loading all constituent text entries");
-            EntityQuery<ConstituentTextEntry> cte = new EntityQuery<ConstituentTextEntry>(getDataSourceService());
-            List<ConstituentTextEntry> ctes = cte.fetchAll(ConstituentTextEntry.allTextEntryQuery, new ConstituentTextEntry(this));
-            log.info("found this many constituent text entries: " + ctes.size());
-
-            log.info("Loading all constituent and related data");
-            Map<Long, Constituent> newConstituents = getConstituents(ocs, alts, ctes);
+            TMSData newData = new TMSFetcher(getDataSourceService(), OperatingModeService.OperatingMode.PRIVATE, this).load();
             
             log.info("Computing art object title words and constituent altnames for suggest feature");
-            
-            Map<String, Set<Suggestion>> newArtObjectTitleWords = parseArtObjectTitleWords(newArtObjects);
-        	Map<String, Set<Suggestion>> newArtistAltNames = parseArtistAltNames(newConstituents);
-        	Map<String, Set<Suggestion>> newOwnerAltNames = parseOwnerAltNames(newConstituents);
-
+            final SuggestionManager sMgr = new SuggestionManager();
+            parseArtObjectTitleWords(newData.artObjects, sMgr);
+        	parseExhibitions(newData.exhibitions, sMgr);
+        	parseConstituents(newData.constituents, sMgr);
+        	log.info(String.format("Suggestion Manager built: %s", sMgr));
+            log.info(SystemUtils.freeMemorySummary());
         	// dump any cached data we might still have before setting the new set in place  
-        	unload();
-        	setLocations(newLocations);
-        	setPlaces(newPlaces);
-        	setPlacesTMSLocations(newPlacesTMSLocations);
-        	setMediaItems(newMediaItems);
-        	setMediaRelationships(newMediaRelationshps);
-        	setArtObjects(newArtObjects);
-        	setArtObjectTitleWords (newArtObjectTitleWords);
-        	setConstituents(newConstituents);
-        	setArtistAltNames(newArtistAltNames);
-        	setOwnerAltNames(newOwnerAltNames);
+
+			unload();
+        	log.info("Cache cleared, setting new values");
+        	setLocations(newData.locations);
+        	setPlaces(newData.newPlaces);
+        	setPlacesTMSLocations(newData.newPlacesTMSLocations);
+        	setMediaItems(newData.newMediaItems);
+        	setMediaRelationships(newData.newMediaRelationshps);
+        	setArtObjects(newData.artObjects);
+        	setConstituents(newData.constituents);
+        	setExhibitions(newData.exhibitions);
+        	setSuggestionManager(sMgr);
         	log.info("Data refresh complete. Ready to serve queries.");
             // we can start serving queries again now
             setDataReady(true);
@@ -361,13 +321,13 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
             getIndexOfArtistsRanges();
             log.info("**************************** Finished Loading Art Data Manager Cached Data Set *******************************************");
             log.info(SystemUtils.freeMemorySummary());
-
+            log.info("Returning true");
             return true;
         }
         // if we are unable to fetch the data we need, then we reschedule
         // ourselves which will attempt to kick off another refresh immediately
-        catch (SQLException se) {
-            log.error("ERROR Loading TMS Data: " + se.getMessage(), se );
+        catch (final Exception se) {
+            log.error("ERROR Loading TMS Data:: " + se.getMessage(), se );
         }
         return false;
     }
@@ -572,82 +532,88 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
     }
      */
     
-    private static String cleanupForMatching(String original) {
-        if (original == null)
-            return null;
-        
-        return
-            StringUtils.removeHTML(original).toLowerCase()
-            .replaceAll("^[^\\p{L}]+", " ")
-            .replaceAll("[^\\p{L}]+$", " ")
-            .replaceAll("\\s+[^\\p{L}]+", " ")
-            .replaceAll("[^\\p{L}]+\\s+", " ")
-            .replaceAll("-{2,}", " ")
-            .replaceAll("[^-\'\\p{L}]", " ")
-            // get rid of non-letter characters at beginning of word
-            .replaceAll("^[^\\p{L}]+", "")
-            // and at end of word
-            .replaceAll("[^\\p{L}]+$", "");
-        
+    private SuggestionManager suggestMgr = null;
+    private SuggestionManager getSuggestionManager() {
+    	return suggestMgr;
     }
     
-    private static String cleanupForLettersOnlyMatching(String original)
-    {
-        String cleanedString = null;
-        if (original != null)
-        {
-            cleanedString = cleanupForMatching(original)
-                                .replaceAll("[\']+", "")
-                                .replaceAll("[-/]+", " ");
-        }
-        return cleanedString;
+    private void setSuggestionManager(final SuggestionManager manager) {
+    	suggestMgr = manager;
     }
+
     
-    synchronized private Map<String, Set<Suggestion>> parseArtObjectTitleWords(Map<Long, ArtObject> newArtObjects) {
-    	Map<String, Set<Suggestion>> newArtObjectTitleWords = null;
-        newArtObjectTitleWords = CollectionUtils.newTreeMap(
-                new Comparator<String>() {
-                    public int compare(String a, String b) {
-                        return StringUtils.getDefaultCollator().compare(a, b);
-                    }
-                }
-        );
+    synchronized private void parseArtObjectTitleWords(final Map<Long, ArtObject> newArtObjects,
+    						final SuggestionManager suggMgr) {
 
         if (newArtObjects != null) {
+        	suggMgr.setTypeMode(SuggestType.ARTOBJECT_TITLE);
             for (ArtObject o : newArtObjects.values()) {
-                String title = o.getTitle();
-                consumeIndexPair(newArtObjectTitleWords, title, o.getObjectID());
+                if (StringUtils.isNotBlank(o.getTitle())) {
+                	Suggest.consumeIndexPair(suggMgr.getMap(SuggestType.ARTOBJECT_TITLE), o.getTitle().toLowerCase(), o, suggMgr);
+                }
             }
         }
-        return newArtObjectTitleWords;
     }
 
-    public List<String> suggestArtObjectTitles(String artistName, String titleWords) {
+    synchronized private void parseConstituents(final Map<Long, Constituent> newConstituents, final SuggestionManager suggMgr) {
+    	if (newConstituents != null) {
+            for (Constituent c : newConstituents.values()) {
+            	SuggestType typeTitle = null;
+                if (c.isArtistOfNGAObject()) {
+                	typeTitle = SuggestType.ARTIST_TITLE;
+                }
+                else {
+                	typeTitle = SuggestType.PROVENANCE_TITLE;
+                }
+                suggMgr.setTypeMode(typeTitle);
+				Suggest.consumeIndexPair(suggMgr.getMap(typeTitle), c.getPreferredDisplayName().toLowerCase(), c, suggMgr);
+				if (c.getAltNames() != null) 
+                {
+                    for (ConstituentAltName a: c.getAltNames()) 
+                    {
+                        Suggest.consumeIndexPair(suggMgr.getMap(typeTitle), a.getDisplayName(), c, suggMgr);
+                    }
+                }
+                	
+            }
+            log.info("Done with Constituen Names");
+        }
+    }
 
-        isDataReady(true);
-
-        // we need to do two things here
+    synchronized private void parseExhibitions(final Map<Long, Exhibition> newExhibitions, final SuggestionManager suggMgr) {
+    	if (newExhibitions != null) {
+    		suggMgr.setTypeMode(SuggestType.EXHIBITION_TITLE);
+            for (Exhibition c : newExhibitions.values()) {
+            	Suggest.consumeIndexPair(suggMgr.getMap(SuggestType.EXHIBITION_TITLE), c.getTitle(), c, suggMgr);
+            }
+            log.info("Done with parseExhibitions");
+        }
+    }
+    
+    @Override
+    public List<ArtDataSuggestion> suggestArtObjectsByArtistName(final String artistName, final String titleTerm) {
+    	// we need to do two things here
         // 1. match on the full string that was entered for list #1
         // 2. match on each string individually and find the intersection
         // of all lists, remove any items from #2 that intersect with #1
         // 3. sort list 1 and list 2 separately then concatenate them together
         
         // match against the full string that was supplied
-        Set<Suggestion> matches = suggest(artObjectTitleWords,titleWords);
+        Set<ArtDataSuggestion> matches = Suggest.suggest(getSuggestionManager().getMap(SuggestType.ARTOBJECT_TITLE), titleTerm);
         
-        String splitWords = titleWords;
-        Set<Suggestion> wordMatches = null;
+        String splitWords = titleTerm;
+        Set<ArtDataSuggestion> wordMatches = null;
         if (splitWords != null && splitWords.length() > 0) {
             // now add the results from each word separately
             // but only keep results that match ALL words individually 
             for (String s : splitWords.split("\\s+")) {
-                Set<Suggestion> set = suggest(artObjectTitleWords, s);
+                Set<ArtDataSuggestion> set = Suggest.suggest(getSuggestionManager().getMap(SuggestType.ARTOBJECT_TITLE), s);
                 if (wordMatches == null)
                     wordMatches = set;
                 else {
                     // only keep suggestion if it exists for all words supplied
-                    Set<Suggestion> copyMatches = CollectionUtils.newHashSet();
-                    for (Suggestion sug : wordMatches) {
+                    Set<ArtDataSuggestion> copyMatches = CollectionUtils.newHashSet();
+                    for (ArtDataSuggestion sug : wordMatches) {
                         if (set.contains(sug))
                             copyMatches.add(sug);
                     }
@@ -661,23 +627,33 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
             matches.addAll(wordMatches);
         
         Set<Long> worksIDs = null;
-        if (artistName != null && artistName.length() > 0) {
-            for (Suggestion artistSug : suggestNameSet(artistName,artistAltNames) ) {
+        if (artistName != null && artistName.length() > 0) 
+        {
+            for (ArtDataSuggestion artistSug : Suggest.suggestNameSet(artistName, getSuggestionManager().getMap(SuggestType.ARTIST_TITLE)) ) 
+            {
                 if (worksIDs == null)
+                {
                     worksIDs = CollectionUtils.newHashSet();
+                }
                 //log.info("artist: " + artistSug.entityID);
-                Constituent c = fetchByConstituentID(artistSug.entityID);
-                worksIDs.addAll(c.getWorksIDs());
+                Constituent c = fetchByConstituentID(artistSug.getEntityID());
+                if (c != null)
+                {
+	                worksIDs.addAll(c.getWorksIDs());
+                }
             }
         }
-        if (worksIDs != null) {
+        if (worksIDs != null) 
+        {
             // only keep suggestions that also match the suggestions 
             // for the given artist name
-            Set<Suggestion> set = CollectionUtils.newHashSet();
-            if (matches != null) {
-                for (Suggestion oSug : matches) {
+            Set<ArtDataSuggestion> set = CollectionUtils.newHashSet();
+            if (matches != null) 
+            {
+                for (ArtDataSuggestion oSug : matches) 
+                {
                     //log.info("title:" + oSug.string + " id:" + oSug.entityID);
-                    if (worksIDs.contains(Long.valueOf(oSug.entityID)))
+                    if (worksIDs.contains(Long.valueOf(oSug.getEntityID())))
                         set.add(oSug);
                 }
                 matches = set;
@@ -686,271 +662,94 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
 
         // now we need to remove duplicates and sort w.r.t. the given
         // string
-        Set<String> primaryTitles = CollectionUtils.newHashSet();
-        Set<String> secondaryTitles = CollectionUtils.newHashSet();
-        String title = StringUtils.removeDiacritics(cleanupForMatching(titleWords));
+        Set<ArtDataSuggestion> primaryTitles = CollectionUtils.newHashSet();
+        Set<ArtDataSuggestion> secondaryTitles = CollectionUtils.newHashSet();
+        String title = StringUtils.removeDiacritics(StringUtils.cleanupForMatching(titleTerm));
         if (matches != null) {
-            for (Suggestion suggestion : matches) {
-                String sugg = StringUtils.removeDiacritics(cleanupForMatching(suggestion.string));
+            for (ArtDataSuggestion suggestion : matches) 
+            {
+                String sugg = StringUtils.removeDiacritics(StringUtils.cleanupForMatching(suggestion.getCompareString()));
                 if (sugg.startsWith(title))
-                    primaryTitles.add(StringUtils.removeMarkup(suggestion.string, false));
+                    primaryTitles.add(suggestion);
                 else
-                    secondaryTitles.add(StringUtils.removeMarkup(suggestion.string, false));
+                    secondaryTitles.add(suggestion);
             }
         }
             
         // remove any duplicates
-        for (String s : primaryTitles) {
+        for (ArtDataSuggestion s : primaryTitles) {
             if (secondaryTitles.contains(s))
                 secondaryTitles.remove(s);
         }
         
         // sort the two lists independently and then combine them  
-        List<String> suggestions = CollectionUtils.toSortedAlphaDiacriticNormalizedList(primaryTitles);
+        List<ArtDataSuggestion> suggestions = CollectionUtils.toSortedAlphaDiacriticNormalizedList(primaryTitles);
         suggestions.addAll(CollectionUtils.toSortedAlphaDiacriticNormalizedList(secondaryTitles));
-
-        return suggestions;
-    }
-    
-    private void consumeIndexPair(Map<String, Set<Suggestion>> map, String key, String value, Long entityID) {
-        if (value != null && value.length() > 0) {
-            if (key != null && key.length() > 0) {  //TODO review putting a minimum length here
-                Set<Suggestion> suggestions = map.get(key);
-                if (suggestions == null) {
-                    suggestions = CollectionUtils.newHashSet();
-                    map.put(key, suggestions);
-                }
-                suggestions.add(new Suggestion(value, entityID));
-            }
-        }
-    }
-    
-    private void consumeIndexPair(Map<String,Set<Suggestion>> map, String value, Long entityID) {
-        if (value != null && value.length() > 0) {
-            String key = cleanupForMatching(value);
-            // include the full value as it's own "word" so we can try to match
-            // the whole thing at once if we want - this would be the first
-            // part of suggest I guess //TODO review this
-            consumeIndexPair(map, key, value, entityID);
-            // split the cleaned up key on white space and index each word separately
-            for (String word : key.split("\\s+")) {
-                consumeIndexPair(map, word, value, entityID);
-            }
-            
-            //Now strip out any non letters/white space for matching
-            String strippedName = cleanupForLettersOnlyMatching(key);
-            if (!strippedName.equals(key))
-            {
-                //log.debug("stripped: " + key + " :: " + strippedName + "(" + entityID + ")");
-                consumeIndexPair(map, strippedName, value, entityID);
-                // split the cleaned up key on white space and index each word separately
-                for (String word : strippedName.split("\\s+")) {
-                    consumeIndexPair(map, word, value, entityID);
-                }
-            }
-        }
-    }
-
-    synchronized private Map<String, Set<Suggestion>> parseArtistAltNames(Map<Long, Constituent> newConstituents) {
-    	Map<String, Set<Suggestion>> newArtistAltNames = CollectionUtils.newTreeMap(
-                new Comparator<String>() {
-                    public int compare(String a, String b) {
-                        return StringUtils.getDefaultCollator().compare(a, b);
-                    }
-                }
-        );
-
-        if (newConstituents != null) {
-            for (Constituent c : newConstituents.values()) {
-                if (c.isArtistOfNGAObject()) {
-                    consumeIndexPair(newArtistAltNames, c.getPreferredDisplayName(), c.getConstituentID());
-                    if (c.getAltNames() != null) {
-                        for (ConstituentAltName a: c.getAltNames()) {
-                            consumeIndexPair(newArtistAltNames, a.getDisplayName(), c.getConstituentID());
-                        }
-                    }
-                }
-            }
-            log.info("Done with parseArtistAltNames");
-        }
-    	return newArtistAltNames;
-    }
-
-    synchronized private Map<String, Set<Suggestion>> parseOwnerAltNames(Map<Long, Constituent> newConstituents) {
-    	Map<String, Set<Suggestion>> newOwnerAltNames = CollectionUtils.newTreeMap(
-                new Comparator<String>() {
-                    public int compare(String a, String b) {
-                        return StringUtils.getDefaultCollator().compare(a, b);
-                    }
-                }
-        );
-        
-        if (newConstituents != null) {
-            for (Constituent c : newConstituents.values()) {
-                if (c.isPreviousOwnerOfNGAObject()) {
-                    consumeIndexPair(newOwnerAltNames, c.getPreferredDisplayName(), c.getConstituentID());
-                    if (c.getAltNames() != null) {
-                        for (ConstituentAltName a: c.getAltNames()) {
-                            consumeIndexPair(newOwnerAltNames, a.getDisplayName(), c.getConstituentID());
-                        }
-                    }
-                }
-                
-            }
-            log.info("Done with parseOwnerAltNames");
-        }
-    	return newOwnerAltNames;
-    }
-
-    private Set<Suggestion> suggest(Map<String, Set<Suggestion>> map, String string) {
-        Set<Suggestion> eSet = CollectionUtils.newHashSet();
-        if (map != null && string != null && string.length() > 0) {
-
-            // remove any non-characters except for ' and - before we look up the string in our map
-            String base = cleanupForMatching(string);
-            //String base = string.toLowerCase().replaceAll("[^-\'\\p{L}]", " ");
-        
-            if (base.length() > 0) {
-                TreeMap<String, Set<Suggestion>> t = (TreeMap<String, Set<Suggestion>>) map;
-
-                // set the start and end keys for the sub map call
-                // which collects all keys within a range
-                // endKey is just the base with an extra character (the largest possible one)
-                // which we will never use anyway due to our data
-                // so this should be pretty safe to use
-                String startKey = base;
-                String endKey = base + Character.MAX_VALUE;
-//              log.info("DDDDDDDDDDDDDDDDDDDDDDDDDDDDD: Searching for: " + startKey);
-                Map<String, Set<Suggestion>> sMap = t.subMap(startKey, endKey);
-                for (Set<Suggestion> set : sMap.values()) {
-                    eSet.addAll(set);
-                }
-            }
-        }
-        return eSet;
-    }
-
-    private Set<Suggestion> suggestNameSet(String baseName, Map<String, Set<Suggestion>> dataMap) {
-        // suggest based on the full string entered
-        Set<Suggestion> suggestions = suggest(dataMap, baseName);
-
-        // now process each word separately and come up with another
-        // list of suggestions where all terms match each suggestion
-        String splitString = cleanupForMatching(baseName);
-        Set<Suggestion> wordMatches = null;
-        for (String name : splitString.split("\\s+")) {
-            Set<Suggestion> set = suggest(dataMap, name);
-            if (wordMatches == null)
-                wordMatches = set;
-            else {
-                // only keep suggestion if it exists for all the words supplied
-                Set<Suggestion> copyMatches = CollectionUtils.newHashSet();
-                for (Suggestion sug : wordMatches ) {
-                    if (set.contains(sug))
-                        copyMatches.add(sug);
-                }
-                wordMatches = copyMatches;
-            }
-        }
-        
-        // add the suggestions from word matching to the set of suggestions
-        if (suggestions != null && wordMatches != null)
-            suggestions.addAll(wordMatches);
         
         return suggestions;
     }
-    
-    private List<Suggestion> suggestSuggestions(String baseName, Set<Suggestion> suggestions) {
-        // be sure data is loaded before we let the API get used
-        isDataReady(true);
 
-        List<Suggestion> combined = new ArrayList<Suggestion>();
-        // prioritize based on closeness of match to given name
-        Set<Suggestion> bestNames = CollectionUtils.newHashSet();
-        Set<Suggestion> otherNames = CollectionUtils.newHashSet();
-        List<Suggestion> otherNamesList = new ArrayList<Suggestion>();
-        
-        if (suggestions != null) {
-            // now, prioritize the suggestions based on names that
-            // match the given string (
-            String base = StringUtils.removeDiacritics(cleanupForMatching(baseName));
-            for (Suggestion suggestion : suggestions) {
-                String sugg = StringUtils.removeDiacritics(cleanupForMatching(suggestion.string));
-                if (sugg.startsWith(base)) {
-                    bestNames.add(suggestion);
-                }
-                else {
-                    otherNames.add(suggestion);
-                }
-            }
-            // remove duplicate string values
-            for (Suggestion s : bestNames) {
-                if (otherNames.contains(s))
-                    otherNames.remove(s);
-            }
-            combined.addAll(bestNames);
-            Collections.sort(combined, suggestionAlphaDiacriticNormalizedComparator);
-            otherNamesList.addAll(otherNames);
-            Collections.sort(otherNamesList, suggestionAlphaDiacriticNormalizedComparator);
-            combined.addAll(otherNamesList);
-        }
-        
-        return combined;
+    @Override
+    public List<ArtDataSuggestion> suggestArtObjectsByTitle(final String baseName) {
+    	return Suggest.suggestSuggestions(baseName, Suggest.suggestNameSet(baseName, getSuggestionManager().getMap(SuggestType.ARTOBJECT_TITLE)));
+    }
+
+    @Override
+    public List<ArtDataSuggestion> suggestArtists(final String baseName) {
+    	return Suggest.suggestSuggestions(baseName, Suggest.suggestNameSet(baseName, getSuggestionManager().getMap(SuggestType.ARTIST_TITLE)));
+    }
+
+    @Override
+    public List<ArtDataSuggestion> suggestExhibitions(final String baseName) {
+    	return Suggest.suggestSuggestions(baseName, Suggest.suggestNameSet(baseName, getSuggestionManager().getMap(SuggestType.EXHIBITION_TITLE)));
     }
     
-    public List<Suggestion> suggestArtObjectsByArtistName(String baseName) {
-    	List<Suggestion> constituentSuggestions = suggestSuggestions(baseName, suggestNameSet(baseName, artistAltNames));
-    	List<Suggestion> objectSuggestions = CollectionUtils.newArrayList();
-    	for (Suggestion s: constituentSuggestions) {
-    		Constituent c = fetchByConstituentID(s.getEntityID());
-    		if (c != null) {
-    			for (Long id : c.getWorksIDs()) {
-    				objectSuggestions.add(new Suggestion(s.getString(),id));
+    @Override
+    public List<ArtDataSuggestion> suggestOwners(final String baseName) {
+        return Suggest.suggestSuggestions(baseName, Suggest.suggestNameSet(baseName, getSuggestionManager().getMap(SuggestType.PROVENANCE_TITLE)));
+    }
+    
+    synchronized private void setExhibitions(final Map<Long, Exhibition> newExhibitions) {
+    	exhibitions = newExhibitions;
+    }
+    
+    public Map<Long, Exhibition> getExhibtionsRaw() {
+    	return exhibitions != null ? exhibitions : CollectionUtils.newHashMap();
+    }
+    
+    public List<Exhibition> getExhibtions() {
+    	final List<Exhibition> list = CollectionUtils.newArrayList();
+    	if (exhibitions != null)
+    	{
+    		list.addAll(exhibitions.values());
+    	}
+    	return list;
+    }
+    
+    @Override
+    public Exhibition fetchByExhibtionID (final long id) throws DataNotReadyException {
+    	Exhibition result = null;
+    	if (exhibitions != null) result = exhibitions.get(id);
+    	return result;
+    }
+    
+    @Override
+	public List<Exhibition>	fetchByExhibitionIDS(final List<Long> ids) throws DataNotReadyException {
+    	final List<Exhibition> results = CollectionUtils.newArrayList();
+    	if (exhibitions != null && ids != null)
+    	{
+    		for (Long id: ids) {
+    			if (id != null)
+    			{
+    				Exhibition cnd = exhibitions.get(id);
+    				if (cnd != null)
+    				{
+    					results.add(cnd);
+    				}
     			}
     		}
     	}
-    	return objectSuggestions;
-    }
-
-    public List<Suggestion> suggestArtObjectsByTitle(String baseName) {
-    	return suggestSuggestions(baseName, suggestNameSet(baseName, artObjectTitleWords));
-    }
-
-    private List<String> suggestNames(String baseName, Set<Suggestion> suggestions) {
-        
-        List<Suggestion> rslts = suggestSuggestions(baseName, suggestions);
-        List<String> rsltList = new ArrayList<String> ();
-
-        if (rslts != null) {
-            for (Suggestion s: rslts)
-            {
-                rsltList.add(s.string);
-            }
-        }
-        return rsltList;
-    }
-    
-    public List<String> suggestArtistNames(String baseName) {
-        return suggestNames(baseName, suggestNameSet(baseName, artistAltNames));
-    }
-
-    public List<String> suggestOwnerNames(String baseName) {
-        return suggestNames(baseName, suggestNameSet(baseName, ownerAltNames));
-    }
-    
-    public Map<Long, String> suggestOwners(String baseName) {
-        log.debug("Suggest Owners called with param: " + baseName);
-        LinkedHashMap<Long, String> rslts = new LinkedHashMap<Long, String>();
-        List<Suggestion> suggestions = suggestSuggestions(baseName, suggestNameSet(baseName, ownerAltNames));
-        if (suggestions != null)
-        {
-            for (Suggestion s: suggestions)
-            {
-                rslts.put(s.entityID, s.string);
-            }
-        }
-        log.debug("Suggest Owners hits: " + rslts.size());
-        return rslts;
+    	return results;
     }
 
     synchronized private void setArtObjects(Map<Long, ArtObject> newArtObjects) {
@@ -1559,6 +1358,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         return rooms;
     }
 
+    /*
     // load all art object locations
     synchronized protected Map<Long, Location> loadLocations() throws SQLException {
         Map<Long, Location> newLocations = CollectionUtils.newHashMap();
@@ -1571,6 +1371,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         }
         return newLocations;
     }
+    */
 
     // load all web defined places which (mostly) have TMS objects residing in them
     synchronized protected Map<String, Place> loadPlaces() throws SQLException {

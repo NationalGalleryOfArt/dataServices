@@ -37,7 +37,7 @@ import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectComponent;
 import gov.nga.entities.art.Bibliography;
 import gov.nga.entities.art.OperatingModeService;
-import gov.nga.entities.art.Location;
+import gov.nga.common.entities.art.Location;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 

@@ -32,7 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-public class Place extends ArtEntityImpl {
+public class Place extends ArtEntityImpl implements gov.nga.common.entities.art.Place {
 	
 	protected static final String fetchAllPlacesQuery = 
 			"SELECT pl.locationKey, pl.locationType, pl.description, pl.isPublicVenue, " +

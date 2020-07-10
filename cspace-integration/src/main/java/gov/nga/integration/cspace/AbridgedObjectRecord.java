@@ -39,6 +39,7 @@ import gov.nga.entities.art.ArtObjectConstituent;
 import gov.nga.entities.art.ArtObjectImage;
 import gov.nga.entities.art.Media;
 import gov.nga.entities.art.OperatingModeService;
+import gov.nga.entities.art.Place;
 import gov.nga.integration.cspace.ArtObjectPredicates.ARTOBJECTPREDICATES;
 import gov.nga.integration.cspace.MediaPredicates.MEDIAPREDICATES;
 import gov.nga.integration.cspace.imageproviders.WebImage;
@@ -255,8 +256,8 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 	}
 	
 	public void setCurrent_location(ArtObject o) {
-		if (o.getLocation() != null && o.getLocation().getPlace() != null)
-			this.current_location = new PlaceRecord(o.getLocation().getPlace());
+		if (o.getLocation() != null && o.getLocation().getLocationInfo().getPlace() != null)
+			this.current_location = new PlaceRecord((Place) o.getLocation().getLocationInfo().getPlace());
 	}
 	
 	public PlaceRecord getCurrent_location() {

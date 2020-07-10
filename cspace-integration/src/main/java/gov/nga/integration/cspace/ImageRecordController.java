@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.OperatingModeService;
+import gov.nga.integration.controllers.RecordSearchController;
 import gov.nga.entities.art.Derivative;
 import gov.nga.search.SearchHelper;
 import gov.nga.search.SearchHelper.SEARCHOP;

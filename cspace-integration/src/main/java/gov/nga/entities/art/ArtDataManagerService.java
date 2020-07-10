@@ -23,7 +23,7 @@
 */
 package gov.nga.entities.art;
 
-import gov.nga.entities.art.ArtDataManager.Suggestion;
+import gov.nga.common.suggest.Suggestion;
 import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ConstituentFactory;
@@ -39,6 +39,9 @@ import gov.nga.utils.db.DataSourceService;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.Location;
 
 public interface ArtDataManagerService {
 	
@@ -70,9 +73,12 @@ public interface ArtDataManagerService {
 	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory) throws DataNotReadyException;
 	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher) throws DataNotReadyException;
 	public <T extends ArtObject>List<T> fetchRelatedWorks(ArtObject baseO, ArtObjectFactory<T> factory) throws DataNotReadyException;
-	public List<String> 				suggestArtObjectTitles(String artistName, String titleWords);
 	public List<Facet> 					getArtObjectFacetCounts() throws DataNotReadyException;
 
+	//Exhibitions
+	public Exhibition					fetchByExhibtionID (long id) throws DataNotReadyException;
+	public List<Exhibition>				fetchByExhibitionIDS(List<Long> ids) throws DataNotReadyException;	
+	
 	@Deprecated
 	// Narrative Services
 	public Narrative loadNarrative(long id, String query);
@@ -92,11 +98,13 @@ public interface ArtDataManagerService {
 	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory, FreeTextSearchable<C> freeTextSearcher);
 	//public <E extends ArtEntity> List<E> 	searchArtEntity(List<E> list, SearchHelper<E> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<E> sortH);
 	public Map<String, String> getIndexOfArtistsRanges();
-    public List<Suggestion> suggestArtObjectsByArtistName(String baseName);
-    public List<Suggestion> suggestArtObjectsByTitle(String baseName);
-	public List<String> suggestArtistNames(String base);
-	public List<String> suggestOwnerNames(String base);
-	public Map<Long, String> suggestOwners(String baseName);
+	
+	//Suggestions
+    public List<ArtDataSuggestion> suggestArtObjectsByArtistName(String artistName, String titleTerm);
+    public List<ArtDataSuggestion> suggestArtObjectsByTitle(String baseName);
+	public List<ArtDataSuggestion> suggestArtists(String base);
+	public List<ArtDataSuggestion> suggestOwners(String base);
+	public List<ArtDataSuggestion> suggestExhibitions(String base);
 	public Map<String, String> getAllLocationDescriptionsByRoom();
 
 	public Map<Long, ArtObject> getArtObjectsRaw();
