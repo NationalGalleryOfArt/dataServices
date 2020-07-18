@@ -35,7 +35,7 @@ import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StringUtils {
+public class StringUtils extends gov.nga.common.utils.StringUtils {
 
     public static Collator defaultCollator = Collator.getInstance();
     

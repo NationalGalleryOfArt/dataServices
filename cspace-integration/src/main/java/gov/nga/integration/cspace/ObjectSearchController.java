@@ -113,6 +113,9 @@ public class ObjectSearchController extends RecordSearchController {
     		@RequestParam(value="id", 					required=false) String[] ids,
 			@RequestParam(value="cultObj:id",			required=false) String[] cultObj_ids,
 			
+			@RequestParam(value="tmsStatus",			required=false) String[] statuses,
+			@RequestParam(value="cultObj:tmsStatus",	required=false) String[] cultObj_statuses,	
+			
 			@RequestParam(value="lastModified", 		required=false) String[] lastModified,
 			@RequestParam(value="cultObj:lastModified", required=false) String[] cultObj_lastModified,
 
@@ -176,6 +179,7 @@ public class ObjectSearchController extends RecordSearchController {
     	processTextField(searchHelper, hasOverviewText, cultObj_hasOverviewText, ArtObject.SEARCH.HASOVERVIEWTEXT);
     	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
     	processExhibitionField(searchHelper, exhIDS, cultObj_exhIDS);
+    	processTMSStatusField(searchHelper, statuses, cultObj_statuses);
     	
     	SortHelper<ArtObject> sortHelper = getSortHelper(order);
     	
@@ -286,7 +290,13 @@ public class ObjectSearchController extends RecordSearchController {
     			return ArtObject.SORT.OBJECTID_ASC;
     		else
     			return ArtObject.SORT.OBJECTID_DESC;
+    	case "cultObj:tmsStatus":
+    		if (f.ascending)
+    			return ArtObject.SORT.TMS_STATUS_ASC;
+    		else
+    			return ArtObject.SORT.TMS_STATUS_DESC;
     	}
+    	
     	return null;
     }
     
@@ -319,6 +329,16 @@ public class ObjectSearchController extends RecordSearchController {
     	}
     	if (nList != null && nList.size() > 0)
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.LIKE, field, nList, true));
+    }
+    
+    //Status
+    protected static void processTMSStatusField(final SearchHelper<ArtObject> searchHelper, final String[] idValues1, final String[] idValues2) {
+    	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(idValues1, idValues2));
+    	
+    	if (aList.size() > 0)
+    	{
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.TMSSTATUS, aList));
+    	}
     }
     
     //Exhibitions

@@ -117,6 +117,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		VISUALBROWSERTHEMEORKEYWORD,
 		NATIONALITY,
 		LASTDETECTEDMODIFICATION,
+        TMSSTATUS,
 		ISEXHIBITIONMEMBER
 	}
 
@@ -166,6 +167,8 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		LASTDETECTEDMODIFICATION_DESC,
 		FIRST_ARTIST_ASC,
 		FIRST_ARTIST_DESC,
+		TMS_STATUS_ASC,
+		TMS_STATUS_DESC,
 		
 		// only for comparing two art objects against a third base art object ( set using SortHelper.setBaseEntity() )
 		YEAR_MATCH,                             // sorts a vs. b based on matching each to the year of object c
@@ -184,6 +187,18 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		NUMARTISTNATIONALITIESINCOMMON_MATCH_DESC   // "" but for nationalities of artists
 		
 
+	}
+	
+	//Object TMS Status
+	public static enum TMSSTATUS {
+	    NULL,
+	    UNKNOWN,
+	    NONNGA,
+	    ONDEPOSIT,
+	    ONLOAN,
+	    PREACCESSIONED,
+	    ACCESSIONED,
+	    DEACCESSIONED;
 	}
 
 
@@ -225,7 +240,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			"		portfolio, watermarks, lastDetectedModification, isPublic ";
 
 		if ( mode == OperatingMode.PRIVATE )
-			fetchAllObjectsQuery += ",description, curatorialRemarks ";
+			fetchAllObjectsQuery += ",description, curatorialRemarks, statusdesc ";
 		
 		fetchAllObjectsQuery +=
 			"FROM data.objects " +
@@ -285,6 +300,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		if ( manager.getOperatingMode() == OperatingMode.PRIVATE ) {
 			description					= htmlToMarkdown(sanitizeHtml(rs.getString(39)));
 			curatorialRemarks			= htmlToMarkdown(sanitizeHtml(rs.getString(40)));
+			tmsStatus                   = getStatusFromExtract(rs.getString(41));
 		}
 	
 		// pre-compute commonly used collation keys to speed up sort routines
@@ -292,6 +308,34 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		formatFreeMedium			= StringUtils.removeOnlyHTMLAndFormatting(getMedium());
 		strippedTitleCKey 			= StringUtils.getDefaultCollator().getCollationKey(stripLeadingArticle(StringUtils.removeDiacritics(getTitle())));
 		attributionInvertedCKey 	= StringUtils.getDefaultCollator().getCollationKey(StringUtils.removeDiacritics(attributionInverted));
+	}
+	
+	private TMSSTATUS getStatusFromExtract(final String dbString) {
+	    TMSSTATUS status = TMSSTATUS.NULL;
+	    if (StringUtils.isNotBlank(dbString)) {
+	        if (dbString.equals("(unknown)")) {
+	            status = TMSSTATUS.UNKNOWN;
+	        }
+	        else if (dbString.equals("Accessioned object")) {
+                status = TMSSTATUS.ACCESSIONED;
+            }
+            else if (dbString.equals("On Deposit")) {
+                status = TMSSTATUS.ONDEPOSIT;
+            }
+            else if (dbString.equals("non-NGA")) {
+                status = TMSSTATUS.NONNGA;
+            }
+            else if (dbString.equals("Deaccessioned")) {
+                status = TMSSTATUS.DEACCESSIONED;
+            }
+            else if (dbString.equals("Non-NGA (Preaccessioned)")) {
+                status = TMSSTATUS.PREACCESSIONED;
+            }
+            else if (dbString.equals("On Loan")) {
+                status = TMSSTATUS.ONLOAN;
+            }
+	    }
+	    return status;
 	}
 
 	private String stripLeadingArticle(String text)	{
@@ -770,6 +814,10 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			return SortHelper.compareObjects(getObjectID(), ao.getObjectID());
 		case OBJECTID_DESC:
 			return SortHelper.compareObjects(ao.getObjectID(), getObjectID());
+		case TMS_STATUS_ASC:
+			return SortHelper.compareObjects(getTMSStatus().name(), ao.getTMSStatus().name());
+		case TMS_STATUS_DESC:
+			return SortHelper.compareObjects(ao.getTMSStatus().name(), getTMSStatus().name());
 		case HASLARGERIMAGERY_DESC:
 			int a = hasImagery() ? 0 : 1;
 			int b = 0;
@@ -1164,6 +1212,13 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 			return f.filterMatch(getFormatFreeTitle());
 		case OBJECTID:
 			return f.filterMatch(getObjectID().toString());
+		case TMSSTATUS:
+		    TMSSTATUS status = getTMSStatus();
+		    if (status == null)
+		    {
+		        status = TMSSTATUS.NULL;
+		    }
+		    return f.filterMatch(status.name());
 		case MEDIUM:
 			return f.filterMatch(getFormatFreeMedium());
 		case YEARS_SPAN:
