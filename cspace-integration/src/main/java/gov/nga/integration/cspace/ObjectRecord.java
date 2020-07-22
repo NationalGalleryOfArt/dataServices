@@ -21,6 +21,7 @@
 package gov.nga.integration.cspace;
 
 import java.net.MalformedURLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -114,7 +115,7 @@ public class ObjectRecord extends AbridgedObjectRecord {
     }
        
     public ObjectRecord(ArtObject o, Map<Long, Location> locs, boolean references, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
-    	super(o, references, om, ts, images, urlParts);
+    	super(o, references, om, ts, images, urlParts, Collections.emptyMap());
     	if (o == null)
     		return;
     	if (!ts.isTestModeOtherHalfObjects())
