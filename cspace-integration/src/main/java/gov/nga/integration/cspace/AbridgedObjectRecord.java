@@ -23,7 +23,9 @@ package gov.nga.integration.cspace;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import gov.nga.common.entities.art.ExhibitionArtObject;
 import gov.nga.entities.art.ArtObject;
 import gov.nga.entities.art.ArtObjectAssociation;
 import gov.nga.entities.art.ArtObjectConstituent;
@@ -47,8 +50,8 @@ import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 
 // SEE notes in ObjectRecord for notes about alignment of this representation with Sirma's CS integration services implementation
-@JsonPropertyOrder({ "type", "namespace", 	"source", 		"id", 				"url", 				
-	 "accessionNum", 	"title", 		"classification", 
+@JsonPropertyOrder({ "type", "namespace", 	"source", 		"id", 				"url",  "isNGA",				
+	 "accessionNum", 	"title", 		"classification",   "department",    "dexIDs",
 	 "artistNames", "lastModified",		"attribution", 		"subClassification", 
 	 "displayDate", "medium",			"dimensions",		"departmentAbbr", 	"onView",
 	 "location",	"homeLocation",		"current_location",	"ownerNames",  		"creditLine",		"description",	"inscription",
@@ -67,16 +70,24 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 	private String classification;				// mandatory field for cspace
     private String artistNames;					// mandatory field for cspace
     private PlaceRecord current_location;		// the place where this object is located
+    //below are fields required by IRIS
+    private Boolean isNGA;
+    private String medium;
+    private String dimensions;
+    private String displayDate;
+    private String department;
+    private List<String> dexIDs;
     
     @JsonIgnore
     private ArtObject artObject;
 
     
 	public AbridgedObjectRecord(ArtObject o, OperatingModeService om, CSpaceTestModeService ts, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
-		this(o, false, om, ts, null, urlParts);
+		this(o, false, om, ts, null, urlParts, Collections.emptyMap());
 	}
 	
-	public AbridgedObjectRecord(ArtObject o, boolean references, OperatingModeService om, CSpaceTestModeService ts, List<CSpaceImage> images, String[] urlParts) throws InterruptedException, ExecutionException, MalformedURLException {
+	public AbridgedObjectRecord(ArtObject o, boolean references, OperatingModeService om, CSpaceTestModeService ts, 
+			List<CSpaceImage> images, String[] urlParts, final Map<Long, List<ExhibitionArtObject>> exhibitionMap) throws InterruptedException, ExecutionException, MalformedURLException {
 		super("ManMadeObject");
 		if (o == null)
 			return;
@@ -110,6 +121,49 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 		if (references) {
 			setReferences(o, om, ts, images, urlParts);
 			setMediaReferences();
+		}
+		
+		if (om.getOperatingMode() == OperatingModeService.OperatingMode.PRIVATE) {
+			setMedium(o.getMedium());
+			setDimensions(o.getDimensions());
+			setDisplayDate(o.getDisplayDate());
+			setDepartment(o.getDepartmentAbbr());
+			//setLocation(new PlaceRecord(o.getCurrentLocation().getLocationInfo());
+			final List<String> dexIDS = CollectionUtils.newArrayList();
+			if (exhibitionMap.size() > 0) {
+				for(Map.Entry<Long, List<ExhibitionArtObject>> candExh: exhibitionMap.entrySet()) {
+					for (ExhibitionArtObject obj: candExh.getValue()) {
+						if (obj.getArtObjectID().equals(o.getObjectID())) {
+							String dexid = obj.getDexID();
+							try {
+								dexid = String.format("%03d", Long.parseLong(dexid));
+							}
+							catch (final Exception err) {
+								//do nothing
+							}
+							dexIDS.add(String.format("%d-%s", candExh.getKey(), dexid));
+							break;
+						}
+					}
+				}
+			}
+			if (dexIDS.size() > 0) {
+				setDexIDs(dexIDS);
+			}
+			
+			switch (o.getTMSStatus())
+			{
+				case ONDEPOSIT:
+				case ONLOAN:
+				case PREACCESSIONED:
+				case ACCESSIONED:
+				case DEACCESSIONED:
+					setIsNGA(true);
+					break;	
+				default:
+					setIsNGA(false);
+			}
+			
 		}
 
 		
@@ -211,14 +265,14 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 		// first, go through the related objects
 		ArtObjectAssociation aop = o.getParentAssociation();
 		if (aop != null) {
-			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, om, ts, images, urlParts);
+			AbridgedObjectRecord aor = new AbridgedObjectRecord(aop.getAssociatedArtObject(), false, om, ts, images, urlParts, Collections.emptyMap());
 			rList.add(new Reference(ARTOBJECTPREDICATES.HASPARENT.getLabels(), aor));
 		}
 		List<ArtObjectAssociation> l = o.getChildAssociations();
 		if (l != null) {
 			for (ArtObjectAssociation aoc : l) {
 				if (aoc != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, om, ts, images, urlParts);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aoc.getAssociatedArtObject(), false, om, ts, images, urlParts, Collections.emptyMap());
 					rList.add(new Reference(ARTOBJECTPREDICATES.HASCHILD.getLabels(), aor));
 				}
 			}
@@ -227,7 +281,7 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 		if (l!= null) {
 			for (ArtObjectAssociation aos : l) {
 				if (aos != null) {
-					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, om, ts, images, urlParts);
+					AbridgedObjectRecord aor = new AbridgedObjectRecord(aos.getAssociatedArtObject(), false, om, ts, images, urlParts, Collections.emptyMap());
 					rList.add(new Reference(ARTOBJECTPREDICATES.HASSIBLING.getLabels(), aor));
 				}
 			}		
@@ -275,6 +329,58 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 				}
 			}
 		}
+	}
+
+	public Boolean getIsNGA() {
+		return isNGA;
+	}
+
+	private void setIsNGA(Boolean isNGA) {
+		this.isNGA = isNGA;
+	}
+
+	public String getMedium() {
+		return medium;
+	}
+
+	public void setMedium(String medium) {
+		this.medium = medium;
+	}
+
+	public String getDimensions() {
+		return dimensions;
+	}
+
+	private void setDimensions(String dimensions) {
+		this.dimensions = dimensions;
+	}
+
+	public String getDisplayDate() {
+		return displayDate;
+	}
+
+	private void setDisplayDate(String displayDate) {
+		this.displayDate = displayDate;
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	private void setDepartment(String department) {
+		this.department = department;
+	}
+
+	public List<String> getDexIDs() {
+		return dexIDs;
+	}
+
+	private void setDexIDs(List<String> dexIDs) {
+		this.dexIDs = dexIDs;
+	}
+
+	private void setCurrent_location(PlaceRecord current_location) {
+		this.current_location = current_location;
 	}
 
 }

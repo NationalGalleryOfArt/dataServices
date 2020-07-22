@@ -64,7 +64,8 @@ import gov.nga.search.SearchHelper.SEARCHOP;
 import gov.nga.search.SortHelper;
 
 import gov.nga.utils.CollectionUtils;
-
+import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.ExhibitionArtObject;
 import gov.nga.common.utils.StringUtils;
 
 @RestController
@@ -137,7 +138,7 @@ public class ObjectSearchController extends RecordSearchController {
 			@RequestParam(value="hasOverviewText", 		required=false) String[] hasOverviewText,
 			@RequestParam(value="cultObj:hasOverviewText",	required=false) String[] cultObj_hasOverviewText,
 			
-			@RequestParam(value="isExhbitionMember",	required=false) String[] exhIDS,
+			@RequestParam(value="isExhibitionMember",	required=false) String[] exhIDS,
     		@RequestParam(value="cultObj:isExhibitionMember", required=false) String[] cultObj_exhIDS,
 			
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
@@ -178,7 +179,7 @@ public class ObjectSearchController extends RecordSearchController {
     	processTextField(searchHelper, overviewText, cultObj_overviewText, ArtObject.SEARCH.OVERVIEW);
     	processTextField(searchHelper, hasOverviewText, cultObj_hasOverviewText, ArtObject.SEARCH.HASOVERVIEWTEXT);
     	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
-    	processExhibitionField(searchHelper, exhIDS, cultObj_exhIDS);
+    	final List<String> exhibitions = processExhibitionField(searchHelper, exhIDS, cultObj_exhIDS);
     	processTMSStatusField(searchHelper, statuses, cultObj_statuses);
     	
     	SortHelper<ArtObject> sortHelper = getSortHelper(order);
@@ -237,10 +238,28 @@ public class ObjectSearchController extends RecordSearchController {
     					}
     				}
     			}
+    			final Map<Long, List<ExhibitionArtObject>> exhibitionMap = CollectionUtils.newHashMap();
+    			if (exhibitions.size() > 0)
+    			{
+    				final List<Long> exIDS = CollectionUtils.newArrayList();
+    				for (String cand: exhibitions) {
+    					try {
+    						exIDS.add(Long.parseLong(cand));
+    					}
+    					catch (final Exception err) {
+    						//do nothing
+    					}
+    				}
+    				for (Exhibition exh: artDataManager.fetchByExhibitionIDS(exIDS)) {
+    					exhibitionMap.put(exh.getID(), exh.getExhibitionObjects());
+    				}
+    			}
+    			
     			for (ArtObject o : artObjects) {
     				AbridgedObjectRecord objectRecord = new AbridgedObjectRecord(
     						o, references, om, 
-    						ts, imagesMap.get(o.getObjectID()), RecordSearchController.getRequestingServer(request)
+    						ts, imagesMap.get(o.getObjectID()), RecordSearchController.getRequestingServer(request),
+    						exhibitionMap
     				);
     				Future<String> thumb = thumbnailMap.get(o.getObjectID());
     				String thumbVal = (thumb == null ? null : thumb.get());
@@ -342,13 +361,14 @@ public class ObjectSearchController extends RecordSearchController {
     }
     
     //Exhibitions
-    protected static void processExhibitionField(final SearchHelper<ArtObject> searchHelper, final String[] idValues1, final String[] idValues2) {
+    protected static List<String> processExhibitionField(final SearchHelper<ArtObject> searchHelper, final String[] idValues1, final String[] idValues2) {
     	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(idValues1, idValues2));
     	
     	if (aList.size() > 0)
     	{
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.ISEXHIBITIONMEMBER, aList));
     	}
+    	return aList;
     }
 
 	// ID FIELD
