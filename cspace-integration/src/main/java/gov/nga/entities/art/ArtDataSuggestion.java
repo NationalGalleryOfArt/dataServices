@@ -6,7 +6,7 @@ import gov.nga.common.utils.TypeUtils;
 
 public class ArtDataSuggestion extends Suggestion
 {
-Long entityID = null;
+	Long entityID = null;
     
     public ArtDataSuggestion(final String compareString, final String displayString, final Long entityID) 
     {
@@ -24,23 +24,25 @@ Long entityID = null;
         return StringUtils.remove(StringUtils.removeHTML(getDisplayString()),'"');
     }
     
+    @Override
     public boolean equals(Object o) 
     {
         boolean isEqual = false;
         if (o instanceof ArtDataSuggestion) 
         {
             ArtDataSuggestion other = (ArtDataSuggestion) o;
-            isEqual = other.entityID.equals(entityID) && TypeUtils.compare(other.getCompareString(), getCompareString()) == 0;
+            isEqual = other.entityID.equals(entityID) && TypeUtils.compare(other.getCompareString().toLowerCase(), getCompareString().toLowerCase()) == 0;
         }
         return isEqual;
     }
     
+    @Override
     public int hashCode() 
     {
         if (entityID == null && getCompareString() == null)
             return 0;
         if (getCompareString() == null)
             return Long.valueOf(entityID).hashCode();
-        return (Long.valueOf(entityID).hashCode() >> 13) ^ getCompareString().hashCode();
+        return (Long.valueOf(entityID).hashCode() >> 13) ^ getCompareString().toLowerCase().hashCode();
     }
 }
