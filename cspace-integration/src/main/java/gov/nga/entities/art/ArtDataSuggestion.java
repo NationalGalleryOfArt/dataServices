@@ -19,11 +19,12 @@ public class ArtDataSuggestion extends Suggestion
         return entityID;
     }
     
+    @Override
     public String toString()
     {
         return StringUtils.remove(StringUtils.removeHTML(getDisplayString()),'"');
     }
-    
+
     @Override
     public boolean equals(Object o) 
     {
@@ -31,18 +32,18 @@ public class ArtDataSuggestion extends Suggestion
         if (o instanceof ArtDataSuggestion) 
         {
             ArtDataSuggestion other = (ArtDataSuggestion) o;
-            isEqual = other.entityID.equals(entityID) && TypeUtils.compare(other.getCompareString().toLowerCase(), getCompareString().toLowerCase()) == 0;
+            isEqual = other.entityID.equals(entityID) && getDisplayString().toLowerCase().equals(other.getDisplayString().toLowerCase());
         }
         return isEqual;
     }
-    
+
     @Override
     public int hashCode() 
     {
-        if (entityID == null && getCompareString() == null)
+        if (entityID == null && getDisplayString() == null)
             return 0;
-        if (getCompareString() == null)
+        if (getDisplayString() == null)
             return Long.valueOf(entityID).hashCode();
-        return (Long.valueOf(entityID).hashCode() >> 13) ^ getCompareString().toLowerCase().hashCode();
+        return (Long.valueOf(entityID).hashCode() >> 13) ^ getDisplayString().hashCode();
     }
 }
