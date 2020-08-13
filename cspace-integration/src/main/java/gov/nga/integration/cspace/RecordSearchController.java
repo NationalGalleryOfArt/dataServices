@@ -42,6 +42,10 @@ public abstract class RecordSearchController {
 	public abstract String[] getSupportedSources();
 	
 	private static final Logger log = LoggerFactory.getLogger(RecordSearchController.class);
+	
+	public static final String x_forwarded_proto = "X-Forwarded-Proto";
+	public static final String x_forwarded_ssl = "X-Forwarded-SSL";
+	public static final String x_forwarded_host = "X-Forwarded-Host";
 
     // Spring REST will automatically parse values that are separated with a comma into an array
     // and will pass the individual values
@@ -185,12 +189,12 @@ public abstract class RecordSearchController {
 
     public static String[] getRequestingServer(HttpServletRequest request) {
     	String port = null;
-    	String scheme = request.getHeader("X-Forwarded-Proto");
+    	String scheme = request.getHeader(x_forwarded_proto);
 		if (StringUtils.isNullOrEmpty(scheme)) {
-			String sslOn = request.getHeader("X-Forwarded-SSL");
+			String sslOn = request.getHeader(x_forwarded_ssl);
 			scheme = StringUtils.isNullOrEmpty(sslOn) ? request.getScheme() : "https"; 
 		}
-		String host = request.getHeader("X-Forwarded-Host");
+		String host = request.getHeader(x_forwarded_host);
 		if (StringUtils.isNullOrEmpty(host)) {
 			host = request.getServerName(); 
 			port = request.getServerPort() + "";

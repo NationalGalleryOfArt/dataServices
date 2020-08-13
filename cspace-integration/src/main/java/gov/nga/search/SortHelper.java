@@ -21,9 +21,6 @@
 
 package gov.nga.search;
  
-import gov.nga.search.SortOrder;
-import gov.nga.search.Sortable;
-import gov.nga.search.Sorter;
 import gov.nga.utils.CollectionUtils;
 
 import java.util.Collections;

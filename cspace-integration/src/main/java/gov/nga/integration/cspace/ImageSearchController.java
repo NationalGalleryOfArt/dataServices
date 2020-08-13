@@ -114,7 +114,7 @@ public class ImageSearchController extends RecordSearchController {
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(String[].class, new StringArrayPropertyEditor(null));
     }
-
+    
     @RequestMapping(value={"/media/images.json","/media/{source}/images.json"},method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<Items> imageRecordsSource (
     		

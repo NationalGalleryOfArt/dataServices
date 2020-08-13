@@ -23,12 +23,20 @@ package gov.nga.integration.cspace;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -36,23 +44,29 @@ import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
+import gov.nga.utils.spring.test.RestTestingUtils;
 
 import static org.junit.Assert.*;
 
 import java.util.List;
-import java.util.Map.Entry;
 
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = CSpaceSpringApplication.class)
 public class CSpaceSpringApplicationTest {
 
-	private static final Logger log = LoggerFactory.getLogger(RunAllTestsController.class);
+	private static final Logger log = LoggerFactory.getLogger(CSpaceSpringApplicationTest.class);
 
-	private static ArtDataManagerService artDataManager;
-
-	public static void setArtDataManager(ArtDataManagerService artDataManager) {
-		CSpaceSpringApplicationTest.artDataManager = artDataManager;
-	}
+	@Autowired
+	public ArtDataManagerService artDataManager;
 	
-    TestRestTemplate tmpl = new TestRestTemplate();
+    @Rule 
+    public TestName name = new TestName();
+    
+    @LocalServerPort
+    String localServerPort;
+    
+    TestRestTemplate restClient = new TestRestTemplate();
     
     @Before
     public void readyForTest() throws InterruptedException {
@@ -68,7 +82,7 @@ public class CSpaceSpringApplicationTest {
     	// SERVICE #1 : art object record
     	"BOTH", 	"/art/tms/objects/1138.json", 	"", 													"200", 			"\"artistNames\" : \"Giovanni Bellini (painter);", 		"\"predicate\" : \"hasPrimaryDepiction\"",	"",
     	"BOTH", 	"/art/tms/objects/999999.json", "", 													"404",			"",
-    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2019-10-28T22:01:34-04:00\"", "",
+    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2020-02-06T22:01:29-05:00\"", "",
     	"BOTH",		"/art/tms2/objects/1138.json", 	"", 													"404",			"",
     	"BOTH",		"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"BOTH",		"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",
@@ -119,9 +133,9 @@ public class CSpaceSpringApplicationTest {
         //"PRIVATE",	"/media/portfolio-dclpa/images/7007",					"",								"404",			"", 
         
         // SERVICE #4: IMAGE RECORD
-        // "BOTH",		"/media/images/AF0BDE80-23AA-4045-A5B4-D395B94C0EB7.json", 								"",								"308",			"Location", "media/images.json?id=AF0BDE80-23AA-4045-A5B4-D395B94C0EB7", "",
+        // "BOTH",		"/media/images/9692F148-C843-4F17-BB35-DDEE558C2C2F.json", 								"",								"308",			"Location", "media/images.json?id=9692F148-C843-4F17-BB35-DDEE558C2C2F", "",
         //"PRIVATE",		"/media/portfolio-dclpa/images/2556.json",				"",								"200",			"!\"references", "",
-        "BOTH",		"/media/web-images-repository/images/AF0BDE80-23AA-4045-A5B4-D395B94C0EB7.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
+        "BOTH",		"/media/web-images-repository/images/E8E9B9E8-E51F-46CB-BC24-1C34CF8A69DF.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
         "BOTH",		"/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "BOTH",		"/media/web-images-repository/images/234234.json",		"",								"404",			"",
         "PRIVATE",	"/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
@@ -152,7 +166,7 @@ public class CSpaceSpringApplicationTest {
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-title",
         																						"400",																	"",
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&limit=1",
-        																						"200",			"AF0BDE80-23AA-4045-A5B4-D395B94C0EB7", 				"",
+        																						"200",			"9692F148-C843-4F17-BB35-DDEE558C2C2F", 				"",
         "PRIVATE",	"/media/portfolio-dclpa/images.json", 					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&skip=4",
         																						"200",			"\"items\" : [ ]", 										"",
         "PRIVATE",	"/media/portfolio-dclpa/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title,-image:id&skip=9&limit=1",
@@ -192,27 +206,16 @@ public class CSpaceSpringApplicationTest {
     
     };
     
-    public String getHostPort() {
-    	String port = System.getProperty("server.port","");
-    	if (!StringUtils.isNullOrEmpty(port))
-    		port = ":" + port;
-    	return "http://localhost" + port;
+    private String getHostPort() {
+    	//String port = System.getProperty("server.port","");
+    	//if (!StringUtils.isNullOrEmpty(port))
+    	//	port = ":" + port;
+    	return "http://localhost:" + localServerPort;
     }
-    
-	@Test
-	public void testServerIsResponding() throws Exception {
-		HttpHeaders headers = tmpl.getForEntity(getHostPort(), String.class).getHeaders();
-		for (Entry<String,List<String>> e : headers.entrySet()) {
-			String k = e.getKey();
-			for (String s : e.getValue()) {
-				log.info(k + ":" + s);	
-			}
-		}
-		Assert.assertTrue(headers.get("Server").toString().equals("[Apache]"));
-	}
-	
+   
 	@Test
 	public void testAPIs() throws AssertionError {
+		log.info(name.getMethodName());
 		String hostPort = getHostPort();
 		Assert.assertTrue(testData.length > 0);
 		AssertionError lastError = null;
@@ -246,7 +249,7 @@ public class CSpaceSpringApplicationTest {
 				}
 			}
 
-			String code = testData[i++];
+			int code = Integer.parseInt(testData[i++]);
 			List<String> validation = CollectionUtils.newArrayList();
 			while (!StringUtils.isNullOrEmpty(testData[i])) {
 				validation.add(testData[i++]);
@@ -262,17 +265,18 @@ public class CSpaceSpringApplicationTest {
 			if (method == null || method.equals("G")) {
 				// USING GET METHOD
 				log.info("Testing GET Method to: " + gurl);
-				ResponseEntity<String> resp = tmpl.getForEntity(hostPort+gurl, String.class);
-				assertTrue(hostPort + gurl + " did not have code " + code, responseCodeValidates(resp, code));
-				assertTrue(hostPort+gurl + " did not pass validation " + validation, contentValidates(resp, validation));
+				ResponseEntity<String> resp = restClient.getForEntity(hostPort+gurl, String.class);
+				resp = RestTestingUtils.get(hostPort+gurl,code,validation);
+				assertTrue(hostPort + gurl + " did not have code " + code, RestTestingUtils.responseCodeValidates(resp, code));
+				assertTrue(hostPort+gurl + " did not pass validation " + validation, RestTestingUtils.contentValidates(resp, validation));
 			}
 
 			if (method == null || method.equals("P")) {
 				// USING POST METHOD
 				log.info("Testing POST Method to: " + purl + " with params " + params.toString());
-				ResponseEntity<String> resp = tmpl.postForEntity(hostPort+purl, params, String.class);
-				assertTrue(purl + params.toString() + " did not have code " + code,  responseCodeValidates(resp, code));
-				assertTrue(purl + params.toString() + " did not pass validation " + validation,  contentValidates(resp, validation));
+				ResponseEntity<String> resp = restClient.postForEntity(hostPort+purl, params, String.class);
+				assertTrue(purl + params.toString() + " did not have code " + code,  RestTestingUtils.responseCodeValidates(resp, code));
+				assertTrue(purl + params.toString() + " did not pass validation " + validation,  RestTestingUtils.contentValidates(resp, validation));
 			}
 			}
 			catch (AssertionError ae) {
@@ -284,48 +288,7 @@ public class CSpaceSpringApplicationTest {
 			throw lastError;
 	}
 	
-	private boolean responseCodeValidates(ResponseEntity<String> resp, String code) {
-		String respCode = resp.getStatusCode().toString();
-		return respCode.equals(code);
-	}
 
-	private boolean contentValidates(ResponseEntity<String> resp, List<String> validation) {
-		boolean valid = true;
-		// check the body and headers for all of the expected 
-		for (String v : validation) {
-
-			boolean found = false;
-			boolean finding = true;
-
-			if (v.substring(0,1).equals("!")) {
-				v = v.substring(1,v.length());
-				finding = false;
-			}
-			
-			String body = resp.getBody();
-			if (body != null && body.contains(v)) {
-				found = true;
-			}
-
-			for (Entry<String,List<String>> e : resp.getHeaders().entrySet()) {
-				String k = e.getKey();
-				for (String s : e.getValue()) {
-					if ( (k != null && k.contains(v)) || (s != null && s.contains(v)) ) {
-						found = true;
-					}
-				}
-			}
-			
-			boolean ok = (finding && found) || (!finding && !found);
-			String status = ok ? "Successfully" : "Unsuccessfully";
-			String presence = finding ? "presence" : "non-presence";
-			log.info(status + " validated " + presence + " of content: " + v);
-			valid = valid && ok;
-			
-		}
-		return valid;
-	}
-	
 
 }
 

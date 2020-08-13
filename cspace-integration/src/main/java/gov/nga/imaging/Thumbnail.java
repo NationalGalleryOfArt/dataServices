@@ -69,7 +69,7 @@ public class Thumbnail {
 		}
 		catch (IOException io) {
 			// if we couldn't load the image and encode it, then we cannot honor the base64
-			log.error("Problem encountered creating thumbnail, so no thumbnail", io);
+			log.error("No thumbnail image data available from URL: " + absoluteURL);
 		}
 	}
 

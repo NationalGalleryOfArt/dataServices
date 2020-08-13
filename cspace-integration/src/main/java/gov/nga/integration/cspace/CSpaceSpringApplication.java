@@ -18,7 +18,7 @@
 	You should have received a copy of the GNU Lesser General Public
 	License along with this library; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-*/
+ */
 package gov.nga.integration.cspace;
 
 import org.springframework.boot.SpringApplication;
@@ -26,7 +26,9 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+//import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
+//import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
@@ -34,8 +36,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan({"gov.nga.integration.cspace","gov.nga.api.iiif.auth"})
 public class CSpaceSpringApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(CSpaceSpringApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(CSpaceSpringApplication.class, args);
+	}
 
 }

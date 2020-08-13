@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,10 @@ import gov.nga.utils.ConfigService;
 @RequestMapping(value={"/${ngaweb.imagingServerIIIFPublicPrefix}/", "/${ngaweb.imagingServerFastCGIPublicPrefix}/"})
 public class IIIFImageAPIHandler {
 
+	// lower case because headers are supposed to be treated as case insensitive so these constants in lower case underscore that point
+	public static final String nga_external = "nga_external";
+	public static final String nga_internal = "nga_internal";
+	
 	@Autowired
 	ConfigService cs;
 
@@ -186,9 +191,11 @@ public class IIIFImageAPIHandler {
 	}
 
 	@RequestMapping(value={
+			"/{sampleSize}/*/*/*/*/{imgFilename:.*}",
+			"/{sampleSize}/*/*/*/{imgFilename:.*}",
 			"/{sampleSize}/*/*/{imgFilename:.*}",
 			"/{sampleSize}/*/{imgFilename:.*}",
-			"/{sampleSize}/{imgFilename:.*}",
+			"/{sampleSize}/{imgFilename:.*}"
 			},
 			method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST}//,
 	)
@@ -229,6 +236,8 @@ public class IIIFImageAPIHandler {
 			) throws Exception {
 
 		log.trace("entering iiifInfoJsonHandler");
+		
+		log.trace(request.getRequestURI());
 		
 		String iiifPublicPrefix = cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName);
 		String iiifPrivatePrefix = cs.getString(IIIFAuthConfigs.iiifPrivatePrefixPropertyName);
@@ -348,6 +357,8 @@ public class IIIFImageAPIHandler {
 		// PARSE OUT THE SAMPLING SIZE AND THE IMAGE ID / PATH SPECIFIC TO THE FORMAT OF IIIF REQUESTS
 		String iiifPublicPrefix = cs.getString(IIIFAuthConfigs.iiifPublicPrefixPropertyName);
 		String iiifPrivatePrefix = cs.getString(IIIFAuthConfigs.iiifPrivatePrefixPropertyName);
+		
+		log.trace(request.getRequestURI());
 
 		// determine whether or not a max sampling size was provided with the request or not
 		Long requestedSamplingSize = null;
@@ -524,8 +535,11 @@ public class IIIFImageAPIHandler {
 
 		Long maxPermittedSamplingSize = null;
 
+		Enumeration<String> h = request.getHeaderNames();
+		while (h.hasMoreElements())
+			log.debug(h.nextElement());
 		// read header set by Apache to determine whether this is an internal or external request
-		boolean ngainternal = request.getHeader("NGA_EXTERNAL") == null && request.getHeader("NGA_INTERNAL") != null;
+		boolean ngainternal = request.getHeader(nga_external) == null && request.getHeader(nga_internal) != null;
 		log.debug("NGA INTERNAL: " + ngainternal);
 
 		CSpaceImage d = null;
@@ -649,7 +663,7 @@ public class IIIFImageAPIHandler {
 				urlConnection.setRequestProperty("X-IIIF-ID", iiif_image_id );
 			}
 			
-			if ( request.getHeader("NGA_EXTERNAL") != null) {
+			if ( request.getHeader(nga_external) != null) {
 				urlConnection.setRequestProperty("NGAEXTERNAL",  "true");
 				urlConnection.setRequestProperty("NGA_EXTERNAL",  "true");
 				urlConnection.setRequestProperty("NGA-EXTERNAL",  "true");

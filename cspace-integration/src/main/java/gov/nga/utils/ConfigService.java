@@ -25,4 +25,5 @@ public interface ConfigService {
 	public String getString(String PropertyName);
 	public String[] getStrings(String PropertyName, String splitOn);
 	public Integer getInteger(String ProperyName);
+	public Boolean getBoolean(String ProperyName);
 }

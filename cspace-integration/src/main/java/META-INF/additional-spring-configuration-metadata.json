@@ -38,5 +38,125 @@
     "name": "ngaweb.thumbnailHeight",
     "type": "java.lang.String",
     "description": "A description for 'ngaweb.thumbnailHeight'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.refersTo",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.refersTo'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.isReferredToBy",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.isReferredToBy'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.producedBy",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.producedBy'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasSibling",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasSibling'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasPrimaryDepiction",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasPrimaryDepiction'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasDepiction",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasDepiction'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.primarilyDepicts",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.primarilyDepicts'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.depicts",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.depicts'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasParent",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasParent'"
+  },
+  {
+    "name": "ngaweb.imagingServerIIPCGIName",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerIIPCGIName'"
+  },
+  {
+    "name": "ngaweb.imagingServerFastCGIPublicPrefix",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerFastCGIPublicPrefix'"
+  },
+  {
+    "name": "ngaweb.imagingServerIIPPublicPrefix",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerIIPPublicPrefix'"
+  },
+  {
+    "name": "ngaweb.imagingServerIIPPrivatePrefix",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerIIPPrivatePrefix'"
+  },
+  {
+    "name": "ngaweb.imagingServerIIIFPublicPrefix",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerIIIFPublicPrefix'"
+  },
+  {
+    "name": "ngaweb.imagingServerIIIFPrivatePrefix",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.imagingServerIIIFPrivatePrefix'"
+  },
+  {
+    "name": "ngaweb.CSpaceArtDataManager.refresh.cron",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.CSpaceArtDataManager.refresh.cron'"
+  },
+  {
+    "name": "ngaweb.dumpFromMemoryBeforeLoading",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.dumpFromMemoryBeforeLoading'"
+  },
+  {
+    "name": "nga.jdbc.tms.url",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.jdbc.tms.url'"
+  },
+  {
+    "name": "nga.jdbc.tms.username",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.jdbc.tms.username'"
+  },
+  {
+    "name": "nga.jdbc.tms.password",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.jdbc.tms.password'"
+  },
+  {
+    "name": "nga.jdbc.tms.validationQuery",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.jdbc.tms.validationQuery'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasPrimaryDepiction",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasPrimaryDepiction'"
+  },
+  {
+    "name": "nga.api.art.lod.predicates.labels.hasPrimaryDepiction",
+    "type": "java.lang.String",
+    "description": "A description for 'nga.api.art.lod.predicates.labels.hasPrimaryDepiction'"
+  },
+  {
+    "name": "ngaweb.CSpaceTestsEnabled",
+    "type": "java.lang.String",
+    "description": "A description for 'ngaweb.CSpaceTestsEnabled'"
   }
 ]}

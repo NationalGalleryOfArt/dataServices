@@ -39,6 +39,8 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 	public static final String multiTenancyTestModeOtherHalfObjects = "otherHalfObjectsWithOntologyChanges";
 	public static final String unloadBeforeLoading 					= "dumpFromMemoryBeforeLoading";
 	
+	public static final String testingEnabled	= "CSpaceTestsEnabled";
+	
 	//private static final Logger log = LoggerFactory.getLogger(CSpaceConfigService.class);
 	
 	@Autowired
@@ -69,7 +71,14 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 		
 		return env.getProperty("ngaweb."+propertyName, Integer.class);
 	}
-	
+
+	public Boolean getBoolean(String propertyName) {
+		if (env.getProperty("ngaweb."+propertyName) == null)
+			return env.getProperty(propertyName, Boolean.class);
+		
+		return env.getProperty("ngaweb."+propertyName, Boolean.class);
+	}
+
 	public boolean unloadBeforeLoading() {
 		String unloadFirst = getString(unloadBeforeLoading);
 		return unloadFirst == null || unloadFirst.equals("true");
