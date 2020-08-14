@@ -71,9 +71,8 @@ import gov.nga.utils.ConfigService;
 @RequestMapping(value={"/${ngaweb.imagingServerIIIFPublicPrefix}/", "/${ngaweb.imagingServerFastCGIPublicPrefix}/"})
 public class IIIFImageAPIHandler {
 
-	// lower case because headers are supposed to be treated as case insensitive so these constants in lower case underscore that point
-	public static final String nga_external = "nga_external";
-	public static final String nga_internal = "nga_internal";
+	public static final String nga_external = "NGA_EXTERNAL";
+	public static final String nga_internal = "NGA_INTERNAL";
 	
 	@Autowired
 	ConfigService cs;
@@ -537,7 +536,7 @@ public class IIIFImageAPIHandler {
 
 		Enumeration<String> h = request.getHeaderNames();
 		while (h.hasMoreElements())
-			log.debug(h.nextElement());
+			log.debug("HEADER:" + h.nextElement());
 		// read header set by Apache to determine whether this is an internal or external request
 		boolean ngainternal = request.getHeader(nga_external) == null && request.getHeader(nga_internal) != null;
 		log.debug("NGA INTERNAL: " + ngainternal);

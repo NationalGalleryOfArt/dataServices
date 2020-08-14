@@ -82,7 +82,7 @@ public class CSpaceSpringApplicationTest {
     	// SERVICE #1 : art object record
     	"BOTH", 	"/art/tms/objects/1138.json", 	"", 													"200", 			"\"artistNames\" : \"Giovanni Bellini (painter);", 		"\"predicate\" : \"hasPrimaryDepiction\"",	"",
     	"BOTH", 	"/art/tms/objects/999999.json", "", 													"404",			"",
-    	"BOTH",		"/art/tms/objects/50724.json",  "", 													"200",			"\"lastModified\" : \"2020-02-06T22:01:29-05:00\"", "",
+    	"BOTH",		"/art/tms/objects/140988.json",  "", 													"200",			"\"lastModified\" : \"2008-07-30T08:01:48-04:00\"", "",
     	"BOTH",		"/art/tms2/objects/1138.json", 	"", 													"404",			"",
     	"BOTH",		"/art/objects/1138.json", 	  	"", 		 											"308", 			"",
     	"BOTH",		"/art/objects/.json", 	  		"", 													"308", 			"Location", "objects.json?id=", "",

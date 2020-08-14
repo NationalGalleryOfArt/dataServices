@@ -60,7 +60,7 @@ public class RunAllTestsController {
 			HttpServletResponse response
 	) throws APIUsageException, InterruptedException, ExecutionException {
 
-    	if ( !artDataManager.getConfig().getBoolean(CSpaceConfigService.testingEnabled) ) {
+    	if ( !artDataManager.getConfig().getBoolean(CSpaceConfigService.testingEnabled, false) ) {
     		String msg = "Received test request, but testing not enabled in this environment";
     		log.warn(msg);
     		return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(msg);
@@ -69,7 +69,7 @@ public class RunAllTestsController {
     	log.info("Starting Tests");
     	//CSpaceSpringApplicationTest.setArtDataManager(artDataManager);
     	// execute all tests behind the scenes
-    	RunAllPackageTestsSuite.main(null);
+    	//RunAllPackageTestsSuite.main(null);
     	Result testResult = RunAllPackageTestsSuite.runTests();
     	//Computer computer = new Computer();
     	//JUnitCore jUnitCore = new JUnitCore();

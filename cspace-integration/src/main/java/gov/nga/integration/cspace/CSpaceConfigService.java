@@ -72,11 +72,13 @@ public class CSpaceConfigService implements ConfigService, CSpaceTestModeService
 		return env.getProperty("ngaweb."+propertyName, Integer.class);
 	}
 
-	public Boolean getBoolean(String propertyName) {
-		if (env.getProperty("ngaweb."+propertyName) == null)
-			return env.getProperty(propertyName, Boolean.class);
-		
-		return env.getProperty("ngaweb."+propertyName, Boolean.class);
+	public boolean getBoolean(String propertyName, boolean defaultValue) {
+		if (env.getProperty("ngaweb."+propertyName) != null)
+			return env.getProperty("ngaweb."+propertyName, Boolean.class).booleanValue();
+		if (env.getProperty(propertyName) != null)
+			return env.getProperty(propertyName, Boolean.class).booleanValue();
+		else
+			return defaultValue;
 	}
 
 	public boolean unloadBeforeLoading() {

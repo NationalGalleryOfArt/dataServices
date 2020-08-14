@@ -174,7 +174,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     	log.info(name.getMethodName());
     	if ( adms.getOperatingMode() == OperatingMode.PUBLIC) {
     		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
-    				.header("NGA_EXTERNAL",  true))
+    				.header(IIIFImageAPIHandler.nga_external,  true))
     		.andExpect(status().isOk())
     		.andExpect(content().contentType("application/vnd.netfpx"))
     		.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -198,7 +198,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void iip_sample_restricted_image() throws Exception {
     	log.info(name.getMethodName());
         mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif&obj=IIP,1.0&obj=Max-size&obj=Tile-size&obj=Resolution-number")
-        			.header("NGA_INTERNAL",true))
+        			.header(IIIFImageAPIHandler.nga_internal,true))
         	.andExpect(status().isOk())
         	.andExpect(content().contentType("application/vnd.netfpx"))
         	.andExpect(header().string("Access-Control-Allow-Origin","*"))
@@ -343,7 +343,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     	// in public operating mode, we redirect to a restricted size image
     	if ( adms.getOperatingMode() == OperatingMode.PUBLIC)
     		mvc.perform(get("/iiif/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/full/512,/0/default.jpg")
-    				.header("NGA_EXTERNAL",  true))
+    				.header(IIIFImageAPIHandler.nga_external,  true))
     		.andExpect(status().is(303))
     		.andExpect(redirectedUrl("/iiif/640/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/full/512,/0/default.jpg"))
     		;
@@ -371,7 +371,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
        	// in public operating mode, we redirect to a restricted size image
     	if ( adms.getOperatingMode() == OperatingMode.PUBLIC)
     		mvc.perform(get("/iiif/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif")
-    				.header("NGA_EXTERNAL",  true))
+    				.header(IIIFImageAPIHandler.nga_external, "true"))
     		.andExpect(status().is(303))
     		.andExpect(redirectedUrl("/iiif/640/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/info.json"))
     		;
@@ -420,7 +420,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
        	// in public operating mode, we redirect to a restricted size image
     	if ( adms.getOperatingMode() == OperatingMode.PUBLIC) {
     		mvc.perform(get("/iiif/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/info.json")
-    				.header("NGA_EXTERNAL",  true))
+    				.header(IIIFImageAPIHandler.nga_external, "true" ))
     		.andExpect(status().is(303))
     		.andExpect(redirectedUrl("/iiif/640/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/info.json"))
     		;
@@ -603,7 +603,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", "e86c745018982a1647db0ece36ebcceb11531869"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "e86c745018982a1647db0ece36ebcceb11531869"
     	);
     }
 
@@ -612,7 +612,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_EXTERNAL", "no-cache", "c13192c20932aa4bf236604d3a78b49c4f52cf58"
+    			IIIFImageAPIHandler.nga_external, "no-cache", "c13192c20932aa4bf236604d3a78b49c4f52cf58"
     	);
     }
 
@@ -621,7 +621,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/research/dutch_paintings_17th_century/objects/71023/71023-compfig-1.0-nativeres.ptif&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_EXTERNAL", "max-age", "10df7d8e8e53b1422d8bacf500d7ec6cd939dba7"
+    			IIIFImageAPIHandler.nga_external, "max-age", "10df7d8e8e53b1422d8bacf500d7ec6cd939dba7"
     	);
     }
 
@@ -630,7 +630,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg",
-    			"NGA_INTERNAL", "no-cache", "6df2fd649511680a778d91fe8b8c528878f273cd"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "6df2fd649511680a778d91fe8b8c528878f273cd"
     	);
     }
 
@@ -638,7 +638,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void iiif_object_image_with_nga_external_header() throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/iiif/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		.andExpect(redirectedUrl("/iiif/640/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg"))
 		;
@@ -649,7 +649,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/640/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg",
-    			"NGA_EXTERNAL", null, "9e16c0919fe97b2b98f6db263e5f3699d28bfa9c"
+    			IIIFImageAPIHandler.nga_external, null, "9e16c0919fe97b2b98f6db263e5f3699d28bfa9c"
     	);
     }
 
@@ -658,7 +658,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/research/dutch_paintings_17th_century/objects/71023/71023-compfig-1.0-nativeres.ptif/full/1200,/0/default.jpg",
-    			"NGA_EXTERNAL", "max-age", "1591ab0ccf22800fbde2f46c65f84ff949c57108"
+    			IIIFImageAPIHandler.nga_external, "max-age", "1591ab0ccf22800fbde2f46c65f84ff949c57108"
     	);
     }
 	
@@ -671,7 +671,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void fastcgi_uuid_image_with_nga_external_header_redirect () throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=1200&QLT=98&CVT=jpeg")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		.andExpect(redirectedUrl("/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__640&WID=1200&QLT=98&CVT=jpeg"))
 		;
@@ -682,7 +682,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=800&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", "0dfaba1269e65ba9ae0eb9f97911e3ad3a4b0cfa"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "0dfaba1269e65ba9ae0eb9f97911e3ad3a4b0cfa"
     	);
     }
 
@@ -692,7 +692,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__700&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", "b5f26c6b5731af1d514442eccc499c69e942c30a"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "b5f26c6b5731af1d514442eccc499c69e942c30a"
     	);
     }
 
@@ -701,7 +701,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__600&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_EXTERNAL", "max-age", null
+    			IIIFImageAPIHandler.nga_external, "max-age", null
     	);
     }
 
@@ -709,7 +709,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void fastcgi_uuid_image_with_nga_external_header_redirect_short_url () throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=1200&QLT=98&CVT=jpeg")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		.andExpect(redirectedUrl("/fastcgi/iipsrv.fcgi?FIF=f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__640&WID=1200&QLT=98&CVT=jpeg"))
 		;
@@ -720,7 +720,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", "d2417c919ee191d7a1db5afe527caee66845826d"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "d2417c919ee191d7a1db5afe527caee66845826d"
     	);
     }
 
@@ -729,7 +729,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__740&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", null
+    			IIIFImageAPIHandler.nga_internal, "no-cache", null
     	);
     }
 
@@ -738,7 +738,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__600&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_EXTERNAL", "max-age", null
+    			IIIFImageAPIHandler.nga_external, "max-age", null
     	);
     }
 
@@ -746,7 +746,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void fastcgi_uuid_image_with_nga_external_header_redirect_short_url_leading_slash () throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=1200&QLT=98&CVT=jpeg")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		.andExpect(redirectedUrl("/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__640&WID=1200&QLT=98&CVT=jpeg"))
 		;
@@ -757,7 +757,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", "d2417c919ee191d7a1db5afe527caee66845826d"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "d2417c919ee191d7a1db5afe527caee66845826d"
     	);
     }
 
@@ -766,7 +766,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__740&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_INTERNAL", "no-cache", null
+    			IIIFImageAPIHandler.nga_internal, "no-cache", null
     	);
     }
 
@@ -775,7 +775,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__600&WID=1200&QLT=98&CVT=jpeg",
-    			"NGA_EXTERNAL", "max-age", null
+    			IIIFImageAPIHandler.nga_external, "max-age", null
     	);
     }
 
@@ -797,7 +797,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30/full/1200,/0/default.jpg",
-    			"NGA_INTERNAL", "no-cache", "1353cdfddb31343da177e705ffa8b41127e52d58"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "1353cdfddb31343da177e705ffa8b41127e52d58"
     	);
     }
 
@@ -806,7 +806,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__740/full/1200,/0/default.jpg",
-    			"NGA_INTERNAL", "no-cache", null
+    			IIIFImageAPIHandler.nga_internal, "no-cache", null
     	);
     }
 
@@ -815,7 +815,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/images/f2d/c2f/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__600/full/1200,/0/default.jpg",
-    			"NGA_EXTERNAL", "max-age", null
+    			IIIFImageAPIHandler.nga_external, "max-age", null
     	);
     }
 
@@ -823,7 +823,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void iiif_uuid_image_with_nga_external_header_redirect_short_url () throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30/full/1200,/0/default.jpg")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		.andExpect(redirectedUrl("/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__640/full/1200,/0/default.jpg"))
 		;
@@ -840,7 +840,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		);
 
 /*		mvc.perform(get(")
-		.header("NGA_EXTERNAL",  true))
+		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
 		//.andExpect(redirectedUrl("/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30/info.json"))
 		;
@@ -853,7 +853,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30/full/!1200,1200/0/default.jpg",
-    			"NGA_INTERNAL", "no-cache", "1353cdfddb31343da177e705ffa8b41127e52d58"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "1353cdfddb31343da177e705ffa8b41127e52d58"
     	);
     }
 
@@ -862,7 +862,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__740/full/!1200,1200/0/default.jpg",
-    			"NGA_INTERNAL", "no-cache", null
+    			IIIFImageAPIHandler.nga_internal, "no-cache", null
     	);
     }
 
@@ -871,7 +871,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/f2dc2f9f-1f5a-4fdf-b11e-77581c28fc30__600/full/!1200,1200/0/default.jpg",
-    			"NGA_EXTERNAL", "max-age", "034f96b3b63ca820a13668db7cd715f0c54965d6"
+    			IIIFImageAPIHandler.nga_external, "max-age", "034f96b3b63ca820a13668db7cd715f0c54965d6"
     	);
     }
 
