@@ -140,6 +140,9 @@ public class ObjectSearchController extends RecordSearchController {
 			
 			@RequestParam(value="isExhibitionMember",	required=false) String[] exhIDS,
     		@RequestParam(value="cultObj:isExhibitionMember", required=false) String[] cultObj_exhIDS,
+    		
+    		@RequestParam(value="vbclassification",		required=false)	String[] vbclassification,
+    		@RequestParam(value="cultObj:vbclassification", required=false) String[] cultObj_vbclassification,
 			
 			@RequestParam(value="references", 			required=false, defaultValue="true") boolean references,
 			@RequestParam(value="thumbnails", 			required=false, defaultValue="true") boolean thumbnails,
@@ -179,6 +182,7 @@ public class ObjectSearchController extends RecordSearchController {
     	processTextField(searchHelper, overviewText, cultObj_overviewText, ArtObject.SEARCH.OVERVIEW);
     	processTextField(searchHelper, hasOverviewText, cultObj_hasOverviewText, ArtObject.SEARCH.HASOVERVIEWTEXT);
     	processTextField(searchHelper, artistNames, cultObj_artistNames, ArtObject.SEARCH.ARTIST_ALLNAMES);
+    	processVBClassificationField(searchHelper, vbclassification, cultObj_vbclassification);
     	final List<String> exhibitions = processExhibitionField(searchHelper, exhIDS, cultObj_exhIDS);
     	processTMSStatusField(searchHelper, statuses, cultObj_statuses);
     	
@@ -369,6 +373,15 @@ public class ObjectSearchController extends RecordSearchController {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.ISEXHIBITIONMEMBER, aList));
     	}
     	return aList;
+    }
+    
+    //VB Classification
+    protected static void processVBClassificationField(final SearchHelper<ArtObject> searchHelper, final String[] vbc, final String[] vbc2) {
+    	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(vbc, vbc2));
+    	if (aList.size() > 0)
+    	{
+    		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.VISUALBROWSERCLASSIFICATION, aList));
+    	}
     }
 
 	// ID FIELD
