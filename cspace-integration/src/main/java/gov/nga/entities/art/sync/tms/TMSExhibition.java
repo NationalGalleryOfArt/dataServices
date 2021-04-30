@@ -8,48 +8,66 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtEntity;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.ExhibitionArtObject;
 import gov.nga.common.entities.art.ExhibitionConstituent;
 import gov.nga.common.entities.art.ExhibitionStatus;
 import gov.nga.common.entities.art.ExhibitionVenue;
-import gov.nga.entities.art.TMSFetcher;
+import gov.nga.common.entities.art.TMSFetcher;
 import gov.nga.common.utils.CollectionUtils;
 import gov.nga.common.utils.TypeUtils;
 
 public class TMSExhibition extends Exhibition 
 {
-    
-    protected TMSExhibition (final ResultSet rs) throws SQLException, ParseException
+	protected static TMSExhibition getExhibitionFromSQL(final ResultSet rs, ArtDataQuerier manager) throws SQLException
     {
-        id = TypeUtils.getLong(rs, 1);
-        title = rs.getString(2);
+        final Long id = TypeUtils.getLong(rs, 1);
+        final String title = rs.getString(2);
+        
         String dateString = rs.getString(3);
+        Date openDate = null;
         if (StringUtils.isNotBlank(dateString))
         {
-            openDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
-        }
-        else 
-        {
-            openDate = null;
+            try {
+				openDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
         
+        Date closeDate = null;
         dateString = rs.getString(4);
         if (StringUtils.isNotBlank(dateString))
         {
-            closeDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
+            try {
+				closeDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
-        else
-        {
-            closeDate = null;
-        }
-        status = getStatusFromString(rs.getString(5));
+        final ExhibitionStatus status = getStatusFromString(rs.getString(5));
+        return new TMSExhibition(id, title, openDate, closeDate, status, 
+        							CollectionUtils.newArrayList(),
+        							CollectionUtils.newArrayList(),
+        							CollectionUtils.newArrayList(), manager);
     }
     
     protected TMSExhibition(Exhibition source)
     {
         super(source);
     }
+    
+    protected TMSExhibition(Long id, String title, Date openDate, Date closeDate, ExhibitionStatus status,
+			List<ExhibitionVenue> venues, List<ExhibitionArtObject> exhObjects,
+			List<ExhibitionConstituent> exhConstituents, ArtDataQuerier manager) 
+	{
+		super(id, title, openDate, closeDate, status, venues, exhObjects, 
+				exhConstituents, manager);
+	}
     
     private static ExhibitionStatus getStatusFromString(final String cand)
     {
@@ -86,76 +104,28 @@ public class TMSExhibition extends Exhibition
             }
         }
         return status;
-    }
-    
-
-    @Override
-    public Date getOpenDate() 
-    {
-        return openDate;
-    }
-
-    @Override
-    public Date getCloseDate() 
-    {
-        return closeDate;
-    }
-
-    @Override
-    public String getTitle() 
-    {
-        return title;
-    }
-
-    @Override
-    public Long getID() 
-    {
-        return id;
-    }
-
-    @Override
-    public ExhibitionStatus getStatus() 
-    {
-        return status;
-    }
+    }   
 
     protected void addVenue(final ExhibitionVenue venue)
     {
         venues.add(venue);
-    }
-    
-    @Override
-    public List<ExhibitionVenue> getVenues() 
-    {
-        return CollectionUtils.newArrayList(venues);
     }
 
     protected void addArtObject(final ExhibitionArtObject obj)
     {
         exhObjects.add(obj);
     }
-    @Override
-    public List<ExhibitionArtObject> getExhibitionObjects() 
-    {
-        return CollectionUtils.newArrayList(exhObjects);
-    }
 
-    @Override
-    public Exhibition createObject(Exhibition source) 
-    {
-        
-        return new TMSExhibition(source);
-    }
 
     protected void addConstituent(final ExhibitionConstituent obj)
     {
         exhConstituents.add(obj);
     }
-    
-    @Override
-    public List<ExhibitionConstituent> getConstituents() 
-    {
-        return CollectionUtils.newArrayList(exhConstituents);
-    }
 
+	@Override
+	public TMSExhibition factory(ResultSet rs) throws SQLException
+	{
+		return getExhibitionFromSQL(rs, getQueryManager());
+				
+	}
 }

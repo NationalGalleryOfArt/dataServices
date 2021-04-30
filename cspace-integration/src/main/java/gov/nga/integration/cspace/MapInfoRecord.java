@@ -27,8 +27,8 @@ package gov.nga.integration.cspace;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.Place;
-import gov.nga.entities.art.Place.Polygon;
+import gov.nga.common.entities.art.Place;
+import gov.nga.common.entities.art.Place.Polygon;
 
 @JsonPropertyOrder({ "mapType", "source", "mapImageURL", "mapShape" })
 @JsonInclude(JsonInclude.Include.NON_NULL)

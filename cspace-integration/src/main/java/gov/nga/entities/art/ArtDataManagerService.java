@@ -24,15 +24,14 @@
 package gov.nga.entities.art;
 
 import gov.nga.common.suggest.Suggestion;
-import gov.nga.entities.art.OperatingModeService.OperatingMode;
 import gov.nga.entities.art.factory.ArtObjectFactory;
 import gov.nga.entities.art.factory.ConstituentFactory;
-import gov.nga.search.Facet;
-import gov.nga.search.FacetHelper;
-import gov.nga.search.FreeTextSearchable;
-import gov.nga.search.ResultsPaginator;
-import gov.nga.search.SearchHelper;
-import gov.nga.search.SortHelper;
+import gov.nga.common.search.Facet;
+import gov.nga.common.search.FacetHelper;
+import gov.nga.common.search.FreeTextSearchable;
+import gov.nga.common.search.ResultsPaginator;
+import gov.nga.common.search.SearchHelper;
+import gov.nga.common.search.SortHelper;
 import gov.nga.utils.ConfigService;
 import gov.nga.utils.db.DataSourceService;
 
@@ -40,81 +39,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import gov.nga.common.entities.art.ArtDataCacher;
+import gov.nga.common.entities.art.ArtDataQuerier;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.Location;
+import gov.nga.common.entities.art.OperatingMode;
 
 public interface ArtDataManagerService {
 	
 	// JDBC Pool Service 
 	public DataSourceService getDataSourceService();
-	
-	// Art Location Services
-	public Location fetchByLocationID(long locationID);
-	public Place fetchByPlaceKey(String locationKey);
-	public Place fetchByTMSLocationID(long tmsLocationID);
-	public List<Location> fetchByLocationIDs(List<Long> locationIDs);
-    public List<Media> getMediaByEntityRelationship(String entityUniqueID);
-
-	// public Map<String, String> getAllLocationDescriptionsByRoom();
-
-	// Art Object Services
-	public ArtObject       				fetchByObjectID (long objectID) throws DataNotReadyException;
-	public <T extends ArtObject>T 		fetchByObjectID (long objectID, ArtObjectFactory<T> factory) throws DataNotReadyException;
-	public List<ArtObject>       		fetchByObjectIDs(Collection<Long> objectIDs) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> fetchByObjectIDs(Collection<Long> objectIDs, ArtObjectFactory<T> factory) throws DataNotReadyException;
-	public List<ArtObject>       		fetchByObjectIDs(Collection<Long> objectIDs, gov.nga.entities.art.ArtObject.SORT... order) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> fetchByObjectIDs(Collection<Long> objectIDs, ArtObjectFactory<T> factory, gov.nga.entities.art.ArtObject.SORT... order) throws DataNotReadyException;
-	public List<ArtObject>       		fetchObjectsByRelationships(List<ArtObjectConstituent> ocs);
-	public <T extends ArtObject>List<T> fetchObjectsByRelationships(List<ArtObjectConstituent> ocs, ArtObjectFactory<T> factory);
-	public List<ArtObject> 				searchArtObjects(SearchHelper<ArtObject> sh, ResultsPaginator pn, FacetHelper fn, Object... order) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> sh, ResultsPaginator pn, FacetHelper fn, ArtObjectFactory<T> factory, Object... order) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher, Object... order) throws DataNotReadyException;
-	public List<ArtObject> 				searchArtObjects(SearchHelper<ArtObject> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<ArtObject> sortH) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> searchArtObjects(SearchHelper<T> searchH, ResultsPaginator pn, FacetHelper fn, SortHelper<T> sortH, ArtObjectFactory<T> factory, FreeTextSearchable<T> freeTextSearcher) throws DataNotReadyException;
-	public <T extends ArtObject>List<T> fetchRelatedWorks(ArtObject baseO, ArtObjectFactory<T> factory) throws DataNotReadyException;
-	public List<Facet> 					getArtObjectFacetCounts() throws DataNotReadyException;
-
-	//Exhibitions
-	public Exhibition					fetchByExhibtionID (long id) throws DataNotReadyException;
-	public List<Exhibition>				fetchByExhibitionIDS(List<Long> ids) throws DataNotReadyException;	
-	
-	@Deprecated
-	// Narrative Services
-	public Narrative loadNarrative(long id, String query);
-	
-	// Constituent Services
-	public Constituent 		  				fetchByConstituentID(long cID);
-	public <C extends Constituent>C 		fetchByConstituentID(long cID, ConstituentFactory<C> factory);
-	public List<Constituent> 				fetchByConstituentIDs(Collection<Long> objectIDs, gov.nga.entities.art.Constituent.SORT... order);
-	public <C extends Constituent>List<C> 	fetchByConstituentIDs(Collection<Long> objectIDs, ConstituentFactory<C> factory, gov.nga.entities.art.Constituent.SORT... order);
-	public List<Constituent> 				fetchByConstituentIDs(Collection<Long> objectIDs);
-	public <C extends Constituent>List<C> 	fetchByConstituentIDs(Collection<Long> objectIDs, ConstituentFactory<C> factory);
-	public List<Constituent> 				searchConstituents(SearchHelper<Constituent> sh, ResultsPaginator pn, FacetHelper fn, Object... order);
-	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> searchH, ResultsPaginator pn, FacetHelper fn, ConstituentFactory<C> factory, Object... order);
-	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> searchH, ResultsPaginator pn, FacetHelper fn, ConstituentFactory<C> factory, FreeTextSearchable<C> freeTextSearcher, Object... order);
-	public List<Constituent> 				searchConstituents(SearchHelper<Constituent> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<Constituent> sortH);
-	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory);
-	public <C extends Constituent>List<C> 	searchConstituents(SearchHelper<C> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<C> sortH, ConstituentFactory<C> factory, FreeTextSearchable<C> freeTextSearcher);
-	//public <E extends ArtEntity> List<E> 	searchArtEntity(List<E> list, SearchHelper<E> sh, ResultsPaginator pn, FacetHelper fn, SortHelper<E> sortH);
-	public Map<String, String> getIndexOfArtistsRanges();
-	
-	//Suggestions
-    public List<ArtDataSuggestion> suggestArtObjectsByArtistName(String artistName, String titleTerm);
-    public List<ArtDataSuggestion> suggestArtObjectsByTitle(String baseName);
-	public List<ArtDataSuggestion> suggestArtists(String base);
-	public List<ArtDataSuggestion> suggestOwners(String base);
-	public List<ArtDataSuggestion> suggestExhibitions(String base);
-	public Map<String, String> getAllLocationDescriptionsByRoom();
-
-	public Map<Long, ArtObject> getArtObjectsRaw();
-	public List<ArtObject> getArtObjects();
-	public Map<Long, Constituent> getConstituentsRaw();
-    public Map<Long, Location> getLocationsRaw();
-//    public List<Derivative> getDerivatives();
-
-    // Derivative Services
-//    public Derivative fetchDerivativeByImageID(String imageID);
     
 	// fetch configuration services reference
 	public ConfigService getConfig();
@@ -123,6 +57,10 @@ public interface ArtDataManagerService {
 
     // the operating mode of the APIs
 	public OperatingMode getOperatingMode();
+	
+	public ArtDataQuerier getArtDataQuerier();
+	
+	public ArtDataCacher getArtDataCacher();
 
 	public boolean isDataReady(boolean throwExceptionIfNot);
 }

@@ -50,18 +50,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
-import gov.nga.entities.art.Derivative;
-import gov.nga.entities.art.ArtObject.SORT;
-import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.entities.art.ArtObject.SORT;
+import gov.nga.common.entities.art.Derivative.ImgSearchOpts;
 import gov.nga.integration.controllers.RecordSearchController;
 import gov.nga.integration.cspace.imageproviders.WebImage;
-import gov.nga.search.ResultsPaginator;
-import gov.nga.search.SearchFilter;
-import gov.nga.search.SearchHelper;
-import gov.nga.search.SearchHelper.SEARCHOP;
-import gov.nga.search.SortHelper;
+import gov.nga.common.search.ResultsPaginator;
+import gov.nga.common.search.SearchFilter;
+import gov.nga.common.search.SearchHelper;
+import gov.nga.common.search.SearchHelper.SEARCHOP;
+import gov.nga.common.search.SortHelper;
 
 import gov.nga.utils.CollectionUtils;
 import gov.nga.common.entities.art.Exhibition;
@@ -91,6 +92,9 @@ public class ObjectSearchController extends RecordSearchController {
 
 	private static final SORT defaultSortOrder = ArtObject.SORT.ACCESSIONNUM_ASC;
 	    
+    @Autowired
+    private ArtDataQuerier artDataQuerier;
+    
     @Autowired
     private ArtDataManagerService artDataManager;
     
@@ -195,7 +199,9 @@ public class ObjectSearchController extends RecordSearchController {
 		// otherwise, we return an empty result set
 		List<ArtObject> artObjects = CollectionUtils.newArrayList();
 		if (searchHelper.getFilterSize() > 0)
-			artObjects = artDataManager.searchArtObjects(searchHelper, paginator, null, sortHelper);
+			artObjects = artDataManager.getArtDataQuerier()
+								.searchArtObjects(searchHelper, paginator, null, sortHelper)
+								.getResults();
     	
     	logSearchResults(request, paginator.getTotalResults());
     	if (artObjects.size() > 0) {
@@ -254,7 +260,7 @@ public class ObjectSearchController extends RecordSearchController {
     						//do nothing
     					}
     				}
-    				for (Exhibition exh: artDataManager.fetchByExhibitionIDS(exIDS)) {
+    				for (Exhibition exh: artDataQuerier.fetchByExhibitionIDs(exIDS).getResults()) {
     					exhibitionMap.put(exh.getID(), exh.getExhibitionObjects());
     				}
     			}
@@ -337,7 +343,7 @@ public class ObjectSearchController extends RecordSearchController {
     	}
     	// always append the default sort order to the end of the list
     	orders.add(defaultSortOrder);
-    	return new SortHelper<ArtObject>(orders.toArray());
+    	return new SortHelper<ArtObject>(orders.toArray(new Enum<?>[] {}));
     }
     
     // ARTISTNAMES & TITLES FIELD

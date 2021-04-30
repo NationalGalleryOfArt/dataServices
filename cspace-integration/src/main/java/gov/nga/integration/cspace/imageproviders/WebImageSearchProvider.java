@@ -34,20 +34,22 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import gov.nga.common.entities.art.ArtDataCacher;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObjectImage;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.entities.art.MessageSubscriber;
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.ArtObjectImage;
-import gov.nga.entities.art.Derivative;
-import gov.nga.entities.art.MessageSubscriber;
-import gov.nga.entities.art.Derivative.IMGVIEWTYPE;
-import gov.nga.entities.art.MessageProvider;
-import gov.nga.entities.art.MessageProvider.EVENTTYPES;
+import gov.nga.common.entities.art.Derivative.IMGVIEWTYPE;
+import gov.nga.common.entities.art.MessageProvider;
+import gov.nga.common.entities.art.MessageProvider.EVENTTYPES;
 
 import gov.nga.integration.cspace.CSpaceImage;
 import gov.nga.integration.cspace.CSpaceTestModeService;
-import gov.nga.search.ResultsPaginator;
-import gov.nga.search.SearchHelper;
-import gov.nga.search.SortHelper;
+import gov.nga.common.search.ResultsPaginator;
+import gov.nga.common.search.SearchHelper;
+import gov.nga.common.search.SortHelper;
 import gov.nga.utils.CollectionUtils;
 
 // we have to register this with Spring in order to use Spring's bean services to get access to it later as an implementer
@@ -61,6 +63,12 @@ public class WebImageSearchProvider extends SourceProviderImpl implements Messag
 	MessageProvider messageProvider;
 
 	@Autowired
+	ArtDataQuerier artDataQuerier;
+	
+	@Autowired
+	ArtDataCacher artDataCacher;
+	
+	@Autowired 
 	ArtDataManagerService artDataManager;
 
 	@Autowired
@@ -74,9 +82,9 @@ public class WebImageSearchProvider extends SourceProviderImpl implements Messag
 	
 	public synchronized void receiveMessage(EVENTTYPES event) {
 		if (event == EVENTTYPES.DATAREFRESHED) {
-			//if (artDataManager != null) {
+			//if (artDataQuerier != null) {
 				// re-cache the image list and object marker
-				Collection<ArtObject> newObjectMarker = artDataManager.getArtObjectsRaw().values();
+				Collection<ArtObject> newObjectMarker = artDataCacher.getArtObjectsRaw();
 				List<CSpaceImage> newImageCache = getLargestImagesOfArtObjects(newObjectMarker);
 				imageCache = newImageCache;
 			//}
@@ -119,7 +127,7 @@ public class WebImageSearchProvider extends SourceProviderImpl implements Messag
 
 		// execute the search across these derivatives for any derivative specific fields - other implementers will have to
     	// do the same thing - sorting will take place afterwards
-    	return imageSearchHelper.search(images, (ResultsPaginator) null, null, (SortHelper<Derivative>) null);
+    	return imageSearchHelper.search(images, (ResultsPaginator) null, null, (SortHelper<CSpaceImage>) null);
 	}
 	
 	// default modifier to prevent subclasses and other packages from acquiring an instance

@@ -8,9 +8,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nga.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObject;
 import gov.nga.common.entities.art.Location;
-import gov.nga.entities.art.TMSFetcher;
+import gov.nga.common.entities.art.TMSFetcher;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.common.utils.CollectionUtils;
 import gov.nga.common.utils.TypeUtils;

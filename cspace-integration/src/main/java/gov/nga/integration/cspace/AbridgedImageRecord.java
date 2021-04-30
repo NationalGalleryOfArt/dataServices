@@ -35,10 +35,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
-import gov.nga.entities.art.Derivative;
-import gov.nga.entities.art.Derivative.IMGFORMAT;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.entities.art.Derivative.IMGFORMAT;
 import gov.nga.integration.cspace.MediaPredicates.MEDIAPREDICATES;
 import gov.nga.integration.cspace.imageproviders.DCLPAImage;
 import gov.nga.utils.CollectionUtils;

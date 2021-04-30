@@ -6,29 +6,39 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-import gov.nga.entities.art.Constituent;
+import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.ExhibitionConstituent;
 import gov.nga.common.utils.TypeUtils;
 
 public class TMSExhibitionConstituent extends ExhibitionConstituent
 {
-    private final Exhibition exhibition;
-    private final Long constituent;
-    private final Long displayOrder;
-    private final ROLE role;
-    private final ROLETYPE roleType;
+    private Exhibition exhibition;
+    private Constituent constituent;
 
-    protected TMSExhibitionConstituent(final ResultSet rs, final Map<Long, Exhibition> exhibitions, final Map<Long, Constituent> constituents) throws SQLException
+    protected static TMSExhibitionConstituent getConstituentFromSQL(final ResultSet rs, final Map<Long, Exhibition> exhibitions, final Map<Long, Constituent> constituents) throws SQLException
     {
-        exhibition = exhibitions.get(TypeUtils.getLong(rs, 2));
-        if (exhibition == null) throw new RuntimeException(String.format("No exhibition with id %d", TypeUtils.getLong(rs, 2)));
-        constituent = TypeUtils.getLong(rs, 3);
-        Constituent obj = constituents.get(constituent);
+        final Exhibition exhibition = exhibitions.get(TypeUtils.getLong(rs, 2));
+        if (exhibition == null) 
+        {
+        	throw new RuntimeException(String.format("No exhibition with id %d", TypeUtils.getLong(rs, 2)));
+        }
+        
+        final Constituent obj = constituents.get(TypeUtils.getLong(rs, 3));
         if (obj == null) throw new RuntimeException(String.format("No constituent with id %d", TypeUtils.getLong(rs, 3)));
-        displayOrder = TypeUtils.getLong(rs, 4);
-        role = getRoleFromString(rs.getString(5));
-        roleType = getRoleTypeFromString(rs.getString(6));
+        final Long displayOrder = TypeUtils.getLong(rs, 4);
+        final ROLE role = getRoleFromString(rs.getString(5));
+        final ROLETYPE roleType = getRoleTypeFromString(rs.getString(6));
+        return new TMSExhibitionConstituent(displayOrder,
+        					role, roleType, exhibition, obj);
+    }
+    
+    protected TMSExhibitionConstituent(Long displayOrder, ROLE role, ROLETYPE roleType,
+    						Exhibition exhibition, Constituent constituent) 
+    {
+		super(exhibition.getID(), constituent.getConstituentID(), displayOrder, role, roleType);
+		this.exhibition = exhibition;
+		this.constituent = constituent;
     }
     
     private static ROLE getRoleFromString(final String cand)
@@ -70,34 +80,17 @@ public class TMSExhibitionConstituent extends ExhibitionConstituent
     {
         return exhibition;
     }
-
-    @Override
-    public Long getConstituentID()  
-    {
-        return constituent;
-    }
-
-    @Override
-    public Long getDisplayOrder()  
-    {
-        return displayOrder;
-    }
-
-    @Override
-    public ROLE getRole() 
-    {
-        return role;
-    }
-
-    @Override
-    public ROLETYPE getRoleType() 
-    {
-        return roleType;
-    }
+    
     
     @Override
     public String toString()
     {
-        return String.format("Constituent %d for Exhibition %s", getConstituentID(), getExhibition());
+        return String.format("Constituent %d for Exhibition %s", getConstituent(), getExhibition());
     }
+
+	@Override
+	public Constituent getConstituent() 
+	{
+		return constituent;
+	}
 }

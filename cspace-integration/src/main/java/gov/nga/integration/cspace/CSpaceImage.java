@@ -26,22 +26,22 @@ import java.sql.SQLException;
 
 import org.joda.time.DateTime;
 
-import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.ArtObjectImage;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObjectImage;
 
 import gov.nga.imaging.Thumbnail;
 
 public abstract class CSpaceImage extends ArtObjectImage {
 
     private static final String CLASSIFICATION = "image";
-	public CSpaceImage(ArtDataManagerService manager) {
-        super(manager);
+	public CSpaceImage(ArtDataQuerier manager, String imgURL) {
+        super(manager, imgURL);
         setClassification(CSpaceImage.CLASSIFICATION);
     }
     
-    public CSpaceImage(ArtDataManagerService manager, ResultSet rs) throws SQLException  {
-        super(manager, rs); 
+    public CSpaceImage(ArtDataQuerier manager, String imgURL, ResultSet rs) throws SQLException  {
+        super(manager, imgURL, rs); 
         setClassification(CSpaceImage.CLASSIFICATION);
     }
 

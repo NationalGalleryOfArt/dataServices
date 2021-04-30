@@ -27,7 +27,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.Constituent;
+import gov.nga.common.entities.art.Constituent;
 
 @JsonPropertyOrder( { 	
 	"id", "type", "label", "source", "invertedLabel", "referred_to_by", "identified_by"

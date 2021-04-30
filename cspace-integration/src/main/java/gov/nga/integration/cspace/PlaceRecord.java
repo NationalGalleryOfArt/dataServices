@@ -26,7 +26,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.Place;
+import gov.nga.common.entities.art.Place;
 import gov.nga.utils.CollectionUtils;
 
 @JsonPropertyOrder( { "namespace", "source", "id", "type", "label", "identified_by", "placeType", 

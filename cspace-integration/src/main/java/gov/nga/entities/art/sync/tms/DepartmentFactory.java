@@ -8,6 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nga.common.entities.art.ArtDataQuerier;
 import gov.nga.common.entities.art.Department;
 import gov.nga.common.utils.CollectionUtils;
 import gov.nga.utils.db.DataSourceService;
@@ -17,6 +18,12 @@ public class DepartmentFactory  implements TMSEntityFactory
     private static final Logger LOG = LoggerFactory.getLogger(DepartmentFactory.class);
     
     public final List<Department> departments = CollectionUtils.newArrayList();
+    private final ArtDataQuerier manager;
+    
+    public DepartmentFactory (final ArtDataQuerier mgr)
+    {
+    	manager = mgr;
+    }
 
     synchronized public Map<Long, Department> buildDepartments(final DataSourceService ps)
     {
@@ -41,7 +48,7 @@ public class DepartmentFactory  implements TMSEntityFactory
     @Override
     public void processResult(final ResultSet rs) throws SQLException 
     {
-        final TMSDepartment tmp = new TMSDepartment();
+        final TMSDepartment tmp = new TMSDepartment(manager);
         try
         {
             

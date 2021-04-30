@@ -20,7 +20,7 @@
 */
 package gov.nga.integration.cspace;
 
-import gov.nga.search.ResultsPaginator;
+import gov.nga.common.search.ResultsPaginator;
 
 public class Paging {
 	int limit;

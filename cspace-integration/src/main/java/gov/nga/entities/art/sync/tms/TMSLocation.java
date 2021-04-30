@@ -5,8 +5,10 @@ import java.sql.SQLException;
 
 import gov.nga.common.entities.art.Location;
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtEntity;
-import gov.nga.entities.art.Place;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtEntity;
+import gov.nga.common.entities.art.Place;
+import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.entities.common.FingerprintedEntity;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.utils.stringfilter.EmptyFilter;
@@ -20,28 +22,30 @@ public class TMSLocation extends Location implements ArtEntity
 			"       l.unitPosition, l.isexternal " + 
 			"FROM data.locations l";
 	
-	public TMSLocation(ArtDataManagerService manager) {
-		this.manager=manager;
+	public TMSLocation(ArtDataQuerier manager) {
+		super(manager);
 	}
 	
-	private TMSLocation(ArtDataManagerService manager, ResultSet rs) throws SQLException {
-		super(rs);
-		this.manager = manager;
+	private TMSLocation(ArtDataQuerier manager, ResultSet rs) throws SQLException {
+		super(manager, rs);
 	}
 	
 	@Override
-    public ArtEntity factory(final ResultSet rs) throws SQLException 
+    public TMSLocation factory(final ResultSet rs) throws SQLException 
     {
-        return new TMSLocation(getManager(), rs);
+        return new TMSLocation(getQueryManager(), rs);
     }
 	
 	@Override
 	public Place getPlace() {
-		return this.getManager().fetchByTMSLocationID(getLocationID());
-	}
-	
-	
-	
+		Place place = null;
+		QueryResultArtData<Place> rslt = this.getQueryManager().fetchByTMSLocationID(getLocationID());
+		if (rslt.getResultCount() > 0)
+		{
+			place = rslt.getResults().iterator().next();
+		}
+		return place;
+	}	
 	
 	private static StringFilter emptyFilter = new EmptyFilter();
 

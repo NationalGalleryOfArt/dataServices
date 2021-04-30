@@ -22,12 +22,10 @@
 */
 package gov.nga.entities.art;
 
+import gov.nga.common.entities.art.OperatingMode;
+
 public interface OperatingModeService {
 	
-	public enum OperatingMode {
-		PUBLIC,
-		PRIVATE
-	}
 
 	public OperatingMode getOperatingMode();
 	

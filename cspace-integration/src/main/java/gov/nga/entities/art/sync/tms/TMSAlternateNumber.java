@@ -4,9 +4,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import gov.nga.common.entities.art.AlternateNumberData;
+import gov.nga.common.entities.art.ArtDataQuerier;
 import gov.nga.common.utils.TypeUtils;
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtEntity;
+import gov.nga.common.entities.art.ArtEntity;
 import gov.nga.entities.common.FingerprintedEntity;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.utils.stringfilter.EmptyFilter;
@@ -26,25 +27,24 @@ public class TMSAlternateNumber extends  AlternateNumberData implements ArtEntit
 	
 	private Long fingerprint = null;
     
-	public TMSAlternateNumber(ArtDataManagerService manager) {
-		this.manager=manager;
+	public TMSAlternateNumber(ArtDataQuerier manager) {
+		super(manager);
 	}
 	
-	protected TMSAlternateNumber(ArtDataManagerService manager, Long fingerprint) {
+	protected TMSAlternateNumber(ArtDataQuerier manager, Long fingerprint) {
+		super(manager);
 		this.fingerprint = fingerprint;
-		setManager(manager);
 	}
 	
-    protected TMSAlternateNumber(final ArtDataManagerService manager, final ResultSet rs) throws SQLException
+    protected TMSAlternateNumber(final ArtDataQuerier manager, final ResultSet rs) throws SQLException
     {
-        super(TypeUtils.getLong(rs, 1), rs.getString(2), rs.getString(3));
-		setManager(manager);
+    	super(TypeUtils.getLong(rs, 1), rs.getString(2), rs.getString(3), manager);
     }
 
     @Override
-    public ArtEntity factory(final ResultSet rs) throws SQLException 
+    public TMSAlternateNumber factory(final ResultSet rs) throws SQLException 
     {
-        return new TMSAlternateNumber(getManager(), rs);
+        return new TMSAlternateNumber(getQueryManager(), rs);
     }
 	
 	public ArtDataManagerService getManager() {

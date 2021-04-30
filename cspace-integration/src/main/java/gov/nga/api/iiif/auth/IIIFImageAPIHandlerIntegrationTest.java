@@ -54,7 +54,7 @@ import java.net.URL;
 import java.security.MessageDigest;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.OperatingModeService.OperatingMode;
+import gov.nga.common.entities.art.OperatingMode;
 import gov.nga.integration.cspace.CSpaceSpringApplication;
 import static gov.nga.utils.CaseInsensitiveSubstringMatcher.containsStringCaseInsensitive;
 

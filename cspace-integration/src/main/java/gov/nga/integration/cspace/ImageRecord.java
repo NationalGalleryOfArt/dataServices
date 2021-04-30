@@ -29,7 +29,7 @@ import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.ArtObjectDimension;
+import gov.nga.common.entities.art.ArtObjectDimension;
 import gov.nga.entities.art.OperatingModeService;
 
 /*

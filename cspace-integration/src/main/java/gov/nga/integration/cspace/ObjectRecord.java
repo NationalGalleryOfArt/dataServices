@@ -29,15 +29,15 @@ import java.util.concurrent.ExecutionException;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.OperatingModeService.OperatingMode;
+import gov.nga.common.entities.art.OperatingMode;
+import gov.nga.entities.art.OperatingModeService;
 
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.ArtObjectComponent;
-import gov.nga.entities.art.Bibliography;
-import gov.nga.entities.art.OperatingModeService;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObjectComponent;
+import gov.nga.common.entities.art.Bibliography;
 import gov.nga.common.entities.art.Location;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;

@@ -24,7 +24,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.search.ResultsPaginator;
+import gov.nga.common.search.ResultsPaginator;
 
 @JsonPropertyOrder({ "paging", "items" })
 public class Items {

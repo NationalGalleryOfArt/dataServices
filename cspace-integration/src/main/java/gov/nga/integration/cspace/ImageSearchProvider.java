@@ -25,8 +25,8 @@ package gov.nga.integration.cspace;
 
 import java.util.List;
 
-import gov.nga.entities.art.ArtObject;
-import gov.nga.search.SearchHelper;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.search.SearchHelper;
 
 public interface ImageSearchProvider extends SourceProvider {
 	

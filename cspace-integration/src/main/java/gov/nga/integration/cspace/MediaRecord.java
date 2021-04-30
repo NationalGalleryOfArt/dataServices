@@ -27,8 +27,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.Media;
-import gov.nga.entities.art.Media.MEDIATYPE;
+import gov.nga.common.entities.art.Media;
+import gov.nga.common.entities.art.Media.MEDIATYPE;
 
 
 @JsonPropertyOrder( { 

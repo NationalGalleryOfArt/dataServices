@@ -21,6 +21,8 @@
 */
 package gov.nga.integration.cspace;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -28,12 +30,21 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import gov.nga.rpc.GreeterGrpc;
+import gov.nga.rpc.HelloReply;
+import gov.nga.rpc.HelloRequest;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.stub.StreamObserver;
+
 @SpringBootApplication
 @EnableAutoConfiguration(exclude={DataSourceAutoConfiguration.class})
 @EnableScheduling
-@ComponentScan({"gov.nga.integration","gov.nga.api.iiif.auth"})
+@ComponentScan({"gov.nga.integration","gov.nga.api.iiif.auth", "gov.nga.rpc"})
 public class CSpaceSpringApplication {
 
+	private static final Logger log = LoggerFactory.getLogger(CSpaceSpringApplication.class);
+	
     public static void main(String[] args) {
         SpringApplication.run(CSpaceSpringApplication.class, args);
     }

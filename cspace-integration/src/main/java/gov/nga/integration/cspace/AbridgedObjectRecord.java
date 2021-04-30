@@ -36,13 +36,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import gov.nga.common.entities.art.ExhibitionArtObject;
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.ArtObjectAssociation;
-import gov.nga.entities.art.ArtObjectConstituent;
-import gov.nga.entities.art.ArtObjectImage;
-import gov.nga.entities.art.Media;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObjectAssociation;
+import gov.nga.common.entities.art.ArtObjectConstituent;
+import gov.nga.common.entities.art.ArtObjectImage;
+import gov.nga.common.entities.art.Media;
+import gov.nga.common.entities.art.OperatingMode;
 import gov.nga.entities.art.OperatingModeService;
-import gov.nga.entities.art.Place;
+import gov.nga.common.entities.art.Place;
 import gov.nga.integration.cspace.ArtObjectPredicates.ARTOBJECTPREDICATES;
 import gov.nga.integration.cspace.MediaPredicates.MEDIAPREDICATES;
 import gov.nga.integration.cspace.imageproviders.WebImage;
@@ -123,11 +124,11 @@ public class AbridgedObjectRecord extends LinkedArtRecord implements NamespaceIn
 			setMediaReferences();
 		}
 		
-		if (om.getOperatingMode() == OperatingModeService.OperatingMode.PRIVATE) {
+		if (om.getOperatingMode() == OperatingMode.PRIVATE) {
 			setMedium(o.getMedium());
 			setDimensions(o.getDimensions());
 			setDisplayDate(o.getDisplayDate());
-			setDepartment(o.getDepartmentAbbr());
+			setDepartment(o.getDepartmentCode());
 			//setLocation(new PlaceRecord(o.getCurrentLocation().getLocationInfo());
 			final List<String> dexIDS = CollectionUtils.newArrayList();
 			if (exhibitionMap.size() > 0) {

@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import gov.nga.entities.art.DataNotReadyException;
+import gov.nga.common.entities.art.DataNotReadyException;
 
 @ControllerAdvice
 public class ExceptionErrorMapper {

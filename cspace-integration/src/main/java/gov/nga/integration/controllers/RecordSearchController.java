@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import gov.nga.integration.cspace.APIUsageException;
 import gov.nga.integration.cspace.NamespaceUtils;
 import gov.nga.integration.cspace.OrderField;
-import gov.nga.search.ResultsPaginator;
+import gov.nga.common.search.ResultsPaginator;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
 

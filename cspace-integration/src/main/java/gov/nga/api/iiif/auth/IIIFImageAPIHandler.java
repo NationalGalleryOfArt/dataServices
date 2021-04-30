@@ -55,13 +55,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import gov.nga.entities.art.Derivative;
-import gov.nga.entities.art.Derivative.IMGFORMAT;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.entities.art.Derivative.IMGFORMAT;
 import gov.nga.integration.cspace.APIUsageException;
 import gov.nga.integration.cspace.CSpaceImage;
 import gov.nga.integration.cspace.imageproviders.WebImageSearchProvider;
-import gov.nga.search.SearchHelper;
-import gov.nga.search.SearchHelper.SEARCHOP;
+import gov.nga.common.search.SearchHelper;
+import gov.nga.common.search.SearchHelper.SEARCHOP;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.ConfigService;
 
@@ -511,7 +511,7 @@ public class IIIFImageAPIHandler {
 		dSearchHelper.addFilter(Derivative.SEARCH.IMAGEVOLUMEPATH, SEARCHOP.EQUALS, imgVolPath);
 		dSearchHelper.addFilter(Derivative.SEARCH.IMAGEFILENAME, SEARCHOP.EQUALS, imgFilename);
 
-		List<CSpaceImage> images = null;
+		List<CSpaceImage> images = null; 
 		try {
 			images = webImageSearchProvider.searchImages(dSearchHelper, null);
 		}

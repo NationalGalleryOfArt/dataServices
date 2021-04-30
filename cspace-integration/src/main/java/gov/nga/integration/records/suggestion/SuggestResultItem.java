@@ -3,7 +3,7 @@ package gov.nga.integration.records.suggestion;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import gov.nga.entities.art.ArtDataSuggestion;
+import gov.nga.common.entities.art.ArtDataSuggestion;
 import gov.nga.integration.records.ResultItem;
 
 @JsonPropertyOrder({ "suggestion", "entityid" })

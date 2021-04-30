@@ -8,113 +8,55 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import gov.nga.entities.art.Constituent;
+import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.ExhibitionLoan;
-import gov.nga.entities.art.TMSFetcher;
+import gov.nga.common.entities.art.TMSFetcher;
 import gov.nga.common.utils.TypeUtils;
 
 public class TMSLoan extends ExhibitionLoan
 {
-    private final Long constituent;
-    private final Long id;
-    private final String number;
-    private final PURPOSE purpose;
-    private final CATEGORY category;
-    private final ROLE role;
-    private final STATUS status;
-    private final TYPE type;
-    private final Date startDate;
-    private final Date endDate;
+    private Constituent constituent;
     
-    protected TMSLoan(final ResultSet rs, final Map<Long, Constituent> constituentMap) throws SQLException, ParseException
+    protected static TMSLoan getLoanFromSQL(final ResultSet rs, final Map<Long, Constituent> constituentMap) throws SQLException, ParseException
     {
-        id = TypeUtils.getLong(rs, 1);
-        number = rs.getString(2);
-        purpose = TypeUtils.getEnumValue(PURPOSE.class, rs.getString(3));
-        category = TypeUtils.getEnumValue(CATEGORY.class, rs.getString(4));
-        type = TypeUtils.getEnumValue(TYPE.class, rs.getString(5));
-        status = TypeUtils.getEnumValue(STATUS.class, rs.getString(6));
-        role = TypeUtils.getEnumValue(ROLE.class, rs.getString(7));
+        final Long id = TypeUtils.getLong(rs, 1);
+        final String number = rs.getString(2);
+        final PURPOSE purpose = TypeUtils.getEnumValue(PURPOSE.class, rs.getString(3));
+        final CATEGORY category = TypeUtils.getEnumValue(CATEGORY.class, rs.getString(4));
+        final TYPE type = TypeUtils.getEnumValue(TYPE.class, rs.getString(5));
+        final STATUS status = TypeUtils.getEnumValue(STATUS.class, rs.getString(6));
+        final ROLE role = TypeUtils.getEnumValue(ROLE.class, rs.getString(7));
+        
         String dateString = rs.getString(8);
+        Date startDate = null;
         if (StringUtils.isNotBlank(dateString))
         {
             startDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
         }
-        else 
-        {
-            startDate = null;
-        }
-        
         dateString = rs.getString(9);
+        Date endDate = null;
         if (StringUtils.isNotBlank(dateString))
         {
             endDate = TMSFetcher.DATE_FORMATTER.parse(dateString);
         }
-        else
-        {
-            endDate = null;
-        }
-        constituent = TypeUtils.getLong(rs, 10);
-    }
-
-    @Override
-    public Long getID() 
-    {
-        return id;
-    }
-
-    @Override
-    public String getNumber() 
-    {
-        return number;
+        final Long constituentID = TypeUtils.getLong(rs, 10);
+        final Constituent constituent = constituentMap.get(constituentID);
+        return new TMSLoan(id, constituentID, number, startDate, endDate, 
+        		purpose, category, type, status, role, constituent);
     }
     
-    @Override
-    public PURPOSE getPurpose() 
-    {
-        return purpose;
-    }
+    protected TMSLoan(Long id, Long constituentID, String number, Date startDate, Date endDate, PURPOSE purpose,
+			CATEGORY category, TYPE type, STATUS status, ROLE role, Constituent constituent) 
+	{
+		super(id, constituentID, number, startDate, endDate, purpose, category, type, status, role);
+		this.constituent = constituent;
+	}
 
-    @Override
-    public CATEGORY getCategory() 
-    {
-        return category;
-    }
-
-    @Override
-    public TYPE getType() 
-    {
-        return type;
-    }
-
-    @Override
-    public STATUS getStatus() 
-    {
-        return status;
-    }
-
-    @Override
-    public Date getStartDate() 
-    {
-        return startDate;
-    }
-
-    @Override
-    public Date getEndDate() 
-    {
-        return endDate;
-    }
-
-    @Override
-    public Long getConstituentID() 
-    {
-        return constituent;
-    }
-
-    @Override
-    public ROLE getRole() 
-    {
-        return role;
-    }
+	@Override
+	public Constituent getConstituent() 
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

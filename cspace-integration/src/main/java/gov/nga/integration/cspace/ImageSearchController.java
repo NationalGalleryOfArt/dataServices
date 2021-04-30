@@ -51,16 +51,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
-import gov.nga.entities.art.ArtObject.SORT;
+import gov.nga.common.entities.art.ArtObject.SORT;
 import gov.nga.integration.controllers.RecordSearchController;
-import gov.nga.entities.art.Derivative;
-import gov.nga.search.ResultsPaginator;
-import gov.nga.search.SearchFilter;
-import gov.nga.search.SearchHelper;
-import gov.nga.search.SearchHelper.SEARCHOP;
-import gov.nga.search.SortHelper;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.search.ResultsPaginator;
+import gov.nga.common.search.SearchFilter;
+import gov.nga.common.search.SearchHelper;
+import gov.nga.common.search.SearchHelper.SEARCHOP;
+import gov.nga.common.search.SortHelper;
 import gov.nga.utils.CollectionUtils;
 
 import gov.nga.utils.StringUtils;
@@ -175,7 +175,7 @@ public class ImageSearchController extends RecordSearchController {
     		// execute the search using the prepared search helper if we have art object filter parameters
     		// or consider all images for objects to be in play for other criteria
     		// no paginator since we want all of the results back
-    		artObjects = artDataManager.searchArtObjects(aoSearchHelper, null, null);
+    		artObjects = artDataManager.getArtDataQuerier().searchArtObjects(aoSearchHelper, null, null).getResults();
     	// since user selected no art object filters, they must have selected image filters or they're not going to get
     	// any results back because the result set would be enormously large which is just kind of silly, especially since we have
     	// to sort it
@@ -251,7 +251,7 @@ public class ImageSearchController extends RecordSearchController {
     	return images;
     }
     
-    protected static Object fieldNameToSortEnum(OrderField f) {
+    protected static Enum<?> fieldNameToSortEnum(OrderField f) {
     	if (StringUtils.isNullOrEmpty(f.fieldName))
     		return null;
     	switch (f.fieldName) {
@@ -272,9 +272,9 @@ public class ImageSearchController extends RecordSearchController {
     // Spring REST will automatically parse values that are separated with a comma into an array
     // and will pass the individual values
     protected SortHelper<CSpaceImage> getSortHelper(List<String> order) throws APIUsageException {
-    	List<Object> orders = CollectionUtils.newArrayList();
+    	List<Enum<?>> orders = CollectionUtils.newArrayList();
     	for (OrderField f : getSortFields(order,supportedNamespaces)) {
-    		Object s = fieldNameToSortEnum(f);
+    		Enum<?> s = fieldNameToSortEnum(f);
     		if (s == null)
     			s = ObjectSearchController.fieldNameToSortEnum(f);
     		if (s != null)
@@ -284,7 +284,7 @@ public class ImageSearchController extends RecordSearchController {
     	}
     	// always append the default sort order to the end of the list
     	orders.add(defaultSortOrder);
-    	return new SortHelper<CSpaceImage>(orders.toArray());
+    	return new SortHelper<CSpaceImage>(orders.toArray(new Enum<?>[] {}));
     }
 
 	// ID FIELD

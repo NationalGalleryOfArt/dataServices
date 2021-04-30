@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 
 import com.gs.collections.impl.map.mutable.ConcurrentHashMap;
 
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.Derivative;
-import gov.nga.entities.art.Derivative.ImgSearchOpts;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.Derivative;
+import gov.nga.common.entities.art.Derivative.ImgSearchOpts;
 import gov.nga.imaging.Thumbnail;
 
 @Deprecated

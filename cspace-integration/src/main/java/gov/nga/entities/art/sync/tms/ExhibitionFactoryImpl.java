@@ -7,8 +7,9 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nga.entities.art.ArtObject;
-import gov.nga.entities.art.Constituent;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtObject;
+import gov.nga.common.entities.art.Constituent;
 import gov.nga.utils.db.DataSourceService;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.ExhibitionLoan;
@@ -22,7 +23,13 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
     
     private final Map<Long, Exhibition> exhibitionsMap = CollectionUtils.newHashMap();
     private final Map<Long, ExhibitionVenue> venueMap = CollectionUtils.newHashMap();
-
+    private final ArtDataQuerier manager;
+    
+    public ExhibitionFactoryImpl (final ArtDataQuerier mgr)
+    {
+    	manager = mgr;
+    }
+    
     @Override
     public Map<Long, Exhibition> getExhibitions(final Map<Long, ArtObject> artObjectMap, final Map<Long, Constituent> constituentMap, final DataSourceService ps) 
     {
@@ -86,7 +93,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                TMSExhibition exh = new TMSExhibition(rs);
+                TMSExhibition exh = TMSExhibition.getExhibitionFromSQL(rs, manager);
                 exhibitionsMap.put(exh.getID(), exh);
             }
             catch (final Exception err)
@@ -113,7 +120,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                new TMSVenue(rs, constituentsMap, exhibitionMap);
+                TMSVenue.getVenueFromSQL(rs, constituentsMap, exhibitionMap);
             }
             catch (final Exception err)
             {
@@ -144,7 +151,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                TMSLoan loan = new TMSLoan(rs, constituentMap);
+                TMSLoan loan = TMSLoan.getLoanFromSQL(rs, constituentMap);
                 loanMap.put(loan.getID(), loan);
             }
             catch (final Exception err)
@@ -173,7 +180,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                new TMSExhibitionArtObject(rs, exhibitions, artobjects, loans);
+                TMSExhibitionArtObject.getObjectFromSQL(rs, exhibitions, artobjects, loans, manager);
                 
             }
             catch (final Exception err)
@@ -199,7 +206,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                TMSExhibitionConstituent cand = new TMSExhibitionConstituent(rs, exhibitions, constituents);
+                TMSExhibitionConstituent cand = TMSExhibitionConstituent.getConstituentFromSQL(rs, exhibitions, constituents);
                 ((TMSExhibition)cand.getExhibition()).addConstituent(cand);
             }
             catch (final Exception err)

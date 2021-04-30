@@ -26,7 +26,7 @@
 */
 package gov.nga.entities.art.factory;
 
-import gov.nga.entities.art.Constituent;
+import gov.nga.common.entities.art.Constituent;
 
 public interface ConstituentFactory <T>
 {

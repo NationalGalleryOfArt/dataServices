@@ -41,10 +41,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtObject;
+import gov.nga.common.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
 import gov.nga.integration.controllers.RecordSearchController;
-import gov.nga.search.SearchHelper;
+import gov.nga.common.search.SearchHelper;
 import gov.nga.utils.LongUtils;
 
 @RestController
@@ -108,7 +108,7 @@ public class ObjectRecordController {
     	
     	// fetch the object using the art data manager service
     	// TODO this can throw an exception if the data is not ready in which case we should 1) be prepared to handle that exception and 2) respond with appropriate error
-    	ArtObject o = artDataManager.fetchByObjectID(l);
+    	ArtObject o = artDataManager.getArtDataQuerier().fetchByObjectID(l).getResults().get(0);
     	if (o == null)
     		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 
@@ -119,7 +119,7 @@ public class ObjectRecordController {
     	List<CSpaceImage> images = imgCtrl.searchImages(null, imageSearchHelper, Arrays.asList(o));
 
     	// and construct the object record along with all of its references
-    	ObjectRecord or = new ObjectRecord(o, artDataManager.getLocationsRaw(), om, ts, images, RecordSearchController.getRequestingServer(request));
+    	ObjectRecord or = new ObjectRecord(o, artDataManager.getArtDataCacher().getLocationsMap(), om, ts, images, RecordSearchController.getRequestingServer(request));
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		

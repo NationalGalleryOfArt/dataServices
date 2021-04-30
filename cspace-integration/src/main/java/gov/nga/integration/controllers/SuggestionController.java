@@ -24,10 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.common.utils.CollectionUtils;
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.entities.art.ArtDataSuggestion;
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtDataSuggestion;
 import gov.nga.integration.records.Items;
 import gov.nga.integration.records.suggestion.SuggestResultItem;
-import gov.nga.search.ResultsPaginator;
+import gov.nga.common.search.ResultsPaginator;
 
 @RestController
 public class SuggestionController extends RecordSearchController  {
@@ -40,6 +41,9 @@ public class SuggestionController extends RecordSearchController  {
 
     @Autowired
     private ArtDataManagerService artDataManager;
+    
+    @Autowired
+    private ArtDataQuerier artDataQuerier;
     
 
     @InitBinder
@@ -82,11 +86,11 @@ public class SuggestionController extends RecordSearchController  {
 			HttpServletRequest request,
 			HttpServletResponse response
 	) throws Exception {
-    	if (StringUtils.isNotBlank(artist)) {
-    		return sendSuggestions(artDataManager.suggestArtObjectsByArtistName(artist, title),
+    	if (StringUtils.isNotBlank(artist)) { 
+    		return sendSuggestions(artDataQuerier.suggestArtObjectFromArtist(artist, title).getResults(),
     								skip, limit, request, response);
     	}
-    	return sendSuggestions(artDataManager.suggestArtObjectsByTitle(title),
+    	return sendSuggestions(artDataQuerier.suggestArtObjects(title).getResults(),
 									skip, limit, request, response);
     }
 
@@ -100,7 +104,7 @@ public class SuggestionController extends RecordSearchController  {
 			HttpServletRequest request,
 			HttpServletResponse response
 	) throws Exception {
-    	return sendSuggestions(artDataManager.suggestArtists(title),
+    	return sendSuggestions(artDataQuerier.suggestArtists(title).getResults(),
 				skip, limit, request, response);
     }
 
@@ -114,7 +118,7 @@ public class SuggestionController extends RecordSearchController  {
 			HttpServletRequest request,
 			HttpServletResponse response
 	) throws Exception {
-    	return sendSuggestions(artDataManager.suggestExhibitions(title),
+    	return sendSuggestions(artDataQuerier.suggestExhibitions(title).getResults(),
 				skip, limit, request, response);
     }
     

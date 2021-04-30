@@ -30,9 +30,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 
+import gov.nga.common.entities.art.ArtDataQuerier;
 import gov.nga.entities.art.ArtDataManagerService;
 
-import gov.nga.entities.art.Derivative;
+import gov.nga.common.entities.art.Derivative;
 import gov.nga.imaging.Thumbnail;
 import gov.nga.integration.cspace.CSpaceImage;
 import gov.nga.integration.cspace.CSpaceTestModeService;
@@ -44,8 +45,8 @@ public class WebImage extends CSpaceImage {
 
 	private static final String CLASSIFICATION = "publishedImage";
 	
-	public WebImage(ArtDataManagerService manager, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
-		super(manager, rs);
+	public WebImage(ArtDataQuerier manager, String baseURL, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
+		super(manager, baseURL, rs);
 		if ( ts.isTestModeOtherHalfObjects() )
 			setClassification("partner2" + WebImage.CLASSIFICATION);
 		else
@@ -57,8 +58,8 @@ public class WebImage extends CSpaceImage {
 //        return d; 
 //    }
     
-    public WebImage(ArtDataManagerService manager, CSpaceTestModeService ts) {
-    	super(manager);
+    public WebImage(ArtDataQuerier qmgr, String baseURL, CSpaceTestModeService ts) {
+    	super(qmgr, baseURL);
 		if ( ts.isTestModeOtherHalfObjects() )
 			setClassification("partner2" + WebImage.CLASSIFICATION);
 		else
@@ -66,7 +67,7 @@ public class WebImage extends CSpaceImage {
     }
     
     public static WebImage factory(Derivative d, CSpaceTestModeService ts) {
-    	WebImage newImage = new WebImage(d.getManager(), ts);
+    	WebImage newImage = new WebImage(d.getQueryManager(), d.getImagingServerURL(), ts);
     	BeanUtils.copyProperties(d, newImage);
     	return newImage;
     }

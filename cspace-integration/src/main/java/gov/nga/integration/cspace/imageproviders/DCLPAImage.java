@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nga.common.entities.art.Derivative;
 import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.imaging.Thumbnail;
 import gov.nga.integration.cspace.CSpaceImage;
@@ -68,7 +69,7 @@ public class DCLPAImage extends CSpaceImage {
 	}
 
 	public DCLPAImage(ArtDataManagerService manager, ResultSet rs, CSpaceTestModeService ts) throws SQLException {
-		super(manager);
+		super(manager.getArtDataQuerier(), manager.getConfig().getString(Derivative.imagingServerURLPropertyName));
 		
 		setSource(defaultSource);
 		if (ts.isTestModeOtherHalfObjects())
@@ -116,7 +117,7 @@ public class DCLPAImage extends CSpaceImage {
 //    }
     
     public DCLPAImage(ArtDataManagerService manager) {
-    	super(manager);
+    	super(manager.getArtDataQuerier(), manager.getConfig().getString(Derivative.imagingServerURLPropertyName));
     }
 
     private void setTmsObjectID(String objectID) {
