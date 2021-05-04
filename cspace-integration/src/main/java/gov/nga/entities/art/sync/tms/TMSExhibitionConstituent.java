@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import gov.nga.common.entities.art.ArtDataQuerier;
+import gov.nga.common.entities.art.ArtEntity;
 import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.ExhibitionConstituent;
@@ -16,7 +18,8 @@ public class TMSExhibitionConstituent extends ExhibitionConstituent
     private Exhibition exhibition;
     private Constituent constituent;
 
-    protected static TMSExhibitionConstituent getConstituentFromSQL(final ResultSet rs, final Map<Long, Exhibition> exhibitions, final Map<Long, Constituent> constituents) throws SQLException
+    protected static TMSExhibitionConstituent getConstituentFromSQL(final ArtDataQuerier manager,
+    		final ResultSet rs, final Map<Long, Exhibition> exhibitions, final Map<Long, Constituent> constituents) throws SQLException
     {
         final Exhibition exhibition = exhibitions.get(TypeUtils.getLong(rs, 2));
         if (exhibition == null) 
@@ -29,14 +32,14 @@ public class TMSExhibitionConstituent extends ExhibitionConstituent
         final Long displayOrder = TypeUtils.getLong(rs, 4);
         final ROLE role = getRoleFromString(rs.getString(5));
         final ROLETYPE roleType = getRoleTypeFromString(rs.getString(6));
-        return new TMSExhibitionConstituent(displayOrder,
+        return new TMSExhibitionConstituent(manager, displayOrder,
         					role, roleType, exhibition, obj);
     }
     
-    protected TMSExhibitionConstituent(Long displayOrder, ROLE role, ROLETYPE roleType,
+    protected TMSExhibitionConstituent(ArtDataQuerier manager, Long displayOrder, ROLE role, ROLETYPE roleType,
     						Exhibition exhibition, Constituent constituent) 
     {
-		super(exhibition.getID(), constituent.getConstituentID(), displayOrder, role, roleType);
+		super(manager, exhibition.getID(), constituent.getConstituentID(), displayOrder, role, roleType);
 		this.exhibition = exhibition;
 		this.constituent = constituent;
     }
@@ -92,5 +95,11 @@ public class TMSExhibitionConstituent extends ExhibitionConstituent
 	public Constituent getConstituent() 
 	{
 		return constituent;
+	}
+
+	@Override
+	public <T extends ArtEntity> T factory(ResultSet arg0) throws SQLException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

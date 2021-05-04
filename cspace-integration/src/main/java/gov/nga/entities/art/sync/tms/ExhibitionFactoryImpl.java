@@ -206,7 +206,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
         {
             try
             {
-                TMSExhibitionConstituent cand = TMSExhibitionConstituent.getConstituentFromSQL(rs, exhibitions, constituents);
+                TMSExhibitionConstituent cand = TMSExhibitionConstituent.getConstituentFromSQL(manager, rs, exhibitions, constituents);
                 ((TMSExhibition)cand.getExhibition()).addConstituent(cand);
             }
             catch (final Exception err)
