@@ -15,6 +15,10 @@ import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
 import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.common.rpc.FetchByIDsQuery;
+import gov.nga.common.rpc.FetchByStringsQuery;
+import gov.nga.common.rpc.LocationObjectResult;
+import gov.nga.common.rpc.MediaObjectResult;
+import gov.nga.common.rpc.PlaceObjectResult;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.entities.art.ArtDataManager;
 import io.grpc.stub.StreamObserver;
@@ -29,6 +33,9 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	
 	private ConstituentHelper constHlpr;
 	private ExhibitionHelper exhHlpr;
+	private MediaHelper mediaHlpr;
+	private LocationHelper locationHlpr;
+	private PlaceHelper placeHlpr;
 	
 
     @PostConstruct
@@ -36,6 +43,9 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
     {
     	constHlpr = new ConstituentHelper(artDataManager);
     	exhHlpr = new ExhibitionHelper(artDataManager);
+    	mediaHlpr = new MediaHelper(artDataManager);
+    	locationHlpr = new LocationHelper(artDataManager);
+    	placeHlpr = new PlaceHelper(artDataManager);
     }
     
     @Override    
@@ -70,82 +80,31 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 		
 	}
 
-	/*
 	@Override
-	public void fetchTestConstituents(final TestFetchIDsQuery request,
-			final StreamObserver<ConstituentsObjectResult> responseObserver)
+	public void getMedia(final FetchByStringsQuery request,
+			final StreamObserver<MediaObjectResult> responseObserver)
 	{
-		LOG.info("fetchTestConstituents() called..."); 
-		try
-		{
-			final ConstituentsObjectResult.Builder builder = ConstituentsObjectResult.newBuilder();
-			final List<Constituent> constituents = artDataManager.getArtDataQuerier().fetchByConstituentIDs(request.getIdsList()).getResults();
-			for (Constituent rslt: constituents)
-			{
-				builder.setConstituent(ConstituentMessageFactory.convertConstituentToMessage(rslt));
-				responseObserver.onNext(builder.build());
-			}
-			responseObserver.onCompleted();
-		}
-		catch (final Exception err)
-		{
-			LOG.error("fetchTestConstituents(): Exception Caught", err);
-			responseObserver.onError(err);
-		}
-		
+		mediaHlpr.getMedia(request, responseObserver);
 	}
 	
 	@Override
-	public void fetchTestConstituentData(final TestFetchQuery request, 
-					final StreamObserver<ConstituentQueryResult> responseObserver)
+	public void fetchLocations(final FetchByIDsQuery request,
+			final StreamObserver<LocationObjectResult> responseObserver)
 	{
-		LOG.info("fetchTestConstituentData() called..."); 
-		try
-		{
-			final int countLimit = request.getNumboerOfObjects();
-			int count = 0;
-			final ConstituentQueryResult.Builder builder = ConstituentQueryResult.newBuilder();
-			final List<Constituent> exhibits = artDataManager.getArtDataCacher().getConstituentsRaw();
-			for (; count < countLimit; count++)
-			{
-				builder.addIds(exhibits.get(count).getConstituentID());
-				//builder.addResults(ConstituentMessageFactory.convertConstituentToMessage(exhibits.get(count)));
-			}
-			builder.setTotalResults(count);
-			responseObserver.onNext(builder.build());
-			responseObserver.onCompleted();
-		}
-		catch (final Exception err)
-		{
-			LOG.error("fetchTestConstituentData(): Exception Caught", err);
-			responseObserver.onError(err);
-		}
+		locationHlpr.fetchLocations(request, responseObserver);
 	}
 
 	@Override
-	public void fetchTestExhibitionData(final ExhibitionTestFetchQuery request,
-					final StreamObserver<ExhibitionQueryResult> responseObserver)
+	public void getPlaceByPlaceKey(final FetchByStringsQuery request, 
+			final StreamObserver<PlaceObjectResult> responseObserver)
 	{
-		LOG.info("fetchTestExhibitionData() called..."); 
-		try
-		{
-			final int countLimit = request.getNumberOfExhibits();
-			int count = 0;
-			final ExhibitionQueryResult.Builder builder = ExhibitionQueryResult.newBuilder();
-			final List<Exhibition> exhibits = artDataManager.getArtDataCacher().getExhibitionsRaw();
-			for (; count < countLimit; count++)
-			{
-				builder.addResults(ExhibitionMessageFactory.createMessage(exhibits.get(count)));
-			}
-			builder.setTotalResults(count);
-			responseObserver.onNext(builder.build());
-			responseObserver.onCompleted();
-		}
-		catch (final Exception err)
-		{
-			LOG.error("fetchTestExhibitionData(): Exception Caught", err);
-			responseObserver.onError(err);
-		}
+		placeHlpr.getPlaceByPlaceKey(request, responseObserver);
 	}
-	*/
+	
+	@Override
+	public void getPlaceByTMSLocationID(final FetchByIDsQuery request, 
+			final StreamObserver<PlaceObjectResult> responseObserver) 
+	{
+		placeHlpr.getPlaceByTMSLocationID(request, responseObserver);
+	}
 }
