@@ -31,7 +31,7 @@ public class RestTestingUtils {
 	}
 
 	public static boolean responseCodeValidates(ResponseEntity<String> resp, String code) {
-		return resp.getStatusCode().toString().equals(code);
+		return String.valueOf(resp.getStatusCodeValue()).equals(code);
 	}
 	
 	public static boolean responseCodeValidates(ResponseEntity<String> resp, Integer code) {

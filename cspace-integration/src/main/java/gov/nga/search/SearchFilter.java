@@ -24,7 +24,7 @@ package gov.nga.search;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;

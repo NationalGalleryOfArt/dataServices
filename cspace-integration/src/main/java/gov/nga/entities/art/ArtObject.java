@@ -636,11 +636,11 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		case YEAR_MATCH: 
 			if (getBeginYear() == null || ao.getBeginYear() == null)
 				return null;
-			return new Long(getBeginYear().equals(ao.getBeginYear()) ? 1 : 0);
+			return getBeginYear().equals(ao.getBeginYear()) ? 1L : 0L;
 		case CLASSIFICATION_MATCH:
 			if (getClassification() == null || ao.getClassification() == null)
 				return null;
-			return new Long(getClassification().equals(ao.getClassification()) ? 1 : 0);
+			return getClassification().equals(ao.getClassification()) ? 1L : 0L;
 		case NUMTHEMESINCOMMON_MATCH_DESC:
 			return numCommonTerms(ao,TERMTYPES.THEME);
 		case NUMSTYLESINCOMMON_MATCH_DESC:
@@ -648,7 +648,7 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		case NUMDONORSINCOMMON_MATCH_DESC:
 			return numCommonDonors(ao);
 		case ARTISTS_MATCH:
-			Long aMatch = new Long( numCommonArtists(ao) == ao.numArtists() ? 1 : 0);
+			Long aMatch = numCommonArtists(ao) == ao.numArtists() ? 1L : 0L;
 			return aMatch;
 		case NUMARTISTSINCOMMON_MATCH_DESC:
 			return numCommonArtists(ao);
@@ -657,36 +657,36 @@ public class ArtObject extends ArtEntityImpl implements Searchable, Sortable, Fa
 		case ATTRIBUTIONINV_ASC:
 			if (getAttributionInverted() == null || ao.getAttributionInverted() == null)
 				return null;
-			return new Long(getAttributionInverted().equals(ao.getAttributionInverted()) ? 1 : 0);
+			return getAttributionInverted().equals(ao.getAttributionInverted()) ? 1L : 0L;
 		case TITLE_MATCH:
 			if (getTitle() == null || ao.getTitle() == null)
 				return null;
-			return new Long(getTitle().equals(ao.getTitle()) ? 1 : 0);
+			return getTitle().equals(ao.getTitle()) ? 1L : 0L;
 		case OBJECTID_MATCH:
 			if (getObjectID() == null || ao.getObjectID() == null)
 				return null;
-			return new Long(getObjectID().equals(ao.getObjectID()) ? 1 : 0);
+			return getObjectID().equals(ao.getObjectID()) ? 1L : 0L;
 		case HASLARGERIMAGERY_MATCH:
 			if (hasImagery() == null || ao.hasImagery() == null)
 				return null;
-			return new Long(hasImagery().equals(ao.hasImagery()) ? 1 : 0);
+			return hasImagery().equals(ao.hasImagery()) ? 1L : 0L;
 		case HASTHUMBNAIL_MATCH:
 			if (hasThumbnail() == null || ao.hasThumbnail() == null)
 				return null;
-			return new Long(hasThumbnail().equals(ao.hasThumbnail()) ? 1 : 0);
+			return hasThumbnail().equals(ao.hasThumbnail()) ? 1L : 0L;
 		case ONVIEW_MATCH:
 			if (isOnView() == null || ao.isOnView() == null)
 				return null;
-			return new Long(isOnView().equals(ao.isOnView()) ? 1 : 0);
+			return isOnView().equals(ao.isOnView()) ? 1L : 0L;
 		case ACCESSIONNUM_ASC:
 			Long retVal = null;
 			if (getAccessionNum() != null && ao.getAccessionNum() != null)
-				retVal = new Long(getAccessionNum().equals(ao.getAccessionNum()) ? 1 : 0);
+				retVal = getAccessionNum().equals(ao.getAccessionNum()) ? 1L : 0L;
 			return retVal;
 		case LASTDETECTEDMODIFICATION_DESC:
 			retVal = null;
 			if (getLastDetectedModification() != null && ao.getLastDetectedModification() != null)
-				retVal = new Long(getLastDetectedModification().equals(ao.getLastDetectedModification()) ? 1 : 0);
+				retVal = getLastDetectedModification().equals(ao.getLastDetectedModification()) ? 1L : 0L;
 			return retVal;
 		default:
 			break;

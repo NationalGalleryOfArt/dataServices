@@ -215,7 +215,7 @@ public abstract class Derivative extends SupplementingEntityImpl implements Sear
 
 	public static Comparator<Derivative> sortByPixelSizeAsc = new Comparator<Derivative>() {
 		public int compare(Derivative a, Derivative b) {
-			return new Long(a.pixelCount()).compareTo(new Long(b.pixelCount()));
+			return Long.compare(a.pixelCount(), b.pixelCount());
 		}
 	};
 

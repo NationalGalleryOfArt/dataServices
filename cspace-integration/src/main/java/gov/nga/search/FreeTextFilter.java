@@ -23,10 +23,7 @@ package gov.nga.search;
 
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.hashcode.CustomHash;
-
 import java.util.List;
-
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 //public class FreeTextFilter<C extends FreeTextSearchable<C>> {
 public class FreeTextFilter implements CustomHash {
@@ -35,7 +32,7 @@ public class FreeTextFilter implements CustomHash {
 	private String searchTerm = null;
 
 	public long customHash() {
-		HashCodeBuilder hcb = new HashCodeBuilder(17,19);
+		org.apache.commons.lang.builder.HashCodeBuilder hcb = new org.apache.commons.lang.builder.HashCodeBuilder(17,19);
 		hcb.append(searchTerm);
 		for (Object o : fieldsToSearch) {
 			hcb.append(o);

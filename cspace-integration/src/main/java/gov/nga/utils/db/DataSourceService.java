@@ -25,12 +25,12 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.ConnectionFactory;
-import org.apache.commons.dbcp.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp.PoolableConnection;
-import org.apache.commons.dbcp.PoolableConnectionFactory;
-import org.apache.commons.dbcp.PoolingDataSource;
-import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.dbcp2.ConnectionFactory;
+import org.apache.commons.dbcp2.DriverManagerConnectionFactory;
+import org.apache.commons.dbcp2.PoolableConnection;
+import org.apache.commons.dbcp2.PoolableConnectionFactory;
+import org.apache.commons.dbcp2.PoolingDataSource;
+import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,25 +55,30 @@ public abstract class DataSourceService {
 		// We'll use the DriverManagerConnectionFactory, using the connect string passed in the command line
 		// arguments.
 		ConnectionFactory connectionFactory = new DriverManagerConnectionFactory(getUrl(), getUsername(), getPassword());
+		
+		// Next we'll create the PoolableConnectionFactory, which wraps the "real" Connections created 
+		// by the ConnectionFactory with the classes that implement the pooling functionality.
+		PoolableConnectionFactory poolableConnectionFactory = new PoolableConnectionFactory(connectionFactory,null);
 
-		// Now we'll need a ObjectPool that serves as the actual pool of connections.
+		// set some behaviors of the pool
+		poolableConnectionFactory.setValidationQuery(validationQuery);
+		poolableConnectionFactory.setValidationQueryTimeout(5);
+		poolableConnectionFactory.setDefaultReadOnly(true);
+		poolableConnectionFactory.setAutoCommitOnReturn(false);
+		
+		// Now we'll need an ObjectPool that serves as the actual pool of connections.
 		// We'll use a GenericObjectPool instance, although any ObjectPool implementation will suffice.
 		// I should note this is highly configurable and there are many options, but with the exception of
 		// testing connections on borrow, we use the defaults
-		GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<PoolableConnection>();
+		GenericObjectPool<PoolableConnection> connectionPool = new GenericObjectPool<>(poolableConnectionFactory);
 		connectionPool.setTestOnBorrow(true);
-
-		// Next we'll create the PoolableConnectionFactory, which wraps the "real" Connections created 
-		// by the ConnectionFactory with the classes that implement the pooling functionality.
-		PoolableConnectionFactory poolableConnectionFactory =
-				new PoolableConnectionFactory(connectionFactory, connectionPool, null, validationQuery, false, true);
 
 		// Set the factory's pool property to the owning pool
 		poolableConnectionFactory.setPool(connectionPool);
-
+		
 		// Finally, we create the PoolingDriver itself,
 		// passing in the object pool we created.
-		PoolingDataSource newDataSource = new PoolingDataSource(connectionPool);
+		PoolingDataSource<PoolableConnection> newDataSource = new PoolingDataSource<PoolableConnection>(connectionPool);
 		setDataSource(newDataSource);
 	}
 	

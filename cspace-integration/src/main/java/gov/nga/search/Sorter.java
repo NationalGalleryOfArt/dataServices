@@ -28,7 +28,7 @@ import java.text.CollationKey;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 public class Sorter implements CustomHash { 
 

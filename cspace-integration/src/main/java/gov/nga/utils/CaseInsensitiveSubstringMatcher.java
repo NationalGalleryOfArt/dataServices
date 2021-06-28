@@ -22,7 +22,7 @@
 package gov.nga.utils;
 
 import org.hamcrest.Description;
-import org.hamcrest.Factory;
+//import org.hamcrest.Factory;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 
@@ -44,7 +44,6 @@ public class CaseInsensitiveSubstringMatcher extends TypeSafeMatcher<String> {
         description.appendText("containing substring \"" + this.subString + "\"");
     }
 
-    @Factory
     public static Matcher<String> containsStringCaseInsensitive(final String subString) {
         return new CaseInsensitiveSubstringMatcher(subString);
     }

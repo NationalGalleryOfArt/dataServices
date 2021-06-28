@@ -43,10 +43,6 @@ public class TimeSpan extends LinkedArtBaseClass {
 		setLabel(label);
 	}
 	
-	public TimeSpan(int begin, int end, String label)  {
-		this(new Long(begin), new Long(end), label);
-	}
-	
 	public TimeSpan(Long begin, Long end, String label)  {
 		super(defaultNamespace);
 		Calendar c = Calendar.getInstance();

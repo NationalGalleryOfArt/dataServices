@@ -33,15 +33,18 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -188,7 +191,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
     		.andExpect(content().contentType("application/vnd.netfpx"))
     		.andExpect(header().string("Access-Control-Allow-Origin","*"))
     		.andExpect(header().string("Access-Control-Allow-Methods","GET, POST"))
-    		.andExpect(content().string(containsString("Max-size:10321 11771")))
+    		.andExpect(content().string(containsString("Max-size:6049 5103")))
     		;
     	}
     }
@@ -248,7 +251,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
     
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_get() throws Exception {
     	log.info(name.getMethodName());
@@ -256,7 +258,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
            	.header("Access-Control-Request-Method", "GET")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
-        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("GET"))))
         	;
     }
@@ -274,7 +276,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
     		;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_head() throws Exception {
     	log.info(name.getMethodName());
@@ -282,12 +283,11 @@ public class IIIFImageAPIHandlerIntegrationTest {
            	.header("Access-Control-Request-Method", "HEAD")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
-        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("HEAD"))))
         	;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_post() throws Exception {
     	log.info(name.getMethodName());
@@ -295,7 +295,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
            	.header("Access-Control-Request-Method", "POST")
            	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
-        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("POST"))))
         	;
     }
@@ -313,7 +313,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_nosample_openaccess_image_options() throws Exception {
     	log.info(name.getMethodName());
@@ -321,7 +320,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	.header("Access-Control-Request-Method", "GET")
         	.header("Origin","https://someserver.com"))
         	.andExpect(status().isOk())
-        	.andExpect(header().string("Access-Control-Allow-Origin","https://someserver.com"))
+        	.andExpect(header().string("Access-Control-Allow-Origin","*"))
         	.andExpect(header().stringValues("Access-Control-Allow-Methods",hasItems(containsString("GET"))))
         	;
     }
@@ -414,11 +413,24 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
+    // dpb
     @Test
     public void iiif_nosample_restricted_infojson() throws Exception {
     	log.info(name.getMethodName());
        	// in public operating mode, we redirect to a restricted size image
     	if ( adms.getOperatingMode() == OperatingMode.PUBLIC) {
+
+    		// this is a bit of a workaround - for some reason, calling the request builder first like this
+    		// causes the subsequent get request below to pass whereas not calling it fails when checking the
+    		// redirected url
+        	MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/iiif/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/info.json"))
+                    .andReturn();
+            // String responseBody = mvcResult.getResponse().getContentAsString();
+            MockHttpServletResponse m = mvcResult.getResponse();
+            String l = m.getHeader("Location");
+            if ( l == null)
+            	throw new Exception("Expected redirect");
+
     		mvc.perform(get("/iiif/public/objects/1/5/0/5/5/2/150552-primary-0-nativeres.ptif/info.json")
     				.header(IIIFImageAPIHandler.nga_external, "true" ))
     		.andExpect(status().is(303))
@@ -577,7 +589,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
 	 */
 
     
-    @SuppressWarnings("unchecked")
 	public void validateImageContent(String url, String trueHeaderName, String cacheMatch, String sha1) throws Exception {
     	 ResultActions ra = mvc.perform(
     			get(url)
@@ -603,7 +614,7 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/fastcgi/iipsrv.fcgi?FIF=/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif&WID=1200&QLT=98&CVT=jpeg",
-    			IIIFImageAPIHandler.nga_internal, "no-cache", "e86c745018982a1647db0ece36ebcceb11531869"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "121e5fda953976bf510fe9557eb8107bcc03a984"
     	);
     }
 
@@ -611,8 +622,8 @@ public class IIIFImageAPIHandlerIntegrationTest {
     public void fastcgi_object_image_with_nga_external_header() throws Exception {
 		log.info(name.getMethodName());
     	validateImageContent(
-    			"/fastcgi/iipsrv.fcgi?FIF=/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif&WID=1200&QLT=98&CVT=jpeg",
-    			IIIFImageAPIHandler.nga_external, "no-cache", "c13192c20932aa4bf236604d3a78b49c4f52cf58"
+    			"/fastcgi/iipsrv.fcgi?FIF=/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif__640&WID=1200&QLT=98&CVT=jpeg",
+    			IIIFImageAPIHandler.nga_external, "max-age", "0f6defef3c73acd8a5d6c501848ef2c59b163574"
     	);
     }
 
@@ -630,26 +641,28 @@ public class IIIFImageAPIHandlerIntegrationTest {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg",
-    			IIIFImageAPIHandler.nga_internal, "no-cache", "6df2fd649511680a778d91fe8b8c528878f273cd"
+    			IIIFImageAPIHandler.nga_internal, "no-cache", "0a9823d8eea97f9ea0a3b0bf2ac82d447119a8a9"
     	);
     }
 
-	@Test
+	/* no longer necessary as we're transitioning away from these particular redirects */
+/*	@Test
     public void iiif_object_image_with_nga_external_header() throws Exception {
 		log.info(name.getMethodName());
 		mvc.perform(get("/iiif/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg")
 		.header(IIIFImageAPIHandler.nga_external,  true))
 		.andExpect(status().is(303))
-		.andExpect(redirectedUrl("/iiif/640/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg"))
+		.andExpect(redirectedUrl("/iiif/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif__640/full/!1200,/0/default.jpg"))
 		;
     }
+*/
 	
 	@Test
     public void iiif_object_image_with_nga_external_header_sized() throws Exception {
 		log.info(name.getMethodName());
     	validateImageContent(
     			"/iiif/640/public/objects/2/1/1/8/8/7/211887-primary-0-nativeres.ptif/full/!1200,/0/default.jpg",
-    			IIIFImageAPIHandler.nga_external, null, "9e16c0919fe97b2b98f6db263e5f3699d28bfa9c"
+    			IIIFImageAPIHandler.nga_external, null, "525c057e9e6472c563ef6565351aeab8f6661589"
     	);
     }
 

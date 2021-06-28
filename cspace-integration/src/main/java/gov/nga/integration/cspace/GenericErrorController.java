@@ -20,20 +20,16 @@
 */
 package gov.nga.integration.cspace;
 
-import org.springframework.boot.autoconfigure.web.ErrorController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-public class GenericErrorController implements ErrorController {
+//@RestController
+public class GenericErrorController { //implements org.springframework.boot.web.servlet.error.ErrorController {
 
-    private static final String PATH = "/error";
+//    private static final String PATH = "/error";
     // TODO - update this URL to point to github
     public static final String HELPLINK = 
     		"Please refer to the <a href=\"/apis/cspace.docx\">interface control document</a> for this service.";
 
-    @RequestMapping(value = PATH,method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
+ /*   @RequestMapping(value = PATH,method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public String error() {
         return "An error occurred trying to map your request to a service end point. " + HELPLINK;
     }
@@ -43,5 +39,29 @@ public class GenericErrorController implements ErrorController {
         return PATH;
     }
     
- 
+ */
 }
+
+/*** spring example ***/
+
+/*@ControllerAdvice
+public class myExceptionHandler extends ResponseEntityExceptionHandler {
+
+ @ExceptionHandler(Exception.class)
+ public final ResponseEntity<YourResponseClass> handleAllExceptions(Exception ex, WebRequest request) {
+   YourResponseClassexceptionResponse = new YourResponseClass(new Date(), ex.getMessage());// Its an example you can define a class with your own structure
+   return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+ }
+
+ @ExceptionHandler(CustomException.class)
+ public final ResponseEntity<YourResponseClass> handleAllExceptions(Exception ex, WebRequest request) {
+   YourResponseClass exceptionResponse = new YourResponseClass(new Date(), ex.getMessage()); // For reference 
+   return new ResponseEntity<YourResponseClass>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+ }
+
+  @ExceptionHandler(BadCredentialsException.class)
+ public final ResponseEntity<YourResponseClass> handleBadCredentialsException(BadCredentialsException ex, WebRequest request){
+       YourResponseClass exceptionResponse = new YourResponseClass(new Date(), ex.getMessage());// For refernece 
+           return new ResponseEntity<>(exceptionResponse, HttpStatus.UNAUTHORIZED);          
+ }  
+*/
