@@ -1,6 +1,9 @@
 .classpath
 .project
+.factorypath
+.settings/
 bin/target
 target
 /data/
 /.apt_generated/
+/application.properties
