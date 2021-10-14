@@ -166,21 +166,26 @@ public class CSpaceArtDataManager extends ArtDataManager {
         setDataSourceService(ds);
 
         // if we're unable to load, then we should try again every minute until we succeed
-        scheduler.schedule(this, 0, TimeUnit.SECONDS);
+        if ( !cs.getBoolean("ngaweb.skipLoading",false) )
+        	scheduler.schedule(this, 0, TimeUnit.SECONDS);
         
     }
     
-    private Boolean loading=false;
+    private class BooleanWrapper {
+    	Boolean loading = false;
+    }
+    private BooleanWrapper loadingWrapper = new BooleanWrapper();
+    
     synchronized void setLoading(Boolean loading) {
-    	this.loading = loading;
+    	loadingWrapper.loading = loading;
     }
     private Boolean isLoading() {
-    	return this.loading;
+    	return loadingWrapper.loading;
     }
     
     public void run() {
 
-    	synchronized(loading) {
+    	synchronized(loadingWrapper) {
     		// if we're already loading in another thread, don't re-load
     		if (isLoading()) {
     			log.info("********************** Skipped Art Data Manager Service Refresh Schedule Since Already Running ************************");
