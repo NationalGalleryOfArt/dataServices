@@ -80,7 +80,7 @@ public class ConstituentHelper extends TMSObjectHelper
 	private QueryResultArtData<Constituent> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.QueryMessage<Constituent> args = 
+		gov.nga.common.rpc.impl.QueryMessage<Constituent> args = 
 				getQueryMessagePOJO(Constituent.class, Constituent.SORT.class, Constituent.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)

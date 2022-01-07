@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+ 
 import gov.nga.common.entities.art.ArtObject;
 import gov.nga.common.entities.art.Location;
 import gov.nga.common.entities.art.TMSFetcher;

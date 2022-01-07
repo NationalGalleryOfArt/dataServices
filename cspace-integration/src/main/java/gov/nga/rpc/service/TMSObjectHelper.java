@@ -38,11 +38,11 @@ public class TMSObjectHelper
 		return manager.getArtDataQuerier();
 	}
 	
-	protected static <T extends Faceted & Searchable & Sortable, E extends Enum<E>, S extends Enum<S>> gov.nga.common.rpc.QueryMessage<T> getQueryMessagePOJO
+	protected static <T extends Faceted & Searchable & Sortable, E extends Enum<E>, S extends Enum<S>> gov.nga.common.rpc.impl.QueryMessage<T> getQueryMessagePOJO
 				(final Class<T> clss, final Class<E> sortClass, final Class<S> searchClass,
 						final gov.nga.common.rpc.message.QueryMessage qMsg)
 	{
-		gov.nga.common.rpc.QueryMessage<T> pojo = new gov.nga.common.rpc.QueryMessage<T>();
+		gov.nga.common.rpc.impl.QueryMessage<T> pojo = new gov.nga.common.rpc.impl.QueryMessage<T>();
 		if (qMsg != null)
 		{
 			if (qMsg.getObjectIDCount() > 0)

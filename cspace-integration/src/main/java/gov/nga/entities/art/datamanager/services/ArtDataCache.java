@@ -48,7 +48,7 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 		}
 	}
 
-	@Override
+	
 	public void artDataReady(final ArtData data) 
 	{
 		LOG.info("Updating cache...");
@@ -284,6 +284,12 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 	public SuggestionManager getSuggestionManager() 
 	{
 		return cache.getSuggestionManager();
+	}
+
+	@Override
+	public void artDataUpdated() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

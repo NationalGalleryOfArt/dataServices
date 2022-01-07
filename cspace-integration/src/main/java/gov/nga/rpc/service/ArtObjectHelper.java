@@ -142,7 +142,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 	private QueryResultArtData<ArtObject> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.QueryMessage<ArtObject> args = 
+		gov.nga.common.rpc.impl.QueryMessage<ArtObject> args = 
 				getQueryMessagePOJO(ArtObject.class, ArtObject.SORT.class, ArtObject.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)

@@ -80,7 +80,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 	private QueryResultArtData<Exhibition> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.QueryMessage<Exhibition> args = 
+		gov.nga.common.rpc.impl.QueryMessage<Exhibition> args = 
 				getQueryMessagePOJO(Exhibition.class, Exhibition.SORT.class, Exhibition.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)

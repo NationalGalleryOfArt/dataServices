@@ -1,6 +1,7 @@
 package gov.nga.entities.art;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,6 @@ public class ArtDataManager  extends MessageProviderImpl implements Runnable, Ar
 {
     private static final Logger log = LoggerFactory.getLogger(ArtDataManager.class);
     private static final int CONTENT_SYNC_DELAY = 15;
-
     
 	public ArtDataQuerier artQuerier;
 	@Override

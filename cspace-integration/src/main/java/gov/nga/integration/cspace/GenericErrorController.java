@@ -38,7 +38,7 @@ public class GenericErrorController implements ErrorController {
         return "An error occurred trying to map your request to a service end point. " + HELPLINK;
     }
 
-    @Override
+    
     public String getErrorPath() {
         return PATH;
     }

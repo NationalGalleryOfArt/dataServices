@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
     <groupId>gov.nga</groupId>
     <artifactId>dataservice</artifactId>
@@ -10,20 +11,16 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.8.RELEASE</version>
+        <version>2.5.7</version>
+        <relativePath />
     </parent>
 
-	<dependencyManagement>
-	    <dependencies>
-	        <dependency>
-	            <groupId>org.springframework.boot</groupId>
-	            <artifactId>spring-boot-dependencies</artifactId>
-	            <version>2.1.8.RELEASE</version>
-	            <type>pom</type>
-	            <scope>import</scope>
-	        </dependency>
-	    </dependencies>
-	</dependencyManagement>
+	<properties>
+		<java.version>1.8</java.version>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+	    <log4j2.version>2.15.0</log4j2.version>
+	</properties>
 
     <dependencies>
         <dependency>
@@ -69,6 +66,7 @@
         <dependency>
         	<groupId>joda-time</groupId>
         	<artifactId>joda-time</artifactId>
+        	<version>2.10.10</version>
         	</dependency>
         <dependency>
         	<groupId>com.goldmansachs</groupId>
@@ -113,9 +111,10 @@
         	<artifactId>spring-test</artifactId>
         </dependency>
         <dependency>
-        	<groupId>org.hamcrest</groupId>
-        	<artifactId>hamcrest-library</artifactId>
-        </dependency>
+		    <groupId>org.hamcrest</groupId>
+		    <artifactId>hamcrest-library</artifactId>
+		    <scope>test</scope>
+		</dependency>
         <dependency>
         	<groupId>org.assertj</groupId>
         	<artifactId>assertj-core</artifactId>
@@ -129,39 +128,56 @@
         	<groupId>org.springframework.boot</groupId>
         	<artifactId>spring-boot-starter-test</artifactId>
         </dependency>
+        <!--  
         <dependency>
         	<groupId>net.java.dev.jna</groupId>
         	<artifactId>jna</artifactId>
-        	</dependency>
+        </dependency>
+        -->	
         <dependency>
         	<groupId>commons-io</groupId>
         	<artifactId>commons-io</artifactId>
         	<version>2.2</version>
         </dependency>
-        <dependency>
-        	<groupId>gov.nga</groupId>
-		    <artifactId>common</artifactId>
-		    <version>2.1.0-SNAPSHOT</version>
-        </dependency>
+		<dependency>
+			<groupId>gov.nga</groupId>
+			<artifactId>common.bundles.utils</artifactId>
+			<version>2.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.nga</groupId>
+			<artifactId>common.bundles.proto</artifactId>
+			<version>2.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.nga</groupId>
+			<artifactId>common.bundles.core</artifactId>
+			<version>2.1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.nga</groupId>
+			<artifactId>common.bundles.rpc</artifactId>
+			<version>2.1.0-SNAPSHOT</version>
+		</dependency>
 		<dependency>
 		  <groupId>io.grpc</groupId>
 		  <artifactId>grpc-netty-shaded</artifactId>
-		  <version>1.35.0</version>
+		  <version>1.42.1</version>
 		</dependency>
 		<dependency>
 		  <groupId>io.grpc</groupId>
 		  <artifactId>grpc-protobuf</artifactId>
-		  <version>1.35.0</version>
+		  <version>1.42.1</version>
 		</dependency>
 		<dependency>
 		  <groupId>io.grpc</groupId>
 		  <artifactId>grpc-stub</artifactId>
-		  <version>1.35.0</version>
+		  <version>1.42.1</version>
 		</dependency>
         <dependency>
 		    <groupId>net.devh</groupId>
 		    <artifactId>grpc-server-spring-boot-starter</artifactId>
-		    <version>2.11.0.RELEASE</version>
+		    <version>2.13.0.RELEASE</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.guava</groupId>
@@ -173,11 +189,11 @@
 		    <artifactId>httpcore</artifactId>
 		</dependency>
     </dependencies>
-
+<!--  
     <properties>
         <java.version>1.8</java.version>
     </properties>
-
+-->
 
     <build>
 	  	<extensions>
@@ -214,15 +230,7 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
-        </repository>
     </repositories>
     <pluginRepositories>
-        <pluginRepository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
-        </pluginRepository>
     </pluginRepositories>
 </project>
