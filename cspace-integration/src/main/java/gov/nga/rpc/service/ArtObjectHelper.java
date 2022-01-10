@@ -90,15 +90,23 @@ public class ArtObjectHelper extends TMSObjectHelper
 	protected void fetchArtObjects(final FetchByIDsQuery request,
 			final StreamObserver<ArtObjectObjectResult> responseObserver)
 	{
-		LOG.info("fetchArtObjects() called..."); 
+		LOG.debug("fetchArtObjects() called..."); 
 		try
 		{
 			final ArtObjectObjectResult.Builder builder = ArtObjectObjectResult.newBuilder();
 			final List<ArtObject> rslts = getQueryManager().fetchByObjectIDs(request.getIdsList()).getResults();
 			for (ArtObject rslt: rslts)
 			{
-				builder.setArtobject(ArtObjectMessageFactory.getMessage(rslt));
-				responseObserver.onNext(builder.build());
+				try
+				{
+					builder.setArtobject(ArtObjectMessageFactory.getMessage(rslt));
+					responseObserver.onNext(builder.build());
+					LOG.info(String.format("fetchArtObjects() sending %s", rslt));
+				}
+				catch (final Exception err)
+				{
+					LOG.error("Could not create message object for ArtObject: " + rslt, err);
+				}
 			}
 			responseObserver.onCompleted();
 		}
@@ -112,7 +120,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 			final StreamObserver<ArtObjectQueryResult> responseObserver)
 	{
 
-		LOG.info("searchArtObjects() called..."); 
+		LOG.debug("searchArtObjects() called..."); 
 		try
 		{
 			final QueryResultArtData<ArtObject> rslt = processRequest(request);
@@ -142,35 +150,35 @@ public class ArtObjectHelper extends TMSObjectHelper
 	private QueryResultArtData<ArtObject> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.impl.QueryMessage<ArtObject> args = 
+		gov.nga.common.rpc.api.QueryMessage<ArtObject> args = 
 				getQueryMessagePOJO(ArtObject.class, ArtObject.SORT.class, ArtObject.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)
 		{
 			if (args.getOrder() == null)
 			{
-				LOG.info("Making fetch call with no sort: " + args.getObjectIDs());
+				LOG.debug("Making fetch call with no sort: " + args.getObjectIDs());
 				return getQueryManager().fetchByObjectIDs(args.getObjectIDs());
 			}
 			else
 			{
-				LOG.info(String.format("Making fetch call with sort %s: %s", args.getObjectIDs(), args.getOrder().getSortOrder()));
+				LOG.debug(String.format("Making fetch call with sort %s: %s", args.getObjectIDs(), args.getOrder().getSortOrder()));
 				return getQueryManager().fetchByObjectIDs(args.getObjectIDs(), 
 						args.getOrder().getSortOrder().toArray(new ArtObject.SORT[] {}));
 			}
 			
 		}
-		LOG.info("this is not a fetch call");
+		LOG.debug("this is not a fetch call");
 		if (args.getSrchHlpr() != null)
 		{
 			if (args.getOrder() == null)
 			{
-				LOG.info("Making search call with no sort: ");
+				LOG.debug("Making search call with no sort: ");
 				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), null);
 			}
 			else
 			{
-				LOG.info(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
+				LOG.debug(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
 				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), null, 
 						args.getOrder().getSortOrder().toArray(new ArtObject.SORT[] {}));
 			}

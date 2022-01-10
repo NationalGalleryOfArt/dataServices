@@ -27,7 +27,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 	protected void fetchExhibitions(final FetchByIDsQuery request,
 			final StreamObserver<ExhibitionObjectResult> responseObserver)
 	{
-		LOG.info("fetchExhibitions() called..."); 
+		LOG.debug("fetchExhibitions() called..."); 
 		try
 		{
 			final ExhibitionObjectResult.Builder builder = ExhibitionObjectResult.newBuilder();
@@ -50,7 +50,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 			final StreamObserver<ExhibitionQueryResult> responseObserver)
 	{
 
-		LOG.info("searchExhibitions() called..."); 
+		LOG.debug("searchExhibitions() called..."); 
 		try
 		{
 			final QueryResultArtData<Exhibition> rslts = processRequest(request);
@@ -80,26 +80,26 @@ public class ExhibitionHelper extends TMSObjectHelper
 	private QueryResultArtData<Exhibition> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.impl.QueryMessage<Exhibition> args = 
+		gov.nga.common.rpc.api.QueryMessage<Exhibition> args = 
 				getQueryMessagePOJO(Exhibition.class, Exhibition.SORT.class, Exhibition.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)
 		{
-			LOG.info("Making fetch call with no sort: " + args.getObjectIDs());
+			LOG.debug("Making fetch call with no sort: " + args.getObjectIDs());
 			return getQueryManager().fetchByExhibitionIDs(args.getObjectIDs());			
 		}
 		
-		LOG.info("this is not a fetch call");
+		LOG.debug("this is not a fetch call");
 		if (args.getSrchHlpr() != null)
 		{
 			if (args.getOrder() == null)
 			{
-				LOG.info("Making search call with no sort: ");
+				LOG.debug("Making search call with no sort: ");
 				return getQueryManager().searchExhibitions(args.getSrchHlpr(), args.getPgn(), null);
 			}
 			else
 			{
-				LOG.info(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
+				LOG.debug(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
 				return getQueryManager().searchExhibitions(args.getSrchHlpr(), args.getPgn(), new SortHelper<Exhibition>(args.getOrder()));
 			}
 			

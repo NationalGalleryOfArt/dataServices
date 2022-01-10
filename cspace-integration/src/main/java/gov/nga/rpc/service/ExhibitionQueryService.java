@@ -62,7 +62,14 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	public void fetchExhibitions(final FetchByIDsQuery request,
 			final StreamObserver<ExhibitionObjectResult> responseObserver)
 	{
-		exhHlpr.fetchExhibitions(request, responseObserver);
+    	try
+		{
+			exhHlpr.fetchExhibitions(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 		
 	}
     
@@ -70,7 +77,14 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	public void searchExhibitions(final QueryMessage request,
 			final StreamObserver<ExhibitionQueryResult> responseObserver)
 	{
-		exhHlpr.searchExhibitions(request, responseObserver);
+		try
+		{
+			exhHlpr.searchExhibitions(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 		
 	}
     
@@ -78,7 +92,14 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	public void fetchConstituents(final FetchByIDsQuery request,
 			final StreamObserver<ConstituentsObjectResult> responseObserver)
 	{
-		constHlpr.fetchConstituents(request, responseObserver);
+		try
+		{
+			constHlpr.fetchConstituents(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 		
 	}
     
@@ -86,7 +107,14 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	public void searchConstituents(final QueryMessage request,
 			final StreamObserver<ConstituentQueryResult> responseObserver)
 	{
-		constHlpr.searchConstituents(request, responseObserver);
+		try
+		{
+			constHlpr.searchConstituents(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 		
 	}
 
@@ -94,91 +122,182 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	public void getMedia(final FetchByStringsQuery request,
 			final StreamObserver<MediaObjectResult> responseObserver)
 	{
-		mediaHlpr.getMedia(request, responseObserver);
+		try
+		{
+			mediaHlpr.getMedia(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchLocations(final FetchByIDsQuery request,
 			final StreamObserver<LocationObjectResult> responseObserver)
 	{
-		locationHlpr.fetchLocations(request, responseObserver);
+		try
+		{
+			locationHlpr.fetchLocations(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 
 	@Override
 	public void getPlaceByPlaceKey(final FetchByStringsQuery request, 
 			final StreamObserver<PlaceObjectResult> responseObserver)
 	{
-		placeHlpr.getPlaceByPlaceKey(request, responseObserver);
+		try
+		{
+			placeHlpr.getPlaceByPlaceKey(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void getPlaceByTMSLocationID(final FetchByIDsQuery request, 
 			final StreamObserver<PlaceObjectResult> responseObserver) 
 	{
-		placeHlpr.getPlaceByTMSLocationID(request, responseObserver);
+		try
+		{
+			placeHlpr.getPlaceByTMSLocationID(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchArtObjects(final FetchByIDsQuery request, 
 			final StreamObserver<ArtObjectObjectResult> responseObserver)
 	{
-		artObjHlpr.fetchArtObjects(request, responseObserver);
+		try
+		{
+			artObjHlpr.fetchArtObjects(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchRelatedWorks(final FetchByIDsQuery request, 
 			final StreamObserver<ArtObjectQueryResult> responseObserver)
 	{
-		artObjHlpr.fetchRelatedWorks(request, responseObserver);
+		try
+		{
+			artObjHlpr.fetchRelatedWorks(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchObjectsByRelationships(final FetchByIDsQuery request, 
 			final StreamObserver<ArtObjectQueryResult> responseObserver)
 	{
-		artObjHlpr.fetchObjectsByRelationships(request, responseObserver);
+		try
+		{
+			artObjHlpr.fetchObjectsByRelationships(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void searchArtObjects(final QueryMessage request, 
 			final StreamObserver<ArtObjectQueryResult> responseObserver)
 	{
-		artObjHlpr.searchArtObjects(request, responseObserver);
+		try
+		{
+			artObjHlpr.searchArtObjects(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void getLastSyncTime(final TimeStampRequest request,
 					final StreamObserver<TimeStampResponse> responseObserver)
 	{
-		cacheHlpr.getLastSyncTime(request, responseObserver);
+		try
+		{
+			cacheHlpr.getLastSyncTime(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchAllLocationIds(final CacheFetchQuery request, 
 					final StreamObserver<QueryResult> responseObserver)
 	{
-		cacheHlpr.fetchAllLocationIds(request, responseObserver);
+		try
+		{
+			cacheHlpr.fetchAllLocationIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchAllExhibitionIds(final CacheFetchQuery request, 
 					final StreamObserver<QueryResult> responseObserver)
 	{
-		cacheHlpr.fetchAllExhibitionIds(request, responseObserver);
+		try
+		{
+			cacheHlpr.fetchAllExhibitionIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchAllConstituentIds(final CacheFetchQuery request, 
 					final StreamObserver<QueryResult> responseObserver)
 	{
-		cacheHlpr.fetchAllConstituentIds(request, responseObserver);
+		try
+		{
+			cacheHlpr.fetchAllConstituentIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override
 	public void fetchAllArtObjectIds(final CacheFetchQuery request, 
 					final StreamObserver<QueryResult> responseObserver)
 	{
-		cacheHlpr.fetchAllArtObjectIds(request, responseObserver);
+		try
+		{
+			cacheHlpr.fetchAllArtObjectIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 
 }

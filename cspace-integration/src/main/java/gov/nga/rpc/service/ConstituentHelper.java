@@ -28,7 +28,7 @@ public class ConstituentHelper extends TMSObjectHelper
 	protected void fetchConstituents(final FetchByIDsQuery request,
 			final StreamObserver<ConstituentsObjectResult> responseObserver)
 	{
-		LOG.info("fetchConstituents() called..."); 
+		LOG.debug("fetchConstituents() called..."); 
 		try
 		{
 			final ConstituentsObjectResult.Builder builder = ConstituentsObjectResult.newBuilder();
@@ -50,7 +50,7 @@ public class ConstituentHelper extends TMSObjectHelper
 			final StreamObserver<ConstituentQueryResult> responseObserver)
 	{
 
-		LOG.info("searchConstituents() called..."); 
+		LOG.debug("searchConstituents() called..."); 
 		try
 		{
 			final QueryResultArtData<Constituent> rslt = processRequest(request);
@@ -80,35 +80,35 @@ public class ConstituentHelper extends TMSObjectHelper
 	private QueryResultArtData<Constituent> processRequest(final QueryMessage request)
 	{
 
-		gov.nga.common.rpc.impl.QueryMessage<Constituent> args = 
+		gov.nga.common.rpc.api.QueryMessage<Constituent> args = 
 				getQueryMessagePOJO(Constituent.class, Constituent.SORT.class, Constituent.SEARCH.class, request);
 		
 		if (args.getObjectIDs().size() > 0)
 		{
 			if (args.getOrder() == null)
 			{
-				LOG.info("Making fetch call with no sort: " + args.getObjectIDs());
+				LOG.debug("Making fetch call with no sort: " + args.getObjectIDs());
 				return getQueryManager().fetchByConstituentIDs(args.getObjectIDs());
 			}
 			else
 			{
-				LOG.info(String.format("Making fetch call with sort %s: %s", args.getObjectIDs(), args.getOrder().getSortOrder()));
+				LOG.debug(String.format("Making fetch call with sort %s: %s", args.getObjectIDs(), args.getOrder().getSortOrder()));
 				return getQueryManager().fetchByConstituentIDs(args.getObjectIDs(), 
 						args.getOrder().getSortOrder().toArray(new Constituent.SORT[] {}));
 			}
 			
 		}
-		LOG.info("this is not a fetch call");
+		LOG.debug("this is not a fetch call");
 		if (args.getSrchHlpr() != null)
 		{
 			if (args.getOrder() == null)
 			{
-				LOG.info("Making search call with no sort: ");
+				LOG.debug("Making search call with no sort: ");
 				return getQueryManager().searchConstituents(args.getSrchHlpr(), args.getPgn(), null);
 			}
 			else
 			{
-				LOG.info(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
+				LOG.debug(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
 				return getQueryManager().searchConstituents(args.getSrchHlpr(), args.getPgn(), null, 
 						args.getOrder().getSortOrder().toArray(new Constituent.SORT[] {}));
 			}

@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nga.common.entities.art.ArtDataQuerier;
-import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.common.search.Faceted;
 import gov.nga.common.search.ResultsPaginator;
@@ -38,11 +37,11 @@ public class TMSObjectHelper
 		return manager.getArtDataQuerier();
 	}
 	
-	protected static <T extends Faceted & Searchable & Sortable, E extends Enum<E>, S extends Enum<S>> gov.nga.common.rpc.impl.QueryMessage<T> getQueryMessagePOJO
+	protected static <T extends Faceted & Searchable & Sortable, E extends Enum<E>, S extends Enum<S>> gov.nga.common.rpc.api.QueryMessage<T> getQueryMessagePOJO
 				(final Class<T> clss, final Class<E> sortClass, final Class<S> searchClass,
 						final gov.nga.common.rpc.message.QueryMessage qMsg)
 	{
-		gov.nga.common.rpc.impl.QueryMessage<T> pojo = new gov.nga.common.rpc.impl.QueryMessage<T>();
+		gov.nga.common.rpc.api.QueryMessage<T> pojo = new gov.nga.common.rpc.api.QueryMessage<T>();
 		if (qMsg != null)
 		{
 			if (qMsg.getObjectIDCount() > 0)

@@ -439,34 +439,62 @@ public class TMSFetcher {
             if (o != null && l != null) {
                 o.setTerms(l);
             }
+	        else
+	        {
+	        	log.warn(String.format("Object %d does not exist for term", id));
+	        }
         }
         
         log.info("Assigning text entries to art objects");
         for (ArtObjectTextEntry te : textEntries) {
             ArtObject o = (ArtObject)newArtObjects.get(te.getObjectID());
             if (o != null)
+            {
                 o.addTextEntry(te);
+            }
+            else
+            {
+            	log.warn(String.format("Object %d does not exist for textEntry", te.getObjectID()));
+            }
         }
 
         log.info("Assigning historical data entries to art objects");
         for (ArtObjectHistoricalData h : aohist) {
             ArtObject o = (ArtObject)newArtObjects.get(h.getObjectID());
             if (o != null)
+            {
                 o.addHistoricalData(h);
+            }
+            else
+            {
+            	log.warn(String.format("Object %d does not exist for historical data", h.getObjectID()));
+            }
         }
         
         log.info("Assigning dimensions to art objects");
         for (ArtObjectDimension d : aoDims) {
             ArtObject o = (ArtObject)newArtObjects.get(d.getObjectID());
             if (o != null)
+            {
                 o.addDimensions(d);
+            }
+            else
+            {
+            	log.warn(String.format("Object %d does not exist for dimension", d.getObjectID()));
+            }
         }
         
         log.info("Assigning components to art objects");
         for (ArtObjectComponent c : aocomps) {
             ArtObject o = (ArtObject)newArtObjects.get(c.getObjectID());
             if (o != null)
+            {
                 o.addComponent(c);
+            }
+            else
+            {
+            	log.warn(String.format("Object %d does not exist for component.", c.getObjectID()));
+            }
         }
 
         return newArtObjects;
