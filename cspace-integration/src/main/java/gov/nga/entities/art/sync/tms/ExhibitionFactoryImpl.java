@@ -51,9 +51,9 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
             buildArtObjects(querier, artObjectMap, loans);
             buildConstituents(querier, constituentMap);
         }
-        catch (final SQLException err)
+        catch (final Exception err)
         {
-            LOG.error("SQlException occurred while building Exhibitions data", err);
+            LOG.error("Exception occurred while building Exhibitions data", err);
         }
     }
     

@@ -72,6 +72,7 @@ public class TMSFetcher {
     public synchronized ArtData load() throws Exception {
 
         log.info("AAAAAAAAAAAAAAAAAAAAAA: Beginning load of art object data");
+        log.info(String.format("Operating moade: %s", managerSrv.getOperatingMode()));
         log.info(SystemUtils.freeMemorySummary());
 
         // load all art object constituent data first, then pass that
