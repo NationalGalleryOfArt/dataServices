@@ -30,7 +30,7 @@ public class TMSQuerier
                 try ( PreparedStatement st = conn.prepareStatement(query);)
                 {
                     rs = st.executeQuery(); 
-                    log.debug(String.format("Query: %s has results: %b", query, rs != null));
+                    log.info(String.format("Query: %s has results: %b", query, rs != null));
                     if (rs != null)
                     {
                         while (rs.next())
