@@ -59,8 +59,9 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
     
     private void buildExhibitions(final TMSQuerier querier) throws SQLException
     {
-        querier.getQueryResults(TMSQuery.EXHIBITION.getConstantValue(), new ExhibitionFactory());
-        //LOG.info("Initial Exhibitions map built: " + exhibitionsMap);
+    	final ExhibitionFactory exFactory = new ExhibitionFactory();
+        querier.getQueryResults(TMSQuery.EXHIBITION.getConstantValue(), exFactory);
+        LOG.info(String.format("Main Exhibitions initialized. Map size: %d Number of query results: %d", exhibitionsMap.size(), exFactory.getNumberOfResults()));
     }
 
     private void buildVenues(final Map<Long, Constituent> constituentMap, final TMSQuerier querier) throws SQLException
@@ -87,7 +88,7 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
     
     class ExhibitionFactory implements TMSEntityFactory
     {
-
+    	private int counter = 0;
         @Override
         public void processResult(ResultSet rs) throws SQLException 
         {
@@ -95,11 +96,17 @@ public class ExhibitionFactoryImpl implements TMSExhibitionFactory
             {
                 TMSExhibition exh = TMSExhibition.getExhibitionFromSQL(rs, manager);
                 exhibitionsMap.put(exh.getID(), exh);
+                counter++;
             }
             catch (final Exception err)
             {
                 LOG.error("Caught an exception trying to create an exhibition", err);
             }
+        }
+        
+        public int getNumberOfResults()
+        {
+        	return counter;
         }
     }
     
