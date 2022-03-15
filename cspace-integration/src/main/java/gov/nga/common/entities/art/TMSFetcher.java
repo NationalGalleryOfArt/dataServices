@@ -12,38 +12,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nga.common.entities.art.AlternateNumberData;
-import gov.nga.common.entities.art.ArtObjectLocation;
-import gov.nga.common.entities.art.ArtObjectConstituent;
-import gov.nga.common.entities.art.Department;
-import gov.nga.common.entities.art.Exhibition;
 import gov.nga.entities.art.ArtDataManagerService;
-import gov.nga.common.entities.art.ArtObject;
-import gov.nga.common.entities.art.ArtObjectAssociationRecord;
-import gov.nga.common.entities.art.ArtObjectComponent;
-import gov.nga.common.entities.art.ArtObjectDimension;
-import gov.nga.common.entities.art.ArtObjectHistoricalData;
-import gov.nga.common.entities.art.ArtObjectImage;
-import gov.nga.common.entities.art.ArtObjectTerm;
-import gov.nga.common.entities.art.ArtObjectTextEntry;
-import gov.nga.common.entities.art.ConstituentAltName;
-import gov.nga.common.entities.art.ConstituentTextEntry;
-import gov.nga.common.entities.art.Derivative;
-import gov.nga.common.entities.art.Media;
-import gov.nga.common.entities.art.MediaRelationship;
-import gov.nga.common.entities.art.Place;
-import gov.nga.common.entities.art.PlaceRelationships;
-import gov.nga.common.entities.art.ResearchImage;
-import gov.nga.common.entities.art.Derivative.IMGFORMAT;
-import gov.nga.common.entities.art.Derivative.IMGVIEWTYPE;
 import gov.nga.entities.art.sync.tms.ArtObjectLocationFactory;
 import gov.nga.entities.art.sync.tms.DepartmentFactory;
 import gov.nga.entities.art.sync.tms.ExhibitionFactoryImpl;
 import gov.nga.entities.art.sync.tms.TMSExhibitionFactory;
 import gov.nga.entities.art.sync.tms.TMSLocation;
-import gov.nga.common.entities.art.Location;
 import gov.nga.common.utils.CollectionUtils;
-import gov.nga.common.entities.art.Constituent;
 import gov.nga.utils.SystemUtils;
 import gov.nga.utils.db.DataSourceService;
 
@@ -407,8 +382,8 @@ public class TMSFetcher {
         
 
         // OBJECT IMAGES
-        loadImagery(newArtObjects, new ArtObjectImage(manager, managerSrv.getConfig().getString("imagingServerURL")));
-        loadImagery(newArtObjects, new ResearchImage(manager, managerSrv.getConfig().getString("imagingServerURL")));
+        //loadImagery(newArtObjects, new ArtObjectImage(manager, managerSrv.getConfig().getString("imagingServerURL")));
+        //loadImagery(newArtObjects, new ResearchImage(manager, managerSrv.getConfig().getString("imagingServerURL")));
         
         checkImageSizes(newArtObjects);
         

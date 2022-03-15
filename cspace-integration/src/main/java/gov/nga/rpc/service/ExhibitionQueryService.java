@@ -21,6 +21,7 @@ import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.FetchByStringsQuery;
 import gov.nga.common.rpc.LocationObjectResult;
 import gov.nga.common.rpc.MediaObjectResult;
+import gov.nga.common.rpc.NGAImageResult;
 import gov.nga.common.rpc.PlaceObjectResult;
 import gov.nga.common.rpc.QueryResult;
 import gov.nga.common.rpc.TimeStampRequest;
@@ -293,6 +294,20 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 		try
 		{
 			cacheHlpr.fetchAllArtObjectIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+	}
+	
+	@Override
+	public void fetchImagesForArtObject(final FetchByIDsQuery request,
+			final StreamObserver<NGAImageResult> responseObserver)
+	{
+		try
+		{
+			artObjHlpr.fetchImagesForObject(request, responseObserver);
 		}
 		catch (final Exception err)
 		{

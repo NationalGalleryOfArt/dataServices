@@ -23,6 +23,7 @@ import gov.nga.common.entities.art.DataNotReadyException;
 import gov.nga.common.entities.art.Location;
 import gov.nga.common.entities.art.Media;
 import gov.nga.common.entities.art.Place;
+import gov.nga.common.entities.art.QueryResult;
 import gov.nga.common.entities.art.QueryResultSuggestion;
 import gov.nga.common.entities.art.SuggestType;
 import gov.nga.common.entities.art.QueryResultArtData;
@@ -34,6 +35,7 @@ import gov.nga.common.entities.art.factory.ExhibitionFactory;
 import gov.nga.common.entities.art.factory.ExhibitionFactoryImpl;
 import gov.nga.common.entities.art.factory.LocationFactory;
 import gov.nga.common.entities.art.factory.LocationFactoryImpl;
+import gov.nga.common.imaging.NGAImage;
 import gov.nga.common.search.FacetHelper;
 import gov.nga.common.search.FreeTextSearchable;
 import gov.nga.common.search.ResultsPaginator;
@@ -45,6 +47,8 @@ import gov.nga.common.utils.MutableInt;
 import gov.nga.common.utils.StringUtils;
 import gov.nga.common.entities.art.ArtEntityFreeTextSearch;
 import gov.nga.entities.art.datamanager.data.QueryResultFactory;
+import gov.nga.entities.art.datamanager.data.QueryResultNGAImage;
+import gov.nga.imaging.dao.NetXImageDAO;
 
 public class QuerierImpl implements ArtDataQuerier
 {
@@ -57,6 +61,7 @@ public class QuerierImpl implements ArtDataQuerier
     private static ExhibitionFactory<Exhibition> exhFactory = new ExhibitionFactoryImpl();
     
 	private ArtDataCacher dataCache;
+	private NetXImageDAO imageDAO;
 	
 	public QuerierImpl(final ArtDataCacher ac)
 	{
@@ -66,6 +71,11 @@ public class QuerierImpl implements ArtDataQuerier
 	public QuerierImpl()
 	{
 		
+	}
+	
+	public void setImageDAO(NetXImageDAO dao)
+	{
+		imageDAO = dao;
 	}
 
 	public void setArtDataCacher(ArtDataCacher cacher)
@@ -711,5 +721,10 @@ public class QuerierImpl implements ArtDataQuerier
 	public QueryResultSuggestion<ArtDataSuggestion> suggestExhibitions(String baseName) {
 		final List<ArtDataSuggestion> suggestions = Suggest.suggestSuggestions(baseName, Suggest.suggestNameSet(baseName, dataCache.getSuggestionsRaw(SuggestType.EXHIBITION_TITLE)));
 		return QueryResultFactory.createLocalSuggestionResult(suggestions);
+	}
+
+	@Override
+	public QueryResult<NGAImage> fetchImagesForObject(final long id) {
+		return QueryResultFactory.createImageResult(imageDAO.getImagesForObject(id));
 	}
 }

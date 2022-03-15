@@ -84,88 +84,9 @@ public class CSpaceArtDataManager extends ArtDataManager {
     @Resource(name="nga.jdbc.dclpa") 
     private DataSourceService dclpaDataSource;
 
-/*    private void doMyTest() {
-    	log.trace("************************ STARTING PORTFOLIO SEARCH TESTS: ************************");
-		long cTime = System.currentTimeMillis();
-		long tTime = System.currentTimeMillis();
-		
-		List<CSpaceImage> imageHitList = CollectionUtils.newArrayList();
-		
-		// fill the object IDs with dummy data so they are compatible with the JDBC calls but won't impact anything
-		byte[] objectIDs = new byte[4];
-		ByteUtils.fillBytes(objectIDs, 0, Integer.MIN_VALUE);
-
-		log.trace("************************ GETTING CONNECTION: ************************");
-		try ( Connection conn = dclpaDataSource.getConnection() ) {
-
-			log.trace("************************ PREPARING ARRAY: ************************");
-			// PACK THE OBJECT IDS INTO A DENSE ARRAY OF BINARY DATA TO SEND TO A STORED PROCEDURE THAT PARSES THEM
-			int size = 210000;
-			byte[] bytes = new byte[(Integer.SIZE/8)*size];
-			int j = 0;
-			for (int i = 0; i < 210000; i++) {
-				int id = i; 
-				bytes[j++] = (byte) (id >>> 24);
-				bytes[j++] = (byte) (id >>> 16);
-				bytes[j++] = (byte) (id >>> 8);
-				bytes[j++] = (byte) (id >>> 0);
-			}
-			// assign to the variable used in the stored procedure call 
-			objectIDs = bytes;
-			
-			DateTime MINDATE = DateTime.parse("1754-01-01T01:00:00+00:00"); // SQL server supports a min date of 1/1/1753
-			DateTime MAXDATE = DateTime.parse("9998-01-01T01:00:00+00:00"); // SQL server supports up to 12/31/9999 this
-			DateTime beginDateRange = MINDATE;
-			DateTime endDateRange = MAXDATE;
-
-			log.trace("************************ PREPARING CALL: ************************");
-			// Now, perform query of the database based on an ID that might have been provided to us 
-			// or the lastModified date of the image which, in this case, we use the catalogued date in Portfolio
-			String selectImagesSQL = new DCLPAImage(this).getAllImagesQuery();
-			try ( PreparedStatement ps = conn.prepareCall(selectImagesSQL) ) {
-				int p = 1;
-				ps.setInt(p++, 0);
-				ps.setDate(p++, new java.sql.Date(beginDateRange.toDate().getTime()));
-				ps.setDate(p++, new java.sql.Date(endDateRange.toDate().getTime()));
-				ps.setInt(p++, 0);
-				ps.setInt(p++, 0);
-				ps.setInt(p++, 1);
-    			ps.setBlob(p++, new SerialBlob(objectIDs));
-
-    			log.trace("************************ EXECUTING STORED PROCEDURE: ************************");
-    			cTime = System.currentTimeMillis();
-				try ( ResultSet rs = ps.executeQuery() ) {
-					tTime = System.currentTimeMillis() - cTime;
-					if (rs != null) {
-						while (rs.next()) {
-							// TODO - done already? I think the approach here should be to create a fully populated image (without all of the references, etc.) and then
-							// dumb it down to create the abridged images in the overall response
-							DCLPAImage image = new DCLPAImage(this,rs,dclpaDataSource,ts);
-							imageHitList.add(image);
-						}
-					}
-					rs.close();
-				}
-				ps.close();
-			}
-			// tTime = System.currentTimeMillis() - cTime; cTime = System.currentTimeMillis();
-			log.trace("************************ TOTAL PORTFOLIO SEARCH EXECUTION TIME FOR " + imageHitList.size() + " IMAGES: " + tTime + " MS ************************");
-			conn.close();
-		}
-    	catch (SQLException se) {
-    		log.error(se.getMessage(),se);
-    	}
-    }
-  */
     
     @PostConstruct
     public void postConstruct() {
-    	
-/*    	// test the performance of cspace search
-    	for (int i = 0; i<5; i++)
-    		doMyTest();
-    	System.exit(1);
-*/    	
     	
         // we probably don't really need to implement this
         // since we are going to asynchronously load the data
