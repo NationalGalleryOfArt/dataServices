@@ -563,7 +563,7 @@ public class QuerierImpl implements ArtDataQuerier
 	@Override
 	public QueryResultArtData<Media> getMediaByEntityRelationship(String arg0) {
 		List<Media> rslt = CollectionUtils.newArrayList();
-		if (StringUtils.isNotBlank(arg0))
+		if (StringUtils.isNotBlank(arg0) && dataCache.getNewMediaRelationships().containsKey(arg0))
 		{
 			rslt.addAll(dataCache.getNewMediaRelationships().get(arg0));
 		}

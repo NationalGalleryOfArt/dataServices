@@ -34,8 +34,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.joda.time.DateTime;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.http.HttpHeaders;
@@ -67,12 +67,13 @@ import gov.nga.common.search.SortHelper;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.common.entities.art.Exhibition;
 import gov.nga.common.entities.art.ExhibitionArtObject;
+import gov.nga.common.imaging.NGAImage;
 import gov.nga.common.utils.StringUtils;
 
 @RestController
 public class ObjectSearchController extends RecordSearchController {
 
-	//private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
+	private static final Logger log = LoggerFactory.getLogger(ObjectSearchController.class);
 	
 	private static Pattern sourcePattern = Pattern.compile("/art/(.*)/objects");
 	public Pattern getSourcePattern() {
@@ -202,7 +203,7 @@ public class ObjectSearchController extends RecordSearchController {
 			artObjects = artDataManager.getArtDataQuerier()
 								.searchArtObjects(searchHelper, paginator, null, sortHelper)
 								.getResults();
-    	
+    	log.info(String.format("Num of filters: %d", searchHelper.getFilterSize()));
     	logSearchResults(request, paginator.getTotalResults());
     	if (artObjects.size() > 0) {
     		
@@ -235,16 +236,11 @@ public class ObjectSearchController extends RecordSearchController {
     				int thumbHeight = artDataManager.getConfig().getInteger(CSpaceConfigService.thumbnailHeightProperty);
     				// submit the work to fetch thumbnails and compute base64 values of them
     				for (ArtObject o : artObjects) {
-    					// get the zoom image for this object, then call the ImageThumbNailWorker in a multi-threaded context to fetch them
-    					Derivative d = o.getZoomImage();
-    					// if for some reason we don't have a zoom image, use the crop
-    					if (d == null)
-    						d = o.getLargeThumbnail(ImgSearchOpts.FALLBACKTOLARGESTFIT);
-    					if (d != null) {
-    						WebImage wi = WebImage.factory(d,ts);
-    						Callable<String> thumbWorker = new ImageThumbnailWorker(wi,thumbWidth,thumbHeight,base64);
-    						Future<String> future = threadPool.submit(thumbWorker);
-    						thumbnailMap.put(o.getObjectID(), future);
+    					NGAImage pImg = o.getPrimaryImage();
+    					if (pImg != null) {
+	    					Callable<String> thumbWorker = new ImageThumbnailWorker(pImg,thumbWidth,thumbHeight,base64);
+							Future<String> future = threadPool.submit(thumbWorker);
+							thumbnailMap.put(o.getObjectID(), future);
     					}
     				}
     			}
@@ -396,6 +392,7 @@ public class ObjectSearchController extends RecordSearchController {
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.OBJECTID, iList));
+    	log.info(String.format("Processing ids: %s + %s = %s", ids, cultObj_ids, iList));
     }
     
 	// LASTMODIFIED FIELD

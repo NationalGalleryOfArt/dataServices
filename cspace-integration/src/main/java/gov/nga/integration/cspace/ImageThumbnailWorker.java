@@ -22,12 +22,15 @@
 */
 package gov.nga.integration.cspace;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nga.common.imaging.NGAImage;
 import gov.nga.imaging.Thumbnail;
 
 public class ImageThumbnailWorker implements Callable<String> {
@@ -39,18 +42,35 @@ public class ImageThumbnailWorker implements Callable<String> {
 	
 	private static final int MAXDIM=400;
 	private static final int MAXSIZE=5000; // cache a maximum number of thumbnails before pruning the list 
+	private static enum IMG_MODE {CSPACE,NETX};
+	
 	private CSpaceImage image;
+	private NGAImage netXImg;
+	private IMG_MODE mode;
+	private Object storedImg;
 	private int width=90;
 	private int height=90;
 	private boolean useBase64IfPossible;
 
-	public ImageThumbnailWorker(CSpaceImage image, int width, int height, boolean useBase64IfPossible) {
-		this.image = image;
+	private void init(Object image, int width, int height, boolean useBase64IfPossible) {
+		storedImg = image;
 		width = width < 0 ? 0 : ( width > MAXDIM ? MAXDIM : width );
 		height = height < 0 ? 0 : ( height > MAXDIM ? MAXDIM : height );
 		this.width=width;
 		this.height=height;
 		this.useBase64IfPossible=useBase64IfPossible;
+	}
+	
+	public ImageThumbnailWorker(CSpaceImage image, int width, int height, boolean useBase64IfPossible) {
+		init(image, width, height, useBase64IfPossible);
+		this.image = image;
+		this.mode = IMG_MODE.CSPACE;
+	}
+	
+	public ImageThumbnailWorker(final NGAImage image, int width, int height, boolean useBase64IfPossible) {
+		init(image, width, height, useBase64IfPossible);
+		this.mode = IMG_MODE.NETX;
+		this.netXImg = image;
 	}
 
 	public static void clearCache() {
@@ -89,21 +109,32 @@ public class ImageThumbnailWorker implements Callable<String> {
 	}
 
 	public String call() {
-		if (image == null)
-			return null;
-
-		String thumbnailRepresentation = getFromCache(image);
-		if (thumbnailRepresentation != null)
-			return thumbnailRepresentation;
-		
-		// otherwise generate the thumbnail for the image
-		Thumbnail thumb = image.getThumbnail(width, height, MAXDIM, false, useBase64IfPossible, "https");
-		if (thumb == null)
-			return null;
-		String thumbRepresentation = thumb.toString();
-		saveToCache(image,thumbRepresentation);
-		
-		return thumbRepresentation;
+		String thumbnailRepresentation = null;
+		if (mode != null)
+		{
+			thumbnailRepresentation = getFromCache(storedImg);
+			if (thumbnailRepresentation == null) {
+				Thumbnail thumb = null;
+				switch(mode)
+				{
+					case CSPACE:
+						thumb = image.getThumbnail(width, height, MAXDIM, false, useBase64IfPossible, "https");
+						break;
+					case NETX:
+						try {
+							final URL url = netXImg.getURLForDimension(width, height);
+							thumb = new Thumbnail(url.toURI(), url, useBase64IfPossible);
+						}
+						catch (final Exception err) {
+							log.warn(String.format("Caught URL exception for image %s", netXImg), err);
+						}
+						break;
+				}
+				thumbnailRepresentation = thumb == null ? null : thumb.toString();
+				saveToCache(storedImg, thumbnailRepresentation);
+			}
+		}
+		return thumbnailRepresentation;
 	}
 
 }
