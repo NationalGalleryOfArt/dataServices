@@ -15,6 +15,7 @@ import gov.nga.common.rpc.ArtObjectQueryResult;
 import gov.nga.common.rpc.CacheFetchQuery;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentsObjectResult;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
+import gov.nga.common.rpc.DepartmentObjectResult;
 import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.common.rpc.FetchByIDsQuery;
@@ -44,6 +45,7 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	private LocationHelper locationHlpr;
 	private PlaceHelper placeHlpr;
 	private ArtObjectHelper artObjHlpr;
+	private DepartmentHelper departmentHlpr;
 	private CacheHelper cacheHlpr;
 	
 
@@ -57,6 +59,7 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
     	locationHlpr = new LocationHelper(artDataManager);
     	placeHlpr = new PlaceHelper(artDataManager);
     	cacheHlpr = new CacheHelper(artDataManager);
+    	departmentHlpr = new DepartmentHelper(artDataManager);
     }
     
     @Override    
@@ -252,6 +255,48 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 		try
 		{
 			cacheHlpr.fetchAllLocationIds(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+	}
+	
+	@Override
+	public void fetchDepartmentByID(final FetchByIDsQuery request, 
+			final StreamObserver<DepartmentObjectResult> responseObserver)
+	{
+		try
+		{
+			departmentHlpr.getDepartmentByID(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+	}
+	
+	@Override
+	public void fetchDepartmentByCode(final FetchByStringsQuery request, 
+			final StreamObserver<DepartmentObjectResult> responseObserver)
+	{
+		try
+		{
+			departmentHlpr.getDepartmentByCode(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+	}
+		
+	@Override	
+	public void fetchAllDepartmentsIds(final CacheFetchQuery request, 
+			final StreamObserver<QueryResult> responseObserver)
+	{
+		try
+		{
+			cacheHlpr.fetchAllDepartmentIds(request, responseObserver);
 		}
 		catch (final Exception err)
 		{

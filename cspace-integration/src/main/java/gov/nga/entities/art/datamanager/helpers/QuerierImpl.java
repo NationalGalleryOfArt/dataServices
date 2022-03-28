@@ -20,6 +20,7 @@ import gov.nga.common.entities.art.ArtObjectFactoryImpl;
 import gov.nga.common.entities.art.ArtObjectMapComparator;
 import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.DataNotReadyException;
+import gov.nga.common.entities.art.Department;
 import gov.nga.common.entities.art.Location;
 import gov.nga.common.entities.art.Media;
 import gov.nga.common.entities.art.Place;
@@ -726,5 +727,45 @@ public class QuerierImpl implements ArtDataQuerier
 	@Override
 	public QueryResult<NGAImage> fetchImagesForObject(final long id) {
 		return QueryResultFactory.createImageResult(imageDAO.getImagesForObject(id));
+	}
+
+	@Override
+	public QueryResultArtData<Department> fetchDepartmentByCode(String arg0) throws DataNotReadyException 
+	{
+		return fetchDepartmentByCodes(Arrays.asList(new String[] {arg0}));
+	}
+
+	@Override
+	public QueryResultArtData<Department> fetchDepartmentByCodes(List<String> arg0) throws DataNotReadyException 
+	{
+		final List<Department> rslts = CollectionUtils.newArrayList();
+		for (Department cand: dataCache.getDepartmentsRaw())
+		{
+			if (cand.getDepartmentCode() != null && arg0.contains(cand.getDepartmentCode()))
+			{
+				rslts.add(cand);
+			}
+		}
+		return QueryResultFactory.createLocalDepartmentResult(rslts);
+	}
+
+	@Override
+	public QueryResultArtData<Department> fetchDepartmentByID(long arg0) throws DataNotReadyException 
+	{
+		return fetchDepartmentByIDs(Arrays.asList(new Long[] {arg0}));
+	}
+
+	@Override
+	public QueryResultArtData<Department> fetchDepartmentByIDs(List<Long> arg0) throws DataNotReadyException 
+	{
+		final List<Department> rslts = CollectionUtils.newArrayList();
+		for (Long cand: arg0)
+		{
+			if (dataCache.getDepartmentMap().containsKey(cand))
+			{
+				rslts.add(dataCache.getDepartmentMap().get(cand));
+			}
+		}
+		return QueryResultFactory.createLocalDepartmentResult(rslts);
 	}
 }

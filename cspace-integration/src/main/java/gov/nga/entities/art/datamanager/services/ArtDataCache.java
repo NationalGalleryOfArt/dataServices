@@ -111,7 +111,22 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 		}
 		return lst;
 	}
-
+	
+	@Override
+	public Map<Long, Department> getDepartmentMap() throws DataNotReadyException
+	{
+		if (!isDataReady)
+		{
+			throw new DataNotReadyException();
+		}
+		final Map<Long, Department> map = CollectionUtils.newHashMap();
+		synchronized(this)
+		{
+			map.putAll(cache.getDepartmentMap());
+		}
+		return map;
+	}
+ 
 	@Override
 	public List<Location> getLocationsRaw()  throws DataNotReadyException
 	{

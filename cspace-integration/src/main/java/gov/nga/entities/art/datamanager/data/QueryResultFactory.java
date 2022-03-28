@@ -5,6 +5,7 @@ import java.util.List;
 import gov.nga.common.entities.art.ArtDataSuggestion;
 import gov.nga.common.entities.art.ArtObject;
 import gov.nga.common.entities.art.Constituent;
+import gov.nga.common.entities.art.Department;
 import gov.nga.common.entities.art.Location;
 import gov.nga.common.entities.art.Media;
 import gov.nga.common.entities.art.Place;
@@ -71,4 +72,10 @@ public class QueryResultFactory
 	{
 		return (QueryResult<T>) new QueryResultNGAImage<T>(rslts);
 	}
+	
+	public static <T extends Department>QueryResultArtData<T> createLocalDepartmentResult(List<T> rslts)
+	{
+		return new QueryResultArtDataLocal<T>(rslts);
+	}
+	
 }
