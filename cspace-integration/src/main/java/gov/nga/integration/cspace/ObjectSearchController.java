@@ -171,6 +171,7 @@ public class ObjectSearchController extends RecordSearchController {
     	getSources(request);
     	
     	ResultsPaginator paginator = getPaginator(skip, limit);
+    	log.info(String.format("ResultsPaginator(%d, %d) = %s", skip, limit, paginator));
 
     	// various helpers are used to accumulate search criteria, order, and paginate the results
     	SearchHelper<ArtObject> searchHelper = new SearchHelper<ArtObject>();
@@ -200,9 +201,13 @@ public class ObjectSearchController extends RecordSearchController {
 		// otherwise, we return an empty result set
 		List<ArtObject> artObjects = CollectionUtils.newArrayList();
 		if (searchHelper.getFilterSize() > 0)
+		{
+			log.info("Paginator before search: " + paginator);
 			artObjects = artDataManager.getArtDataQuerier()
 								.searchArtObjects(searchHelper, paginator, null, sortHelper)
 								.getResults();
+			log.info(String.format("Paginator after search %s[%d]", paginator, artObjects.size()));
+		}
     	log.info(String.format("Num of filters: %d", searchHelper.getFilterSize()));
     	logSearchResults(request, paginator.getTotalResults());
     	if (artObjects.size() > 0) {
@@ -238,6 +243,7 @@ public class ObjectSearchController extends RecordSearchController {
     				for (ArtObject o : artObjects) {
     					NGAImage pImg = o.getPrimaryImage();
     					if (pImg != null) {
+    						log.info(String.format("NGAImage: %s <hashcode> %d", pImg, pImg.hashCode()));
 	    					Callable<String> thumbWorker = new ImageThumbnailWorker(pImg,thumbWidth,thumbHeight,base64);
 							Future<String> future = threadPool.submit(thumbWorker);
 							thumbnailMap.put(o.getObjectID(), future);
@@ -282,6 +288,8 @@ public class ObjectSearchController extends RecordSearchController {
 		// assemble a well formed response
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
+		log.info(String.format("Returning Response [rsltsize=%d,pnlimit=%d,pnskip=%d,pn=%s]",
+				partialResults.size(), paginator.getStartIndex(),paginator.getPageSize(),paginator));
 		return new ResponseEntity<Items>(new Items(paginator, partialResults), headers, HttpStatus.OK);
 	}
     

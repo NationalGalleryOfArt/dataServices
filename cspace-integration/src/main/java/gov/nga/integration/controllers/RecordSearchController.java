@@ -88,7 +88,7 @@ public abstract class RecordSearchController {
     	// limit results to a reasonable number to encourage well behaved API usage
     	if (limit > 1000)
     		limit = 1000;
-    	return new ResultsPaginator(skip, limit);
+    	return new ResultsPaginator(limit, skip);
     }
 
     // read the source from the URL and valid it if present.  If it's not present
