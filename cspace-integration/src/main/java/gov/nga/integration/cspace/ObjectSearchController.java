@@ -364,9 +364,29 @@ public class ObjectSearchController extends RecordSearchController {
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.LIKE, field, nList, true));
     }
     
+    private static List<String> uncoupleCommaStrings(final List<String> source)
+    {
+    	final List<String> list = CollectionUtils.newArrayList();
+    	if (source != null)
+    	{
+    		for (String cand: source)
+    		{
+    			if (StringUtils.isNotBlank(cand))
+    			{
+    				for (String val: cand.split(","))
+    				{
+    					list.add(val);
+    				}
+    			}
+    		}
+    	}
+    	return list;
+    }
+    
     //Status
     protected static void processTMSStatusField(final SearchHelper<ArtObject> searchHelper, final String[] idValues1, final String[] idValues2) {
-    	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(idValues1, idValues2));
+    	final List<String> aList = uncoupleCommaStrings(
+    				CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(idValues1, idValues2)));
     	
     	if (aList.size() > 0)
     	{
@@ -387,7 +407,8 @@ public class ObjectSearchController extends RecordSearchController {
     
     //VB Classification
     protected static void processVBClassificationField(final SearchHelper<ArtObject> searchHelper, final String[] vbc, final String[] vbc2) {
-    	final List<String> aList = CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(vbc, vbc2));
+    	final List<String> aList = uncoupleCommaStrings(
+    				CollectionUtils.clearEmptyOrNull(CollectionUtils.newArrayList(vbc, vbc2)));
     	if (aList.size() > 0)
     	{
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.VISUALBROWSERCLASSIFICATION, aList));
@@ -396,7 +417,7 @@ public class ObjectSearchController extends RecordSearchController {
 
 	// ID FIELD
 	protected static void processIDs(SearchHelper<ArtObject> searchHelper, String[] ids, String[] cultObj_ids) {
-		List<String> iList = CollectionUtils.newArrayList(ids, cultObj_ids);
+		List<String> iList = uncoupleCommaStrings(CollectionUtils.newArrayList(ids, cultObj_ids));
 		iList = CollectionUtils.clearEmptyOrNull(iList);
     	if (iList != null && iList.size() > 0)
     		searchHelper.addFilter(new SearchFilter(SEARCHOP.EQUALS, ArtObject.SEARCH.OBJECTID, iList));
