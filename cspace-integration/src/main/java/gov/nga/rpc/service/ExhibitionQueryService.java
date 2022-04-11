@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import gov.nga.common.rpc.ArtDataQuerierGrpc;
 import gov.nga.common.rpc.ArtObjectObjectResult;
 import gov.nga.common.rpc.ArtObjectQueryResult;
+import gov.nga.common.rpc.ArtDataSuggestionResult;
 import gov.nga.common.rpc.CacheFetchQuery;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentsObjectResult;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
@@ -20,6 +21,7 @@ import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.FetchByStringsQuery;
+import gov.nga.common.rpc.SuggestArtDataQuery;
 import gov.nga.common.rpc.LocationObjectResult;
 import gov.nga.common.rpc.MediaObjectResult;
 import gov.nga.common.rpc.NGAImageResult;
@@ -47,6 +49,7 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	private ArtObjectHelper artObjHlpr;
 	private DepartmentHelper departmentHlpr;
 	private CacheHelper cacheHlpr;
+	private SuggestionHelper suggHlpr;
 	
 
     @PostConstruct
@@ -58,6 +61,7 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
     	mediaHlpr = new MediaHelper(artDataManager);
     	locationHlpr = new LocationHelper(artDataManager);
     	placeHlpr = new PlaceHelper(artDataManager);
+    	suggHlpr = new SuggestionHelper(artDataManager);
     	cacheHlpr = new CacheHelper(artDataManager);
     	departmentHlpr = new DepartmentHelper(artDataManager);
     }
@@ -358,6 +362,13 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 		{
 			LOG.error("Exception caught while processing request.", err);
 		}
+	}
+	
+	@Override
+	public void getSuggestions(final SuggestArtDataQuery request, 
+			final StreamObserver<ArtDataSuggestionResult> responseObserver)
+	{
+		suggHlpr.getSuggestions(request, responseObserver);
 	}
 
 }
