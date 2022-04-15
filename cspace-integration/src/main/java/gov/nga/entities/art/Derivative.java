@@ -188,7 +188,9 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 
 	public static Comparator<Derivative> sortByPixelSizeAsc = new Comparator<Derivative>() {
 		public int compare(Derivative a, Derivative b) {
-			return new Long(a.pixelCount()).compareTo(new Long(b.pixelCount()));
+		    Long al = a.pixelCount();
+		    Long bl = b.pixelCount();
+			return al.compareTo(bl); 
 		}
 	};
 

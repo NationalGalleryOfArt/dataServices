@@ -1,6 +1,6 @@
 package gov.nga.integration.cspace;
 
-import org.springframework.boot.autoconfigure.web.ErrorController;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,10 +16,10 @@ public class GenericErrorController implements ErrorController {
         return "An error occurred trying to map your request to a service end point. " + HELPLINK;
     }
 
-    @Override
-    public String getErrorPath() {
-        return PATH;
-    }
+    //@Override
+    //public String getErrorPath() {
+    //    return PATH;
+    //}
     
  
 }

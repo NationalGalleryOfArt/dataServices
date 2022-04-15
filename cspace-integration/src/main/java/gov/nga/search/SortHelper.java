@@ -1,8 +1,5 @@
 package gov.nga.search;
  
-import gov.nga.search.SortOrder;
-import gov.nga.search.Sortable;
-import gov.nga.search.Sorter;
 import gov.nga.utils.CollectionUtils;
 
 import java.util.Collections;
@@ -11,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 

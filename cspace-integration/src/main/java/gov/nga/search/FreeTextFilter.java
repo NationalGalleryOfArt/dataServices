@@ -5,7 +5,7 @@ import gov.nga.utils.hashcode.CustomHash;
 
 import java.util.List;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 //public class FreeTextFilter<C extends FreeTextSearchable<C>> {
 public class FreeTextFilter implements CustomHash {

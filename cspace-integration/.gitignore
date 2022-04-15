@@ -4,3 +4,5 @@ bin/target
 target
 /data/
 /.apt_generated/
+.settings
+.factorypath

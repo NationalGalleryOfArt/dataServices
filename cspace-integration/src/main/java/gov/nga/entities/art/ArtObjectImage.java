@@ -33,12 +33,18 @@ public class ArtObjectImage extends Derivative {
         super(manager);
     }
 
-    private static final String fetchAllImagesQuery = 
-        "SELECT imageID,  imgVolumePath, filename,     format, " + 
+    private static final String fetchAllImagesQuery = """    
+            SELECT uuid as imageID,  '/iiif/' as imgVolumePath, uuid as filename, 
+            case when iiifFormat = 'tif' then 'PTIF' else upper(iiifFormat) end as format, 
+            width,    height,        null as targetWidth,  null as targetHeight,
+            viewType, sequence,      depictsTMSObjectID as tmsObjectID,  created as catalogued 
+            FROM data.published_images where depictsTMSObjectID is not null and viewType in ('primary','alternate')
+    """;
+ /*       "SELECT imageID,  imgVolumePath, filename,     format, " + 
         "       width,    height,        targetWidth,  targetHeight, " +
         "       viewType, sequence,      tmsObjectID,  catalogued " +
-        "FROM data.object_images ";
-
+        "FROM data.published_images ";
+*/
     protected String getAllImagesQuery() {
         return fetchAllImagesQuery;
     }

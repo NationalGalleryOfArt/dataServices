@@ -165,7 +165,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
     
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_get() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
@@ -189,7 +188,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
     		;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_head() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
@@ -201,7 +199,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_sample_openaccess_image_options_post() throws Exception {
         mvc.perform(options("/iiif/640/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")
@@ -225,7 +222,6 @@ public class IIIFImageAPIHandlerIntegrationTest {
         	;
     }
 
-    @SuppressWarnings("unchecked")
 	@Test
     public void iiif_nosample_openaccess_image_options() throws Exception {
         mvc.perform(options("/iiif/public/objects/5/1/51-primary-0-nativeres.ptif/full/512,/0/default.jpg")

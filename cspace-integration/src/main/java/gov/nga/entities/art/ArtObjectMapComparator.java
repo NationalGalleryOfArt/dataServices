@@ -1,6 +1,5 @@
 package gov.nga.entities.art;
 
-import gov.nga.entities.art.ArtObject;
 import gov.nga.search.SortHelper;
 import gov.nga.search.Sorter;
 

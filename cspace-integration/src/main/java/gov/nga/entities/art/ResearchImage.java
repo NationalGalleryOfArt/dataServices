@@ -25,8 +25,19 @@ public class ResearchImage extends ArtObjectImage {
         super(manager);
     }
 
-    protected static final String fetchAllImagesQuery = 
-        "SELECT imageID,        imgVolumePath,      filename,       format, " + 
+    protected static final String fetchAllImagesQuery =  """
+            select uuid as imageID,  '/iiif/' as imgVolumePath, uuid as filename, 
+            case when iiifFormat = 'tif' then 'PTIF' else upper(iiifFormat) end as format, 
+            width,    height,        null as targetWidth,  null as targetHeight,
+            viewType, sequence as setDotSequence, depictsTMSObjectID as tmsObjectID,  modified as catalogued,
+            ri_projectID as projectID, ri_isDetail as isDetail, ri_isZoomable as isZoomable, ri_viewSubType as viewSubType,
+            null as altCaption, ri_altAttribution as altAttribution, ri_altTitle as altTitle,
+            ri_altDisplayDate as altDisplayDate, ri_altMedium as altMedium, ri_altCreditLine as altCreditLine,
+            ri_altImageRef as altImageRef, ri_qualifier as qualifier, ri_photoCredit as photoCredit
+            from x_published_images where ( depictsTMSObjectID is not null or ri_relatedTMSObjectID is not null ) and ri_projectID is not null
+    """;
+
+        /*"SELECT imageID,        imgVolumePath,      filename,       format, " + 
         "       width,          height,             targetWidth,    targetHeight, " +
         "       viewType,       setDotSequence,     tmsObjectID, 	catalogued, " +
         "       tmsImageObjectID,   				projectID, " +
@@ -35,6 +46,7 @@ public class ResearchImage extends ArtObjectImage {
         "       altDisplayDate, altMedium,          altCreditLine, " +
         "       altImageRef,    qualifier,          photoCredit " +
         "FROM data.object_researchimages ";
+        */
 
     protected String getAllImagesQuery() {
         return fetchAllImagesQuery;

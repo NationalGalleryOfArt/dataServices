@@ -1,6 +1,5 @@
 package gov.nga.search;
 
-import gov.nga.search.SortOrder;
 
 public interface Sortable {
 	// matchesAspect is used for comparisons of two entities (a & b) given

@@ -349,9 +349,9 @@ public class Constituent extends ArtEntityImpl implements Searchable, Sortable, 
 		case PREFERRED_DISPLAY_NAME_MATCH: 
 			if (getPreferredDisplayName() == null || c.getPreferredDisplayName() == null)
 				return null;
-			return new Long(getPreferredDisplayName().equals(c.getPreferredDisplayName()) ? 1 : 0);
+			return getPreferredDisplayName().equals(c.getPreferredDisplayName()) ? 1L : 0L;
 		case HASBIOGRAPHY_MATCH:
-			return new Long(hasBiography() == c.hasBiography() ? 1 : 0);
+			return hasBiography() == c.hasBiography() ? 1L : 0L;
 		default: // most aspects aren't used to compare two constituents with a third so we only implement a few
 			break;
 		}

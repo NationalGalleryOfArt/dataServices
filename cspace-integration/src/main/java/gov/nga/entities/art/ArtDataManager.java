@@ -1093,7 +1093,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
 
         // OBJECT IMAGES
         loadImagery(newArtObjects, new ArtObjectImage(this));
-        loadImagery(newArtObjects, new ResearchImage(this));
+        // loadImagery(newArtObjects, new ResearchImage(this));
         
         checkImageSizes(newArtObjects);
         
@@ -1491,7 +1491,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
                             && image.getIsZoomable())
                     {
                         techImages.add(image);
-                        seqs.add(org.apache.commons.lang3.StringUtils.substringBefore(image.getSequence(), "."));
+                        seqs.add(org.apache.commons.lang.StringUtils.substringBefore(image.getSequence(), "."));
                     }
                 }
 
@@ -1526,7 +1526,7 @@ public class ArtDataManager extends MessageProviderImpl implements Runnable, Art
         List<ResearchImage> result = new ArrayList<ResearchImage>();
         for (ResearchImage image : allImages)
         {
-            if (sequence.equals(org.apache.commons.lang3.StringUtils.substringBefore(image.getSequence(), ".")))
+            if (sequence.equals(org.apache.commons.lang.StringUtils.substringBefore(image.getSequence(), ".")))
                 result.add(image);
         }
         return result;

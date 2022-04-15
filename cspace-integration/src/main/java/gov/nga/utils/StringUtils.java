@@ -9,7 +9,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -63,7 +63,7 @@ public class StringUtils {
     // statement
     public static String fillQueryParams(int size) {
         if (size > 0) {
-            return org.apache.commons.lang3.StringUtils.repeat("?,", size - 1)
+            return org.apache.commons.lang.StringUtils.repeat("?,", size - 1)
                     + "?";
         } else
             return "";
@@ -330,7 +330,7 @@ public class StringUtils {
         String toUnescape = htmlString.replaceAll("\\<.*?\\>", "").replaceAll("\r|\n|\"", " ");
         
         return removeDiacritics ?
-                StringEscapeUtils.unescapeHtml4(deAccent(toUnescape)) : StringEscapeUtils.unescapeHtml4(toUnescape);
+                StringEscapeUtils.unescapeHtml(deAccent(toUnescape)) : StringEscapeUtils.unescapeHtml(toUnescape);
     }
 
     /*
@@ -357,7 +357,7 @@ public class StringUtils {
      * @return html string with all paragraphs removed 
      */
     public static String stripAllParagraphs(String text){
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) return text;
+        if (org.apache.commons.lang.StringUtils.isBlank(text)) return text;
         text = text.replaceAll("(?i)</?p.*?>", "");
         return text;
         
@@ -410,7 +410,7 @@ public class StringUtils {
      */
     public static String htmlToMarkdown(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) 
+        if (org.apache.commons.lang.StringUtils.isBlank(text)) 
         	return text;
         text = text.replaceAll("(?i)</?em.*?>", "_");
         text = text.replaceAll("(?i)</?i.*?>", "_");
@@ -426,7 +426,7 @@ public class StringUtils {
      */
     public static String sanitizeHtml(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) return text;
+        if (org.apache.commons.lang.StringUtils.isBlank(text)) return text;
 
         Document doc = Jsoup.parseBodyFragment(text);
         return doc.body().html();
@@ -434,13 +434,13 @@ public class StringUtils {
 
     public static String markdownToHtml(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text) || !text.contains("_")) return text;
+        if (org.apache.commons.lang.StringUtils.isBlank(text) || !text.contains("_")) return text;
 
         Pattern pattern = Pattern.compile("(_{2,})");
         Matcher matcher = pattern.matcher(text);
         StringBuffer tmp = new StringBuffer();
         while (matcher.find())
-            matcher.appendReplacement(tmp, org.apache.commons.lang3.StringUtils.repeat("&lowbar;", matcher.group(1).length()));
+            matcher.appendReplacement(tmp, org.apache.commons.lang.StringUtils.repeat("&lowbar;", matcher.group(1).length()));
 
         matcher.appendTail(tmp);
         text = tmp.toString();
@@ -461,7 +461,7 @@ public class StringUtils {
 
     public static String markdownToText(String text)
     {
-        if (org.apache.commons.lang3.StringUtils.isBlank(text)) 
+        if (org.apache.commons.lang.StringUtils.isBlank(text)) 
         	return text;
         return text.replaceAll("_","");
     }

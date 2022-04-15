@@ -141,24 +141,29 @@ public class CSpaceArtDataManager extends ArtDataManager {
         
     }
     
-    private Boolean loading=false;
+    private class BooleanWrapper {
+        Boolean loading = false;
+    }
+    private BooleanWrapper loadingWrapper = new BooleanWrapper();
+    
     synchronized void setLoading(Boolean loading) {
-    	this.loading = loading;
+        loadingWrapper.loading = loading;
     }
     private Boolean isLoading() {
-    	return this.loading;
+        return loadingWrapper.loading;
     }
     
     public void run() {
 
-    	synchronized(loading) {
-    		// if we're already loading in another thread, don't re-load
-    		if (isLoading()) {
-    			log.info("********************** Skipped Art Data Manager Service Refresh Schedule Since Already Running ************************");
-    			return;
-    		}
-    		setLoading(true);
-    	}
+        synchronized(loadingWrapper) {
+            // if we're already loading in another thread, don't re-load
+            if (isLoading()) {
+                log.info("********************** Skipped Art Data Manager Service Refresh Schedule Since Already Running ************************");
+                return;
+            }
+            setLoading(true);
+        }
+    
     	try {
     		// unload TMS data if already loaded
     		//setArtObjectsList(null);

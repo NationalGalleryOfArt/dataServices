@@ -489,7 +489,7 @@ public class IIIFImageAPIHandler {
 		if ( requestedSamplingSize != null && ( ( maxPermittedSamplingSize != null && requestedSamplingSize > maxPermittedSamplingSize ) || requestedSamplingSize <= 0 || (d != null && (requestedSamplingSize >= d.getWidth() || requestedSamplingSize >= d.getHeight()) ) ) ) { 
 			requestedSamplingSize = null;
 			maxPermittedSamplingSize = null;
-			returnMap.put(IIIFAuthParameters.NEWSAMPLESIZE, new Long(0L)); // tells client to redirect to the full size image
+			returnMap.put(IIIFAuthParameters.NEWSAMPLESIZE, 0L); // tells client to redirect to the full size image
 		}
 		// no point sending the max sampling size header if the max is greater than the longest side of the image anyway
 		if ( maxPermittedSamplingSize != null && ( d != null && (maxPermittedSamplingSize >= d.getWidth() || maxPermittedSamplingSize >= d.getHeight()) ) )
