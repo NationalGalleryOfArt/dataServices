@@ -23,6 +23,7 @@ import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.FetchByStringsQuery;
 import gov.nga.common.rpc.SuggestArtDataQuery;
 import gov.nga.common.rpc.LocationObjectResult;
+import gov.nga.common.rpc.LocationQueryResult;
 import gov.nga.common.rpc.MediaObjectResult;
 import gov.nga.common.rpc.NGAImageResult;
 import gov.nga.common.rpc.PlaceObjectResult;
@@ -88,6 +89,21 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 		try
 		{
 			exhHlpr.searchExhibitions(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+		
+	}
+    
+	@Override
+	public void searchLocations(final QueryMessage request,
+			final StreamObserver<LocationQueryResult> responseObserver)
+	{
+		try
+		{
+			locationHlpr.searchLocations(request, responseObserver);
 		}
 		catch (final Exception err)
 		{

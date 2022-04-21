@@ -768,4 +768,25 @@ public class QuerierImpl implements ArtDataQuerier
 		}
 		return QueryResultFactory.createLocalDepartmentResult(rslts);
 	}
+
+	@Override
+	public QueryResultArtData<Location> searchLocations(SearchHelper<Location> arg0, ResultsPaginator arg1,
+			SortHelper<Location> arg2) throws DataNotReadyException 
+	{
+		return searchLocations(arg0, arg1, arg2, locationFactory);
+	}
+
+	@Override
+	public <T extends Location> QueryResultArtData<T> searchLocations(SearchHelper<T> srchh, ResultsPaginator pn,
+			SortHelper<T> srth, LocationFactory<T> factory) throws DataNotReadyException 
+	{
+		final List<T> results = CollectionUtils.newArrayList();
+		LocationFactory<?> lFact = factory == null ? locationFactory : factory;
+        for (Location exhObj: dataCache.getLocationsRaw())
+        {
+        	results.add(lFact.createObject(exhObj));
+        }
+        srchh.setFreeTextServicer(null);
+        return QueryResultFactory.createLocalLocationResult(srchh.search(results, pn, null, srth), pn);
+	}
 }

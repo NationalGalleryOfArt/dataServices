@@ -43,6 +43,11 @@ public class QueryResultFactory
 		return new QueryResultArtDataLocal<T>(results);
 	}
 	
+	public static <T extends Location>QueryResultArtData<T> createLocalLocationResult(List<T> results, final ResultsPaginator rp)
+	{
+		return new QueryResultArtDataLocal<T>(results, rp);
+	}
+	
 	public static <T extends Exhibition>QueryResultArtData<T> createLocalExhibitionResult(List<T> results)
 	{
 		return new QueryResultArtDataLocal<T>(results);
