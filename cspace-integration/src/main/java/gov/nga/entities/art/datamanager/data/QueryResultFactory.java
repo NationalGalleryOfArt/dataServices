@@ -2,6 +2,9 @@ package gov.nga.entities.art.datamanager.data;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nga.common.entities.art.ArtDataSuggestion;
 import gov.nga.common.entities.art.ArtObject;
 import gov.nga.common.entities.art.Constituent;
@@ -18,6 +21,8 @@ import gov.nga.common.entities.art.Exhibition;
 
 public class QueryResultFactory 
 {
+	private static final Logger log = LoggerFactory.getLogger(QueryResultFactory.class);
+	
 	public static <T extends ArtObject>QueryResultArtData<T> createLocalArtObjectResult(List<T> results)
 	{
 		return new QueryResultArtDataLocal<T>(results);

@@ -787,6 +787,7 @@ public class QuerierImpl implements ArtDataQuerier
         	results.add(lFact.createObject(exhObj));
         }
         srchh.setFreeTextServicer(null);
+        log.info(String.format("searchLocations(): Paginator results before call: %d", pn.getTotalResults()));
         return QueryResultFactory.createLocalLocationResult(srchh.search(results, pn, null, srth), pn);
 	}
 }
