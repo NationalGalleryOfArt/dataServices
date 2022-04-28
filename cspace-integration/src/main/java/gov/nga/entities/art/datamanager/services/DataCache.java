@@ -134,10 +134,10 @@ public class DataCache
 			if (StringUtils.isNotBlank(obj.getTitle()))
 			{
 				suggestManager.setTypeMode(SuggestType.ARTOBJECT_TITLE);
-				Suggest.consumeIndexPair(suggestManager.getMap(SuggestType.ARTOBJECT_TITLE), obj.getTitle().toLowerCase(), obj, suggestManager);
+				Suggest.consumeIndexPair(suggestManager.getMap(SuggestType.ARTOBJECT_TITLE), obj.getTitle(), obj, suggestManager);
 				suggestManager.setTypeMode(SuggestType.ARTOBJECT_TITLE_ID);
 				Suggest.consumeIndexPair(suggestManager.getMap(SuggestType.ARTOBJECT_TITLE_ID), 
-						String.format("%s %d", obj.getTitle().toLowerCase(), obj.getObjectID()), obj, suggestManager);
+						String.format("%s %d", obj.getTitle(), obj.getObjectID()), obj, suggestManager);
 			}
 		}
     }
@@ -162,9 +162,9 @@ public class DataCache
 			if (typeTitle != null)
 			{
 				suggestManager.setTypeMode(typeTitle);
-				Suggest.consumeIndexPair(suggestManager.getMap(typeTitle), cst.getPreferredDisplayName().toLowerCase(), cst, suggestManager);
+				Suggest.consumeIndexPair(suggestManager.getMap(typeTitle), cst.getPreferredDisplayName(), cst, suggestManager);
 				suggestManager.setTypeMode(typeTAI);
-				Suggest.consumeIndexPair(suggestManager.getMap(typeTAI), String.format("%s %d", cst.getPreferredDisplayName().toLowerCase(), cst.getConstituentID()), cst, suggestManager);
+				Suggest.consumeIndexPair(suggestManager.getMap(typeTAI), String.format("%s %d", cst.getPreferredDisplayName(), cst.getConstituentID()), cst, suggestManager);
                 if (cst.getAltNames() != null) 
                 {
                     for (ConstituentAltName a: cst.getAltNames()) 
