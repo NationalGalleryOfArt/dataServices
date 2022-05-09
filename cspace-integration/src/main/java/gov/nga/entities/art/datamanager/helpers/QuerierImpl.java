@@ -176,7 +176,7 @@ public class QuerierImpl implements ArtDataQuerier
                 Constituent c = oc.getConstituent();
                 if (c != null) 
                 {
-                    List<ArtObject> works = c.getWorks();
+                	List<ArtObject> works = fetchByObjectIDs(c.getWorksIDs(Constituent.ARTISTWORKRELATIONS.ALLWORKS.getDataLabel())).getResults();
                     for (ArtObject o : works)
                     {
                         aos.put(o.getObjectID(), factory.createObject(o));

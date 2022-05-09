@@ -71,7 +71,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 				{
 					for (Constituent c: rslt.getResults())
 					{
-	                    List<ArtObject> works = c.getWorks();
+	                    List<ArtObject> works = getQueryManager().fetchByObjectIDs(c.getWorksIDs(Constituent.ARTISTWORKRELATIONS.ALLWORKS.getDataLabel())).getResults();
 	                    for (ArtObject o : works) {
 	                        aos.put(o.getObjectID(), o);
 	                    }
