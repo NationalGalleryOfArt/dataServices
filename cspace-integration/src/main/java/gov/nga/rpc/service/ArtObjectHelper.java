@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import gov.nga.common.entities.art.ArtObject;
 import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.QueryResultArtData;
+import gov.nga.common.entities.art.proto.Facet.Entry;
 import gov.nga.common.imaging.NGAImage;
 import gov.nga.common.proto.messages.ArtObjectMessageFactory;
 import gov.nga.common.proto.messages.NGAImageMessageFactory;
@@ -17,6 +18,7 @@ import gov.nga.common.rpc.ArtObjectObjectResult;
 import gov.nga.common.rpc.ArtObjectQueryResult;
 import gov.nga.common.rpc.NGAImageResult;
 import gov.nga.common.rpc.message.QueryMessage;
+import gov.nga.common.search.Facet;
 import gov.nga.entities.art.ArtDataManager;
 import gov.nga.utils.CollectionUtils;
 import io.grpc.stub.StreamObserver;
@@ -140,6 +142,23 @@ public class ArtObjectHelper extends TMSObjectHelper
 					builder.addIds(c.getObjectID());
 				}
 			}
+			if (rslt.getFacetResults().size() > 0)
+			{
+				for (Facet rsltfacet: rslt.getFacetResults())
+				{
+					gov.nga.common.entities.art.proto.Facet.Builder fBuilder = gov.nga.common.entities.art.proto.Facet.newBuilder();
+					fBuilder.setName(rsltfacet.getFacet());
+					
+					for (Map.Entry<String, Integer> count: rsltfacet.getFacetCounts().entrySet())
+					{
+						Entry.Builder msgCnt = gov.nga.common.entities.art.proto.Facet.Entry.newBuilder();
+						msgCnt.setKey(count.getKey());
+						msgCnt.setValue(count.getValue());
+						fBuilder.addValues(msgCnt.build());
+					}
+					builder.addFacets(fBuilder.build());
+				}
+			}
 			responseObserver.onNext(builder.build());
 			responseObserver.onCompleted();
 		}
@@ -204,15 +223,16 @@ public class ArtObjectHelper extends TMSObjectHelper
 		LOG.debug("this is not a fetch call");
 		if (args.getSrchHlpr() != null)
 		{
+			
 			if (args.getOrder() == null)
 			{
 				LOG.debug("Making search call with no sort: ");
-				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), null);
+				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), args.getFacetHlpr());
 			}
 			else
 			{
 				LOG.debug(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
-				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), null, 
+				return getQueryManager().searchArtObjects(args.getSrchHlpr(), args.getPgn(), args.getFacetHlpr(), 
 						args.getOrder().getSortOrder().toArray(new ArtObject.SORT[] {}));
 			}
 			

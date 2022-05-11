@@ -1,19 +1,23 @@
 package gov.nga.rpc.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.QueryResultArtData;
+import gov.nga.common.entities.art.proto.Facet.Entry;
 import gov.nga.common.proto.messages.ConstituentMessageFactory;
 import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentsObjectResult;
 import gov.nga.common.rpc.message.QueryMessage;
+import gov.nga.common.search.Facet;
 import gov.nga.common.search.SearchHelper;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.utils.CollectionUtils;
 import io.grpc.stub.StreamObserver;
 
 public class ConstituentHelper extends TMSObjectHelper 
@@ -65,6 +69,23 @@ public class ConstituentHelper extends TMSObjectHelper
 				for (Constituent c: rslt.getResults())
 				{
 					builder.addIds(c.getConstituentID());
+				}
+			}
+			if (rslt.getFacetResults().size() > 0)
+			{
+				for (Facet rsltfacet: rslt.getFacetResults())
+				{
+					gov.nga.common.entities.art.proto.Facet.Builder fBuilder = gov.nga.common.entities.art.proto.Facet.newBuilder();
+					fBuilder.setName(rsltfacet.getFacet());
+					
+					for (Map.Entry<String, Integer> count: rsltfacet.getFacetCounts().entrySet())
+					{
+						Entry.Builder msgCnt = gov.nga.common.entities.art.proto.Facet.Entry.newBuilder();
+						msgCnt.setKey(count.getKey());
+						msgCnt.setValue(count.getValue());
+						fBuilder.addValues(msgCnt.build());
+					}
+					builder.addFacets(fBuilder.build());
 				}
 			}
 			responseObserver.onNext(builder.build());

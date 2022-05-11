@@ -2,6 +2,7 @@ package gov.nga.entities.art.datamanager.helpers;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -253,7 +254,8 @@ public class QuerierImpl implements ArtDataQuerier
         {
             list.add(factory.createObject(obj));
         }
-		return QueryResultFactory.createLocalArtObjectResult(searchH.search(list, pn, fn, sortH), pn);
+		return QueryResultFactory.createLocalArtObjectResult(searchH.search(list, pn, fn, sortH), pn, 
+											(fn == null) ? Collections.emptyList() : fn.getFacets());
 	}
 
 	@Override
@@ -417,7 +419,8 @@ public class QuerierImpl implements ArtDataQuerier
         	results.add(factory.createObject(constObj));
         }
         sh.setFreeTextServicer(freeTextSearcher);
-        return QueryResultFactory.createLocalConstituentResult(sh.search(results, pn, fn, sortH), pn);
+        return QueryResultFactory.createLocalConstituentResult(sh.search(results, pn, fn, sortH), pn, 
+				(fn == null) ? Collections.emptyList() : fn.getFacets());
 	}
 
 

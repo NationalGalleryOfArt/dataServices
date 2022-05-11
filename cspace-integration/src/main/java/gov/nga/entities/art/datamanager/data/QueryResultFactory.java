@@ -15,6 +15,7 @@ import gov.nga.common.entities.art.Place;
 import gov.nga.common.entities.art.QueryResult;
 import gov.nga.common.entities.art.QueryResultSuggestion;
 import gov.nga.common.imaging.NGAImage;
+import gov.nga.common.search.Facet;
 import gov.nga.common.search.ResultsPaginator;
 import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.common.entities.art.Exhibition;
@@ -33,6 +34,12 @@ public class QueryResultFactory
 		return new QueryResultArtDataLocal<T>(results, rp);
 	}
 	
+	public static <T extends ArtObject>QueryResultArtData<T> createLocalArtObjectResult(final List<T> results, 
+			final ResultsPaginator rp, final List<Facet> facets)
+	{
+		return new QueryResultArtDataLocal<T>(results, rp, facets);
+	}
+	
 	public static <T extends Constituent>QueryResultArtData<T> createLocalConstituentResult(List<T> results)
 	{
 		return new QueryResultArtDataLocal<T>(results);
@@ -41,6 +48,12 @@ public class QueryResultFactory
 	public static <T extends Constituent>QueryResultArtData<T> createLocalConstituentResult(List<T> results, ResultsPaginator rp)
 	{
 		return new QueryResultArtDataLocal<T>(results, rp);
+	}
+	
+	public static <T extends Constituent>QueryResultArtData<T> createLocalConstituentResult(final List<T> results,
+			final ResultsPaginator rp, final List<Facet> facets)
+	{
+		return new QueryResultArtDataLocal<T>(results, rp, facets);
 	}
 	
 	public static <T extends Location>QueryResultArtData<T> createLocalLocationResult(List<T> results)

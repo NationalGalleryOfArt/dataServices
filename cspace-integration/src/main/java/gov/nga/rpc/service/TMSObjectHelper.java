@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import gov.nga.common.entities.art.ArtDataQuerier;
 import gov.nga.common.rpc.message.QueryMessage;
+import gov.nga.common.search.FacetHelper;
 import gov.nga.common.search.Faceted;
 import gov.nga.common.search.ResultsPaginator;
 import gov.nga.common.search.SearchHelper.SEARCHOP;
@@ -89,6 +90,16 @@ public class TMSObjectHelper
 					srchH.addFilter(srchFltr);
 				}
 				pojo.setSrchHlpr(srchH);
+			}
+			
+			if (qMsg.getFacetsCount() > 0)
+			{
+				final List<String> facets = CollectionUtils.newArrayList();
+				for (gov.nga.common.rpc.message.QueryMessage.FacetHelper facet: qMsg.getFacetsList())
+				{
+					facets.add(facet.getName());
+				}
+				pojo.setFacetHlpr(new FacetHelper(facets.toArray(new String[] {})));
 			}
 		}
 		return pojo;
