@@ -424,6 +424,7 @@ public class TMSFetcher {
         log.info("Assigning text entries to art objects");
         for (ArtObjectTextEntry te : textEntries) {
             ArtObject o = (ArtObject)newArtObjects.get(te.getObjectID());
+            if (o.getObjectID() == 1100L) log.info(String.format("Adding text entry for 1100: %s", te));
             if (o != null)
             {
                 o.addTextEntry(te);

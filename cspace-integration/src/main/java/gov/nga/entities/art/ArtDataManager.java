@@ -151,7 +151,7 @@ public class ArtDataManager  extends MessageProviderImpl implements Runnable, Ar
 
             // setup our facet helper to calculate all art object facets
             FacetHelper fn = new FacetHelper(
-                    Constituent.FACET.INDEXOFARTISTS_FIRST_TWO_LETTERS_LAST_NAME
+                    Constituent.FACET.INDEXOFARTISTS_FIRST_TWO_LETTERS_LAST_NAME.name()
             );
 
             // our search helper, instantiated according to the art entity we
@@ -201,13 +201,13 @@ public class ArtDataManager  extends MessageProviderImpl implements Runnable, Ar
         if (standardArtObjectFacets == null) {
             // setup our facet helper to calculate all art object facets
             FacetHelper fn = new FacetHelper(
-                FACET.VISUALBROWSERCLASSIFICATION,
-                FACET.VISUALBROWSERNATIONALITY,
-                FACET.VISUALBROWSERTIMESPAN,
-                FACET.VISUALBROWSERTHEME,
-                FACET.VISUALBROWSERSTYLE,
-                FACET.SCHOOL,
-                FACET.ONVIEW
+                FACET.VISUALBROWSERCLASSIFICATION.name(),
+                FACET.VISUALBROWSERNATIONALITY.name(),
+                FACET.VISUALBROWSERTIMESPAN.name(),
+                FACET.VISUALBROWSERTHEME.name(),
+                FACET.VISUALBROWSERSTYLE.name(),
+                FACET.SCHOOL.name(),
+                FACET.ONVIEW.name()
             );
 
             // our search helper, instantiated according to the art entity we

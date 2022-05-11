@@ -152,7 +152,7 @@ public class DCLPAImage extends CSpaceImage {
 
     // no facets for art object images... at least not yet
     @Override
-	public List<String> getFacetValue(Object f) {
+	public List<String> getFacetValue(final String f) {
 		return CollectionUtils.newArrayList();
 	}
 
