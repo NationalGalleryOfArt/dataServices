@@ -148,6 +148,11 @@ public class EntityQuery<E extends ArtEntity> {
 						while (rs.next()) {
 							E o = (E) entity.factory(rs);
 							list.add(o);
+							if (o.getClass() == ArtObject.class && o.getEntityID() == 34049)
+							{
+								log.info(String.format("Checking Collection Segment. db = %s  object = %s", 
+										rs.getString("collectionSegment"), ((ArtObject)o).getCollectionSegment()));
+							}
 						}
 					}
 				}
