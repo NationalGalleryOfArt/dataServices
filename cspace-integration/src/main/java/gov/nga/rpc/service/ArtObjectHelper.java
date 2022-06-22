@@ -107,7 +107,9 @@ public class ArtObjectHelper extends TMSObjectHelper
 					gov.nga.common.entities.art.proto.ArtObject msg = ArtObjectMessageFactory.getMessage(rslt);
 					builder.setArtobject(msg);
 					responseObserver.onNext(builder.build());
-					LOG.info(String.format("fetchArtObjects() sending %s Collection Segment: %s <::> %s", rslt, rslt.getCollectionSegment(), msg.getCollSegment()));
+					LOG.info(String.format("fetchArtObjects() sending %s", rslt));
+					LOG.info(String.format("Coll Segment object: %s  source: %s", rslt.getCollectionSegment(),
+							getManager().getArtDataCacher().getArtObjectMap().get(rslt.getObjectID()).getCollectionSegment()));
 				}
 				catch (final Exception err)
 				{

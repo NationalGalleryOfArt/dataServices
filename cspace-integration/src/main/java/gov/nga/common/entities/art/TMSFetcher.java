@@ -122,6 +122,9 @@ public class TMSFetcher {
             newData.constituents = getConstituents(ocs, alts, ctes, newData.getArtObjectData());
             log.info(SystemUtils.freeMemorySummary());
             
+            if (newData.artObjects.containsKey(34049L)) log.info(
+            		String.format("Checking Coll Segment artobjects done: %s", newData.artObjects.get(34049L).getCollectionSegment()));
+            
             if (isPrivateConfigured)
             {
                 log.info("Loading all exhibitions data");
@@ -138,6 +141,11 @@ public class TMSFetcher {
             }
             // then set it again
             log.info("Syncing complete.");
+            
+            if (newData.artObjects.containsKey(34049L)) log.info(
+            		String.format("Checking Coll Segment sync complete: %s", newData.artObjects.get(34049L).getCollectionSegment()));
+            
+            
             // we can start serving queries again now
             /**
             // pre-calculate all art object facet counts for use by the initial visual browser page
@@ -343,6 +351,7 @@ public class TMSFetcher {
         List<ArtObject> newObjects = eq.fetchAll(ArtObject.fetchAllObjectsQuery, new ArtObject(manager, managerSrv.getOperatingMode()));
         log.info("found this many objects: " + newObjects.size());
         for (ArtObject o : newObjects) {
+        	if (o.getObjectID() == 34049) log.info(String.format("Checking Coll Segment newObjects: %s", o.getCollectionSegment()));
             // create blank lists for all objects by default so that
             // we don't try to load them again later if they're actually blank
             o.setConstituents();

@@ -150,7 +150,7 @@ public class EntityQuery<E extends ArtEntity> {
 							list.add(o);
 							if (o.getClass() == ArtObject.class && o.getEntityID() == 34049)
 							{
-								log.info(String.format("Checking Collection Segment. db = %s  object = %s", 
+								log.info(String.format("Checking Coll Segment. db = %s  object = %s", 
 										rs.getString("collectionSegment"), ((ArtObject)o).getCollectionSegment()));
 							}
 						}
