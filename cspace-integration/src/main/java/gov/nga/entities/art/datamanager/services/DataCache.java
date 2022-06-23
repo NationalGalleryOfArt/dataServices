@@ -98,9 +98,6 @@ public class DataCache
     	this.initializePlaces(data);
     	this.initializeNewMediaRelationships(data.getMediaRelationships());
     	this.initializeNewPlacesTMSLocations(data.getPlacesTMSLocationsMap());
-        LOG.info(
-        		String.format("Checking Coll Segment cache complete: %s", getArtObjectMap().get(34049L).getCollectionSegment()));
-        
     }
 	
 	private void initializeNewPlacesTMSLocations(final Map<Long, Place> data)
@@ -133,10 +130,7 @@ public class DataCache
     {
 		for (ArtObject obj: data.getArtObjects())
 		{
-            if (obj.getObjectID() == 34049L) LOG.info(
-            		String.format("Checking Coll Segment datacache: %s", obj.getCollectionSegment()));
-            
-			artObjects.put(obj.getObjectID(), obj);
+            artObjects.put(obj.getObjectID(), obj);
 			if (StringUtils.isNotBlank(obj.getTitle()))
 			{
 				suggestManager.setTypeMode(SuggestType.ARTOBJECT_TITLE);

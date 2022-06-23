@@ -123,7 +123,8 @@ public class ArtDataManager  extends MessageProviderImpl implements Runnable, Ar
         try {
             ArtData newData = new TMSFetcher(getDataSourceService(), OperatingMode.PRIVATE, this).load();
             ((ArtDataCache)datacacher).artDataReady(newData);
-            setDataReady(true);
+            setDataReady(true);;
+            
             // pre-calculate all art object facet counts for use by the initial visual browser page
             log.info("Pre-caching all art object facet counts");
             getArtObjectFacetCounts();
