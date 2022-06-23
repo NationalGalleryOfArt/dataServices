@@ -137,7 +137,7 @@ public class TMSFetcher {
                 newData.exhibitions = CollectionUtils.newHashMap();
             }
             // then set it again
-            log.info("Syncing complete.")
+            log.info("Syncing complete.");
             // we can start serving queries again now
             /**
             // pre-calculate all art object facet counts for use by the initial visual browser page
