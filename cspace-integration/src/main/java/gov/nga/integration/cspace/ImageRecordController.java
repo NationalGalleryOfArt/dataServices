@@ -47,7 +47,7 @@ public class ImageRecordController {
     }
 
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
-    // IMAGE CONTENT SERVICE
+    // IMAGE JSON CONTENT SERVICE
     @RequestMapping("/media/{source}/images/{id}.json")
     public ResponseEntity<RecordContainer> imageRecordSource(
     		@PathVariable(value="source") String source,
@@ -92,7 +92,7 @@ public class ImageRecordController {
 		return new ResponseEntity<RecordContainer>(new RecordContainer(ir), headers, HttpStatus.OK);
 	}
     
-    // IMAGE CONTENT SERVICE
+    // IMAGE BINARY CONTENT SERVICE
     // catch the case where someone requests the content of an image without specifying the source.  We don't redirect in this case, we just
     // return 400 error
     @RequestMapping("/media/images/{id:.+}")
@@ -104,7 +104,7 @@ public class ImageRecordController {
     	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
     }
 
-    // IMAGE CONTENT SERVICE
+    // IMAGE BINARY CONTENT SERVICE
     // TODO - if diacritics are included in the query, search only the diacritical forms rather than the non-diacritical forms
     @RequestMapping("/media/{source}/images/{id:.+}")
     public ResponseEntity<InputStreamResource> imageContent(
@@ -134,6 +134,10 @@ public class ImageRecordController {
 
     	CSpaceImage d = images.get(0);
     	URI imageURI = d.getSourceImageURI("https");
+    	String u = imageURI.toString();
+    	imageURI = new URI(u.replace("iiif/",""));
+    	
+    	
     	
 		RecordSearchController.logSearchResults(request, 1);
 		

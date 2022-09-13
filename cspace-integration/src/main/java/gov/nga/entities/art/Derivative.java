@@ -519,7 +519,8 @@ public abstract class Derivative extends ArtEntityImpl implements Searchable, So
 		try {
 			String iiifPath = 
 					getManager().getConfig().getString(imagingServerURLPropertyName) 
-					+ "/iiif" + getRelativeSourceImageURI().toString() 
+					/* + "/iiif" + getRelativeSourceImageURI().toString()  */
+					+ getRelativeSourceImageURI().toString() 
 					+ "/" + region + "/" + size + "/" + rotation + "/" + quality + ".jpg";
 			return new URI(iiifPath);
 		}
