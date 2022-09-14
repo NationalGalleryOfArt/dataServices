@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -58,15 +58,10 @@ public class CSpaceSpringApplicationTest {
 	private static final Logger log = LoggerFactory.getLogger(CSpaceSpringApplicationTest.class);
 
 	@Autowired
-	public ArtDataManagerService artDataManager;
+	ArtDataManagerService artDataManager;
 	
     @Rule 
     public TestName name = new TestName();
-    
-    @LocalServerPort
-    String localServerPort;
-    
-    TestRestTemplate restClient = new TestRestTemplate();
     
     @Before
     public void readyForTest() throws InterruptedException {
@@ -75,6 +70,12 @@ public class CSpaceSpringApplicationTest {
     		Thread.sleep(10000);
     	}
     }
+    
+    // 1bc9acd8-8336-4643-b932-c68d66c28a9a - an id of a good test image that's consistent between test and production and internal only
+
+    //static final String[] testData = {
+    //    "PRIVATE", "/media/web-images-repository/images/94a36ec4-4110-454f-adaf-82236cf9c258", "",          "200",          "Content-Type: image/tiff",         ""
+    //};
     
     static final String[] testData = {
     	// url						  	DATA																RETURN CODE		CONTENT VALIDATION #1 (! means is not present)			CONTENT VALIDATION #2, 						END VALIDATIONS WITH EMPTY STRING
@@ -108,101 +109,78 @@ public class CSpaceSpringApplicationTest {
     	"BOTH",		"/art/objects.json", 	  		"number=1992.51.9", 									"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"\"references\" : [ {",		"thumbnail\" :", "",
     	"BOTH",		"/art/objects.json", 	  		"number=1992.51.9&references=0&thumbnails=0",			"200",			"\"total\" : 72", 		"\"id\" : \"76219",	 						"!references",				"!thumbnail",	"",
     	"BOTH",		"/art/objects.json", 	  		"title=sketchbook&order=id&limit=1", 					"200",			"!\"total\" : 0", 		"\"id\" : \"50763",	 						"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"222824",						"",
-    	"PUBLIC",	"/art/objects.json", 	  		"title=sketchbook&order=-cultObj:id&limit=1", 			"200",			"\"limit\" : 1", 		"\"id\" : \"218908",						"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title", 						"200",			"\"total\" : 67", 		"",
-    	"PRIVATE",	"/art/objects.json", 	  		"title=frog&order=-cultObj:title&skip=2&limit=1", 		"200",			"\"total\" : 67", 		"\"title\" : \"Toy Bank: Frog\"",			"/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQ",	"",
+    	"PRIVATE",	"/art/objects.json", 	  		"title=vehicle&order=-cultObj:id&limit=1", 			    "200",			"\"limit\" : 1", 		"\"id\" : \"216521",						"",
+    	"PUBLIC",	"/art/objects.json", 	  		"title=vehicle&order=-cultObj:id&limit=1", 			    "200",			"\"limit\" : 1", 		"\"id\" : \"216521",						"",
+    	
+    	"PRIVATE",  "/art/objects.json",            "title=buffalo&order=-cultObj:title",                   "200",          "\"total\" : 79",       "",
+        "PRIVATE",  "/art/objects.json",            "title=buffalo&order=-cultObj:title&skip=2&limit=1",    "200",          "\"total\" : 79",       "\"title\" : \"[Water Buffalo in the Ganges River",         "/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQgHB",    "",
+    	
     	"PRIVATE",	"/art/objects.json", 	  		"title=untitled&order=-artistNames,number&cultObj:artistNames=willis&skip=1&limit=1", 		
     																										"200",			"\"total\" : 10", 		"\"accessionNum\" : \"X.12827\"",					"!\"thumbnail\"",	"",
+
     	"PRIVATE",	"/art/objects.json",			"number=19&skip=8000&limit=2000&thumbnails=0&references=0",
         																									"200",			"\"total\" : 10",		"\"limit\" : 1000",	"\"skip\" : 8000", "",
+
         "PRIVATE",	"/art/objects.json",			"id=206744&base64=0",									"200",			"\"thumbnail\" : \"//", "",
         "BOTH",		"/art/tms/objects.json",		"number=2016",											"200",			"\"1943.3.2016\"", "",
-        "BOTH",		"/art/objects.json",			"id=119",												"200",			"\"predicate\" : \"hasDepiction\"", "6E4A5B8A-6DF3-4083-BB45-898D8C15F516", "",
-        "PRIVATE",	"/art/objects.json",			"id=93013", 											"200",			"hasPrimaryDepiction", "\"id\" : \"8EA33EEF-E59F-4923-8EDA-19856FB9696F\"", 	"",
+        "BOTH",     "/art/objects.json",            "id=119",                                               "200",          "\"predicate\" : \"hasDepiction\"", "222d2b5a-931b-4505-9bb8-6a57f54efd56", "",
+        "PRIVATE",  "/art/objects.json",            "id=93013",                                             "200",          "hasPrimaryDepiction", "id\" : \"94a36ec4-4110-454f-adaf-82236cf9c258",     "!://[",    "",
         "PRIVATE",	"/art/objects.json", 			"artistNames=Hopper, Edward",							"200",			"total\" : 190",	"",		
 
         
         // SERVICE #3: IMAGE CONTENT
-        "PRIVATE",	"/media/web-images-repository/images/F0357490-D4B3-43F1-850C-7CDD26C659DD", "",			"200",			"image/tiff",			"",
+        "PRIVATE", "/media/web-images-repository/images/94a36ec4-4110-454f-adaf-82236cf9c258", "",          "200",          "Content-Type: image/tiff",         "",
         "BOTH",		"/media/images/A9A25EA6-B078-43AC-A178-86681E56769A",	"",								"400",			"",
-        // "PRIVATE",	"/media/portfolio-dclpa/images/2556",					"",								"200",			"image/x-adobe-dng", "",
         "BOTH",		"/media/images/2566",									"",								"400",			"",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/2774",					"",								"200",			"image/x-adobe-dng", "", // has space in the file name
-        //"PRIVATE",	"/media/portfolio-dclpa/images/6820",					"",								"200",			"application/octet-stream", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/7007",					"",								"404",			"", 
         
         // SERVICE #4: IMAGE RECORD
-        // "BOTH",		"/media/images/9692F148-C843-4F17-BB35-DDEE558C2C2F.json", 								"",								"308",			"Location", "media/images.json?id=9692F148-C843-4F17-BB35-DDEE558C2C2F", "",
-        //"PRIVATE",		"/media/portfolio-dclpa/images/2556.json",				"",								"200",			"!\"references", "",
-        "BOTH",		"/media/web-images-repository/images/00252154-2CEE-47DE-8618-00002C4D6489.json", "",	"200",			"\"references", "lastModified", "fingerprint\" : \"", "",
+        "BOTH",     "/media/web-images-repository/images/94a36ec4-4110-454f-adaf-82236cf9c258.json", "",    "200",          "\"references", "lastModified", "fingerprint\" : \"", "",
         "BOTH",		"/media/nosuchsource/images/asdfasdf.json",				"",								"400",			"",
         "BOTH",		"/media/web-images-repository/images/234234.json",		"",								"404",			"",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/3001.json",				"",								"200",			"!\"references",	"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"source\" : \"portfolio-dclpa", "classification\" : \"conservationImage\"", "\"treatmentPhase\"", "fingerprint\" : \"", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/10162.json",				"",								"200",			"accessionNum\" : \"1992.108.1\"", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/9721.json",				"",								"200",			"\"lastModified\" : \"2015-10-26T00:00:00-04:00\"", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/5284.json",				"",								"200",			
-        //								"\"originalSource", "\"originalSourceInstitution", "\"originalSourceType", "\"originalFilename", "\"productType", "\"productionDate",  
-        //								"\"spectrum", "\"lightQuality", "\"viewDescription", "\"photographer", "\"creator", "\"captureDevice", "\"subjectWidthCM", "\"subjectHeightCM", 
-        //								"\"classification", "\"filename", "\"title", "\"source", "\"id\" : \"5284", "\"lastModified", "\"references", "id\" : \"53587\"", "\"depicts\"", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images/5004.json",				"",								"200",
-        //								"!\"references", "!\"subjectWidthCM", "\"originalSource\"", "\"originalSourceInstitution\"", "\"classification\" : \"conservationImage\"", "",
-        "PRIVATE",	"/media/web-images-repository/images/DFA605B4-35E3-4BA8-80B5-042A589C69C0.json", "",	"200", "predicate\" : \"primarilyDepicts\"", "viewType\" : \"primary\"", "\"5177\"", "!subjectWidthCM", "",
-        "BOTH",		"/media/web-images-repository/images/4861E8B1-1101-472C-889B-B0987F8E2DF3.json", "",	"200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
+        "PRIVATE",  "/media/web-images-repository/images/c058f43a-da89-4d06-95cb-da7ab5048c41.json", "",    "200", "predicate\" : \"primarilyDepicts\"", "viewType\" : \"primary\"", "\"5177\"", "!subjectWidthCM", "",
+        "BOTH",     "/media/web-images-repository/images/5911893b-14aa-431c-85c8-6d19e6604192.json", "",    "200", "predicate\" : \"depicts\"", "\"119\"", "subjectWidthCM", "",
         
         // SERVICE #5: IMAGE RECORD SEARCH
-        //"PRIVATE",	"/media/images.json",									"id=2566",						"200",			"\"references",			"\"thumbnail", "conservationImage", "",
-        "PRIVATE",	"/media/images.json",									"id=4DFE8584-808B-4BEB-801F-19A2725531C1",						
-        																									"200",			"\"references",			"\"thumbnail", "publishedImage", "\"viewType\"", "",
+        "PRIVATE",  "/media/images.json",                                   "id=5911893b-14aa-431c-85c8-6d19e6604192", "200",          "\"references",         "\"thumbnail", "publishedImage", "\"viewType\"", "",
         "BOTH",		"/media/images.json",									"id=FEFA",						
         																									"200",			"total\" : 0", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images.json",					"id=2566",						"200",			"\"references",			"\"thumbnail", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images.json",					"image:id=2566",				"200",			"\"references",			"\"thumbnail", "",
         "BOTH",		"/media/web-images-repository/images.json", 			"id=2566",						"200",			"!\"references",		"!\"thumbnail", 	"\"total\" : 0", "",
         "PRIVATE",	"/media/images.json",									"cultObj:id=91762",				"200",			"\"references",	"fingerprint\" : \"",	"\"thumbnail", "\"total\" : 5", "",
-        //"PRIVATE",	"/media/portfolio-dclpa/images.json",					"cultObj:id=76219",				"200",			"\"references",	"fingerprint\" : \"",	"\"thumbnail", "\"total\" : 4", "",
         "BOTH",		"/media/web-images-repository/images.json",				"cultObj:id=76219",		 		"200",			"\"references",			"\"thumbnail", "\"total\" : 1", "",
+
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-title",
         																									"400",																	"",
+
         "BOTH",		"/media/images.json",									"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&limit=1",
-        																									"200",			"CA114354-EB1F-4DC8-9B3F-40C95CC31957", 				"",
-       /* "PRIVATE",	"/media/portfolio-dclpa/images.json", 					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title&skip=4",
-        																									"200",			"\"items\" : [ ]", 										"",
-       // "PRIVATE",	"/media/portfolio-dclpa/images.json",					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title,-image:id&skip=9&limit=1",
-        																									"200",																	"",
-        //"PRIVATE",	"/media/portfolio-dclpa/images.json", 					"cultObj:artistNames=Cezanne&cultObj:title=Cezanne&references=false&thumbnails=false&order=-cultObj:title,-image:id&limit=1",
-        																									"200",			"\"id\" : \"3994", 										"",
-       // "PRIVATE",	"/media/portfolio-dclpa/images/2566.asdf",				"",								"404",			"",
-        * */
-        
-        "PRIVATE",	"/media/images.json", 									"cultObj:artistNames=gogh&skip=71&limit=25&references=false&thumbnails=false&order=image:id",
-        																									"200",			"[ ]", "",
-        "PRIVATE",	"/media/images.json", 									"cultObj:artistNames=gogh&limit=25&references=false&thumbnails=false&order=image:id",
-        																									"200",			"07F6AFE7-87A9-489A-B4F3-17DF7E02EE0D", "",
-        "PRIVATE",	"/media/images.json",									"id=280DA268-C838-493B-A1ED-2CBDBB95FD93", 
-        																									"200", "image/tiff\"", 	"",
-        "BOTH",		"/media/images.json",									"id=EFA14652-51B8-4294-806A-18C3F6130026", 
-        																									"200", "total\" : 0", 	"",
-        "BOTH",		"/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			   
-        																									"404", "",
-        "BOTH",		"/media/images.json",									"id=C05EF739-4C08-4186-8BD7-21890C6EA2DB", 
-        																									"200", "\"filename", "\"title", "\"George Romney; 1937.1.105", "",
-		/*"PRIVATE",	"/media/images.json",									"id=3924",						"200", "\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
-																"\"filename", "\"productionDate", "\"description", "!\"title", "fingerprint\" : \"", "",
-		"PRIVATE",	"/media/images.json",									"id=1960",						"200",	"\"treatmentPhase", "\"spectrum", "\"lightQuality", "\"viewDescription", 
-																													"\"filename", "\"productionDate", "\"description", "\"title", 
-																													"\"Madame Dietz-Monnin", "\"Edgar Degas; 1951.2.1", "",
-		*/														
+        																									"200",			"b92ab9da-ec50-4b9e-9f7c-481e0d98f7dc", 				"",
+
+        "PRIVATE",  "/media/images.json",                                   "cultObj:artistNames=gogh&skip=0&limit=25&references=false&thumbnails=false&order=image:id",    
+                                                                                                            "200", "0ca8a5f5-f151-458e-a59b-a0d7dd84cde0", "1034a430-14b9-494d-8b69-c135e592892f", "!f512b066-86e6-471d-a870-c2891615dcf4", "",
+
+        "PRIVATE",	"/media/images.json", 									"cultObj:artistNames=gogh&skip=71&limit=25&references=false&thumbnails=false&order=image:id",   
+                                                                                                            "200",			"[ ]", "",
+
+        "PRIVATE",	"/media/images.json", 									"cultObj:artistNames=gogh&limit=25&references=false&thumbnails=false&order=image:id",           
+                                                                                                            "200",			"0ca8a5f5-f151-458e-a59b-a0d7dd84cde0", "",
+
+        "PRIVATE",  "/media/images.json",                                   "id=d11ecc48-9cf8-482f-bf63-8ec3238816ef",                                                      
+                                                                                                            "200", "image/tiff\"",   "",
+
+        "BOTH",		"/media/images.json",									"id=00000000-0000-0000-0000-000000000000",                                                      
+                                                                                                            "200", "total\" : 0", 	"",
+
+        "BOTH",		"/media/web-images-repository/images/EFA14652-51B8-4294-806A-18C3F6130026.json", "",			                                                        
+                                                                                                            "404", "",
+
+        "BOTH",     "/media/images.json",                                   "id=e7aa77ac-3add-4abc-a978-691d1b2fa3b3",                                                      
+                                                                                                            "200", "\"filename", "\"title", "\"George Romney; 1937.1.105", "",
+
 		"BOTH",		"/media/images.json", 	  								"lastModified=2016-04-05&lastModified=2016-06-04", 		"200",			"!\"total\" : 0", 		"\"total\" :", 		"",
 		"BOTH",		"/media/web-images-repository/images.json", 	  		"lastModified=asdf2016-04-05&lastModified=2016-06-04", 	"400",			"not parse", 								"",
 		"BOTH",		"/media/images.json", 	  								"lastModified=", 										"200",			"\"total\" : 0", 							"",
-		//"PRIVATE",	"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-04-05", 								"200",			"!\"total\" : 0", 		"",
 		"BOTH",		"/media/images.json", 	  								"lastModified=2100-04-05", 								"200",			"\"total\" : 0", 		"",
 		"BOTH",		"/media/images.json", 	  								"lastModified=2100-04-05&lastModified=", 				"200",			"\"total\" : 0", 		"",
 		"BOTH",		"/media/images.json", 	  								"lastModified=2015-04-05&lastModified=", 				"200",			"!\"total\" : 0", 		"\"limit\" : 50",	"",
-		//"PRIVATE",	"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-06-04&lastModified=2015-06-04",		"200",			"!\"total\" : 0", 		"",
-		//"PRIVATE",	"/media/portfolio-dclpa/images.json", 	  				"lastModified=2016-07-28&lastModified=2016-07-28",		"200",			"!\"total\" : 0", 		"",
 		"BOTH",		"/media/images.json", 	  								"lastModified=&lastModified=2016-06-04",				"200",			"!\"total\" : 0", 		"",
 		
         // SERvICE #6: ERROR LOGGER
@@ -211,17 +189,27 @@ public class CSpaceSpringApplicationTest {
     
     };
     
-    private String getHostPort() {
-    	//String port = System.getProperty("server.port","");
-    	//if (!StringUtils.isNullOrEmpty(port))
-    	//	port = ":" + port;
-    	return "http://localhost:" + localServerPort;
+    @Autowired
+    private ServletWebServerApplicationContext server;
+
+    public static String getHostPort(ServletWebServerApplicationContext server) {
+        // String port = System.getProperty("server.port","");
+        Integer p = server.getWebServer().getPort();
+        String port = p.toString();
+        if (!StringUtils.isNullOrEmpty(port))
+            port = ":" + port;
+        return "http://localhost" + port;
     }
-   
+    
 	@Test
 	public void testAPIs() throws AssertionError {
 		log.info(name.getMethodName());
-		String hostPort = getHostPort();
+	    runAllTests(artDataManager, server );
+	}
+
+	public static void runAllTests(ArtDataManagerService artDataManager, ServletWebServerApplicationContext server) throws AssertionError {
+	    String hostPort = getHostPort(server);
+	    TestRestTemplate restClient = new TestRestTemplate();
 		Assert.assertTrue(testData.length > 0);
 		AssertionError lastError = null;
 		for (int i=0; i<testData.length; i++) {

@@ -551,7 +551,8 @@ public abstract class Derivative extends SupplementingEntityImpl implements Sear
 		try {
 			String iiifPath = 
 					getManager().getConfig().getString(imagingServerURLPropertyName) 
-					+ "/iiif" + getRelativeSourceImageURI().toString();
+					// + "/iiif" + getRelativeSourceImageURI().toString();
+					+ getRelativeSourceImageURI().toString();
 			if (region != null && size != null && rotation != null && quality != null)
 				iiifPath += "/" + region + "/" + size + "/" + rotation + "/" + quality + ".jpg";
 			return new URI(iiifPath);

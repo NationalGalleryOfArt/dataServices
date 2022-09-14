@@ -28,13 +28,10 @@ import java.util.concurrent.ExecutionException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-//import org.junit.runner.Computer;
-//import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +49,9 @@ public class RunAllTestsController {
 	@Autowired
 	ArtDataManagerService artDataManager;
 	
+    @Autowired
+    private ServletWebServerApplicationContext server;
+
 	private static final Logger log = LoggerFactory.getLogger(RunAllTestsController.class);
     
     @RequestMapping(value="/runtests",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
@@ -70,22 +70,29 @@ public class RunAllTestsController {
     	//CSpaceSpringApplicationTest.setArtDataManager(artDataManager);
     	// execute all tests behind the scenes
     	//RunAllPackageTestsSuite.main(null);
-    	Result testResult = RunAllPackageTestsSuite.runTests();
+    	//Result testResult = RunAllPackageTestsSuite.runTests();
     	//Computer computer = new Computer();
     	//JUnitCore jUnitCore = new JUnitCore();
     	//Result testResult = jUnitCore.run(computer, CSpaceSpringApplicationTest.class);
-    	for (Failure f : testResult.getFailures()) {
-    		log.error("FAILED TEST: " + f.toString()); //, f.getException());
-    	}
-    	int total = testResult.getRunCount();
-    	int failed = testResult.getFailureCount();
-    	String testSummary = "Finished Tests: " + (total - failed) + " / " + total + " passed."; 
-    	log.info(testSummary);
+    	//for (Failure f : testResult.getFailures()) {
+    	//	log.error("FAILED TEST: " + f.toString()); //, f.getException());
+    	//}
+    	//int total = testResult.getRunCount();
+    	//int failed = testResult.getFailureCount();
+    	//String testSummary = "Finished Tests: " + (total - failed) + " / " + total + " passed."; 
+    	//log.info(testSummary);
     	//CSpaceSpringApplicationTest.setArtDataManager(null);
-    	if (failed > 0) 
-    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(testSummary);
-    	else
-    		return ResponseEntity.status(HttpStatus.OK).body(testSummary); // return a properly formatted error here according to cspace spec
+    	//if (failed > 0) 
+    	//	return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(testSummary);
+    	//else
+    	//	return ResponseEntity.status(HttpStatus.OK).body(testSummary); // return a properly formatted error here according to cspace spec
+    	try {
+            CSpaceSpringApplicationTest.runAllTests(artDataManager, server);
+        }
+        catch ( AssertionError e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage().toString());
+        }
+    	return ResponseEntity.status(HttpStatus.OK).body("all tests passed");
 	}
    
 }
