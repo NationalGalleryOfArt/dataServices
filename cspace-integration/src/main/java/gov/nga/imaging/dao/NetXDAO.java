@@ -49,12 +49,12 @@ public abstract class NetXDAO implements NetXImageDAO
         final List<NGAImage> images = CollectionUtils.newArrayList();
         try {
             final String query = buildQuery("WHERE", String.format("%s %d", QUERY_PARTS.OBJECTID_CLAUSE.getConstantValue(), objectID), "order by sequence");
-            //LOGGER.debug("getImagesForObject() query: " + query);
+            LOGGER.debug("getImagesForObject() query: " + query);
             images.addAll(new JdbcTemplate(getImageryDS()).query(query, null, createRowMapper()));
         } catch (final SQLException err) {
             LOGGER.error("getImagesForObject has thrown a SQL Exception", err);
         }
-        //LOGGER.debug(String.format("getImagesForObject(%d): %s", objectID, images));
+        LOGGER.debug(String.format("getImagesForObject(%d): %s", objectID, images));
         return images;
     }
     

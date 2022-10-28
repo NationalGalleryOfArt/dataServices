@@ -11,6 +11,8 @@ import gov.nga.common.entities.art.Constituent;
 import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.common.entities.art.proto.Facet.Entry;
 import gov.nga.common.imaging.NGAImage;
+import gov.nga.common.performancemonitor.PerformanceMonitor;
+import gov.nga.common.performancemonitor.PerformanceMonitorFactory;
 import gov.nga.common.proto.messages.ArtObjectMessageFactory;
 import gov.nga.common.proto.messages.NGAImageMessageFactory;
 import gov.nga.common.rpc.FetchByIDsQuery;
@@ -99,7 +101,9 @@ public class ArtObjectHelper extends TMSObjectHelper
 		try
 		{
 			final ArtObjectObjectResult.Builder builder = ArtObjectObjectResult.newBuilder();
+			final PerformanceMonitor taskMonitor = PerformanceMonitorFactory.getMonitor(this.getClass());
 			final List<ArtObject> rslts = getQueryManager().fetchByObjectIDs(request.getIdsList()).getResults();
+			final long fetchTime = taskMonitor.getElapseTimeFromLastReport();
 			for (ArtObject rslt: rslts)
 			{
 				try
@@ -114,7 +118,11 @@ public class ArtObjectHelper extends TMSObjectHelper
 					LOG.error("Could not create message object for ArtObject: " + rslt, err);
 				}
 			}
+			final long streamTime = taskMonitor.getElapseTimeFromLastReport();
 			responseObserver.onCompleted();
+			LOG.debug(String.format("fetchArtObjects(%s)\nObjecet Fetch: %s\nStreaming: %s\nTotal time: %s", 
+					request.getIdsList(), formatToSeconds(fetchTime), formatToSeconds(streamTime),
+					formatToSeconds(taskMonitor.getElapseTimeFromSeed())));
 		}
 		catch (final Exception err)
 		{
@@ -129,7 +137,10 @@ public class ArtObjectHelper extends TMSObjectHelper
 		LOG.debug("searchArtObjects() called..."); 
 		try
 		{
+
+			final PerformanceMonitor taskMonitor = PerformanceMonitorFactory.getMonitor(this.getClass());
 			final QueryResultArtData<ArtObject> rslt = processRequest(request);
+			final long searchTime = taskMonitor.getElapseTimeFromLastReport();
 			final ArtObjectQueryResult.Builder builder = ArtObjectQueryResult.newBuilder();
 			if (rslt == null)
 			{
@@ -160,12 +171,18 @@ public class ArtObjectHelper extends TMSObjectHelper
 					builder.addFacets(fBuilder.build());
 				}
 			}
+			final long responseBuildTime = taskMonitor.getElapseTimeFromLastReport();
 			responseObserver.onNext(builder.build());
 			responseObserver.onCompleted();
+			final long streamTime = taskMonitor.getElapseTimeFromLastReport();
+			LOG.debug(String.format("searchArtObjects(%s)\nObjecet Search: %s\nResponse & Facets build: %s\nStreaming: %s\nTotal time: %s", 
+					builder.getIdsList(), formatToSeconds(searchTime), 
+					formatToSeconds(responseBuildTime),formatToSeconds(streamTime),
+					formatToSeconds(taskMonitor.getElapseTimeFromSeed())));
 		}
 		catch (final Exception err)
 		{
-			LOG.error("searchConstituents(): Exception Caught", err);
+			LOG.error("searchArtObjects(): Exception Caught", err);
 			responseObserver.onError(err);
 		}
 	}

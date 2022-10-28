@@ -38,6 +38,8 @@ import gov.nga.common.entities.art.factory.ExhibitionFactoryImpl;
 import gov.nga.common.entities.art.factory.LocationFactory;
 import gov.nga.common.entities.art.factory.LocationFactoryImpl;
 import gov.nga.common.imaging.NGAImage;
+import gov.nga.common.performancemonitor.PerformanceMonitor;
+import gov.nga.common.performancemonitor.PerformanceMonitorFactory;
 import gov.nga.common.search.FacetHelper;
 import gov.nga.common.search.FreeTextSearchable;
 import gov.nga.common.search.ResultsPaginator;
@@ -117,14 +119,18 @@ public class QuerierImpl implements ArtDataQuerier
 		final List<T> results = CollectionUtils.newArrayList();
 		if (objectIDs != null)
 		{
+			final PerformanceMonitor taskMonitor = PerformanceMonitorFactory.getMonitor(this.getClass() + objectIDs.toString());
 			for (Long id: objectIDs)
 			{
 				ArtObject obj = dataCache.getArtObjectMap().get(id);
 				if (obj != null)
 				{
+					taskMonitor.logElapseTimeFromLastReport("Cache fetch of object: " + id);
 					results.add(factory.createObject(obj));
+					taskMonitor.logElapseTimeFromLastReport("Added to queue object: " + id);
 				}
 			}
+			taskMonitor.logElapseTimeFromLastReport("Collection built");
 		}
 		return QueryResultFactory.createLocalArtObjectResult(results);
 	}

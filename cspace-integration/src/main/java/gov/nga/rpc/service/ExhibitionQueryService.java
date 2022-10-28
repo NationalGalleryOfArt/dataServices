@@ -17,6 +17,9 @@ import gov.nga.common.rpc.CacheFetchQuery;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentsObjectResult;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
 import gov.nga.common.rpc.DepartmentObjectResult;
+import gov.nga.common.rpc.ExhibitionArtObjectResult;
+import gov.nga.common.rpc.ExhibitionConstituentResult;
+import gov.nga.common.rpc.ExhibitionObjectQuery;
 import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.common.rpc.FetchByIDsQuery;
@@ -95,6 +98,34 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 			LOG.error("Exception caught while processing request.", err);
 		}
 		
+	}
+	
+	@Override
+	public void fetchExhibitionArtObjects(final ExhibitionObjectQuery request,
+			final StreamObserver<ExhibitionArtObjectResult> responseObserver)
+	{
+		try
+		{
+			exhHlpr.fetchArtObjects(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
+	}
+	
+	@Override
+	public void fetchExhibitionConstituents(final ExhibitionObjectQuery request,
+			final StreamObserver<ExhibitionConstituentResult> responseObserver)
+	{
+		try
+		{
+			exhHlpr.fetchConstituents(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
     
 	@Override

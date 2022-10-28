@@ -128,4 +128,19 @@ public class TMSObjectHelper
 		}
 		return filters;
 	}
+	
+	protected static String formatToSeconds(final long miliseconds)
+	{
+		String rtrnTxt = null;
+		try
+		{
+			rtrnTxt = String.format("%.4f seconds", ((double)miliseconds / 1000));
+		}
+		catch (final Exception err)
+		{
+			LOG.warn(String.format("Exception in formatToSeconds(%d)", miliseconds), err);
+			rtrnTxt = "" + miliseconds;
+		}
+		return rtrnTxt;
+	}
 }

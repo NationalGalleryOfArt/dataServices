@@ -6,12 +6,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.ExhibitionArtObject;
+import gov.nga.common.entities.art.ExhibitionConstituent;
 import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.common.proto.messages.ExhibitionMessageFactory;
+import gov.nga.common.proto.messages.ExhibitionMessageHelper;
 import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.common.search.SortHelper;
+import gov.nga.common.rpc.ExhibitionArtObjectResult;
+import gov.nga.common.rpc.ExhibitionConstituentResult;
 import gov.nga.common.rpc.ExhibitionObjectResult;
+import gov.nga.common.rpc.ExhibitionObjectQuery;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.entities.art.ArtDataManager;
 import io.grpc.stub.StreamObserver;
@@ -22,6 +28,58 @@ public class ExhibitionHelper extends TMSObjectHelper
 
 	protected ExhibitionHelper(ArtDataManager mgr) {
 		super(mgr);
+	}
+	
+	protected void fetchArtObjects(final ExhibitionObjectQuery request,
+			final StreamObserver<ExhibitionArtObjectResult> responseObserver)
+	{
+		try
+		{
+			final ExhibitionArtObjectResult.Builder builder = ExhibitionArtObjectResult.newBuilder();
+			for (Exhibition rslt: getQueryManager().fetchByExhibitionID(request.getExhibitionID()).getResults())
+			{
+				for (ExhibitionArtObject cand: rslt.getExhibitionObjects())
+				{
+					if (request.getObjectIDList().contains(cand.getArtObject().getObjectID()))
+					{
+						builder.setObject(ExhibitionMessageHelper.createArtObject(cand));
+						responseObserver.onNext(builder.build());
+					}
+				}
+			} 
+			responseObserver.onCompleted();		
+		}
+		catch (final Exception err)
+		{
+			LOG.error("fetchArtObjects(): Exception Caught", err);
+			responseObserver.onError(err);
+		}
+	}
+	
+	protected void fetchConstituents(final ExhibitionObjectQuery request,
+			final StreamObserver<ExhibitionConstituentResult> responseObserver)
+	{
+		try
+		{
+			final ExhibitionConstituentResult.Builder builder = ExhibitionConstituentResult.newBuilder();
+			for (Exhibition rslt: getQueryManager().fetchByExhibitionID(request.getExhibitionID()).getResults())
+			{
+				for (ExhibitionConstituent cand: rslt.getConstituents())
+				{
+					if (request.getObjectIDList().contains(cand.getConstituent().getConstituentID()))
+					{
+						builder.setObject(ExhibitionMessageHelper.createConstituent(cand));
+						responseObserver.onNext(builder.build());
+					}
+				}
+			} 	
+			responseObserver.onCompleted();	
+		}
+		catch (final Exception err)
+		{
+			LOG.error("fetchArtObjects(): Exception Caught", err);
+			responseObserver.onError(err);
+		}
 	}
 	
 	protected void fetchExhibitions(final FetchByIDsQuery request,
