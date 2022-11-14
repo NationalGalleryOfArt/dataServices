@@ -182,6 +182,11 @@ public class DataCache
     	for (Exhibition exh: data.getExhbitions())
 	    {
 	    	exhibitions.put(exh.getID(), exh);
+			if (StringUtils.isNotBlank(exh.getTitle()))
+			{
+				suggestManager.setTypeMode(SuggestType.EXHIBITION_TITLE);
+				Suggest.consumeIndexPair(suggestManager.getMap(SuggestType.EXHIBITION_TITLE), exh.getTitle(), exh, suggestManager);
+			}
 	    }
     }
     
