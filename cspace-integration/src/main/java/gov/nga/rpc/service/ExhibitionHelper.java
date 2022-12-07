@@ -40,7 +40,8 @@ public class ExhibitionHelper extends TMSObjectHelper
 			{
 				for (ExhibitionArtObject cand: rslt.getExhibitionObjects())
 				{
-					if (request.getObjectIDList().contains(cand.getArtObject().getObjectID()))
+					if (request.getObjectIDList().contains(cand.getArtObject().getObjectID()) 
+							&& cand.getLoan().getID().equals(request.getLoanID()))
 					{
 						builder.setObject(ExhibitionMessageHelper.createArtObject(cand));
 						responseObserver.onNext(builder.build());
