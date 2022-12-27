@@ -4,6 +4,9 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +36,8 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
     
     private static final Logger LOG = LoggerFactory.getLogger(ArtDataCache.class);
 	
-	
+
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 	private boolean isEnabled = true;
 	private boolean isDataReady = false;
 	private List<ArtDataCacheStatusListener> listners = CollectionUtils.newArrayList();
@@ -64,6 +68,7 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 		}
 		LOG.debug("Cache updated. Notify listners.");
         LOG.info(SystemUtils.freeMemorySummary());
+        scheduler.schedule(new GCNotifier(), 5, TimeUnit.MINUTES);
 		notifyListners();
 	}
 
