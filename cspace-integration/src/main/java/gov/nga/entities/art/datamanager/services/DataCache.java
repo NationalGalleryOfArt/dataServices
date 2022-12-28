@@ -39,6 +39,20 @@ public class DataCache
     private final Map<Long, Place> newPlacesTMSLocations = CollectionUtils.newHashMap();
 	private final SuggestionManager suggestManager;
 	
+	protected void emptyCache()
+	{
+		artObjects.clear();
+		constituents.clear();
+		locations.clear();
+		exhibitions.clear();
+		departments.clear();
+		places.clear();
+		media.clear();
+		newMediaRelationshps.clear();
+		newPlacesTMSLocations.clear();
+		LOG.info("All maps emptied!");
+	}
+	
 	public Map<Long, ArtObject> getArtObjectMap()
 	{
 		return artObjects;

@@ -471,7 +471,7 @@ public class TMSFetcher {
             }
             else
             {
-            	log.warn(String.format("Object %d does not exist for component.", c.getObjectID()));
+            	//log.debug(String.format("Object %d does not exist for component.", c.getObjectID()));
             }
         }
 

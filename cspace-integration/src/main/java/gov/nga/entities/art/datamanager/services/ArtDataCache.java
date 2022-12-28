@@ -60,7 +60,7 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 		final DataCache nCache = new DataCache(data);
 	    LOG.info("Finished building new cache");
         LOG.info(SystemUtils.freeMemorySummary());
-	    
+	    final DataCache oldCache = cache;
 		synchronized(this)
 		{
 			cache = nCache;
@@ -68,8 +68,12 @@ public class ArtDataCache implements ArtDataManagerSubscriber, ArtDataCacher
 		}
 		LOG.debug("Cache updated. Notify listners.");
         LOG.info(SystemUtils.freeMemorySummary());
-        scheduler.schedule(new GCNotifier(), 5, TimeUnit.MINUTES);
 		notifyListners();
+        scheduler.schedule(new GCNotifier(), 5, TimeUnit.MINUTES);
+		if (oldCache != null)
+		{
+			oldCache.emptyCache();
+		}
 	}
 
 	@Override
