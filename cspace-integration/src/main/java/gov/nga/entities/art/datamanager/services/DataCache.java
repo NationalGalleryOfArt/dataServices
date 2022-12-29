@@ -55,37 +55,37 @@ public class DataCache
 	
 	public Map<Long, ArtObject> getArtObjectMap()
 	{
-		return artObjects;
+		return CollectionUtils.newHashMap(artObjects);
 	}
 	
 	public Map<Long, Constituent> getConstituentMap()
 	{
-		return constituents;
+		return CollectionUtils.newHashMap(constituents);
 	}
 	
 	public Map<Long, Location> getLocationMap()
 	{
-		return locations;
+		return CollectionUtils.newHashMap(locations);
 	}
 	
 	public Map<Long, Exhibition> getExhibitionMap()
 	{
-		return exhibitions;
+		return CollectionUtils.newHashMap(exhibitions);
 	}
 	
     public Map<Long, Department> getDepartmentMap()
     {
-    	return departments;
+    	return CollectionUtils.newHashMap(departments);
     }
     
     public Map<String, Place> getPlacesMap()
     {
-    	return places;
+    	return CollectionUtils.newHashMap(places);
     }
     
     public Map<Long, Media> getMediaMap()
     {
-    	return media;
+    	return CollectionUtils.newHashMap(media);
     }
 	
 	public SuggestionManager getSuggestionManager()
@@ -95,12 +95,12 @@ public class DataCache
     
 	public Map<String, List<Media>> getNewMediaRelationships()
 	{
-		return this.newMediaRelationshps;
+		return CollectionUtils.newHashMap(newMediaRelationshps);
 	}
 	
 	public Map<Long, Place> getNewPlacesTMSLocations()
 	{
-		return this.newPlacesTMSLocations;
+		return CollectionUtils.newHashMap(newPlacesTMSLocations);
 	}
 	
 	protected DataCache(final ArtData data)
@@ -119,12 +119,12 @@ public class DataCache
 	
 	private void initializeNewPlacesTMSLocations(final Map<Long, Place> data)
 	{
-		this.newPlacesTMSLocations.putAll(data);
+		newPlacesTMSLocations.putAll(data);
 	}
 	
 	private void initializeNewMediaRelationships(final Map<String, List<Media>> data)
 	{
-		this.newMediaRelationshps.putAll(data);
+		newMediaRelationshps.putAll(data);
 	}
 	
 	private void initializePlaces(final ArtData data)
