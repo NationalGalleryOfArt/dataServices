@@ -12,6 +12,7 @@ import gov.nga.common.rpc.QueryResult;
 import gov.nga.common.rpc.TimeStampRequest;
 import gov.nga.common.rpc.TimeStampResponse;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
 import gov.nga.utils.CollectionUtils;
 import io.grpc.stub.StreamObserver;
 
@@ -19,8 +20,8 @@ public class CacheHelper extends TMSObjectHelper
 {
 	private static final Logger LOG = LoggerFactory.getLogger(CacheHelper.class);
 
-	protected CacheHelper(ArtDataManager mgr) {
-		super(mgr);
+	protected CacheHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) {
+		super(mgr, statsMonitor);
 	}
 	
 	public void getLastSyncTime(final TimeStampRequest request,

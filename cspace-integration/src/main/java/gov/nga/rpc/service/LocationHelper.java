@@ -14,15 +14,17 @@ import gov.nga.common.rpc.LocationQueryResult;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.common.search.SortHelper;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 
 public class LocationHelper extends TMSObjectHelper 
 {
 	private static final Logger LOG = LoggerFactory.getLogger(LocationHelper.class);
 
-	protected LocationHelper(ArtDataManager mgr) 
+	protected LocationHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	public void fetchLocations(final FetchByIDsQuery request,
@@ -38,6 +40,7 @@ public class LocationHelper extends TMSObjectHelper
 						LocationMessageFactory.getMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.LOCATION_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{
@@ -69,6 +72,7 @@ public class LocationHelper extends TMSObjectHelper
 			}
 			responseObserver.onNext(builder.build());
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.LOCATION_SEARCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{

@@ -22,6 +22,8 @@ import gov.nga.common.rpc.NGAImageResult;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.common.search.Facet;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import gov.nga.utils.CollectionUtils;
 import io.grpc.stub.StreamObserver;
 
@@ -29,9 +31,9 @@ public class ArtObjectHelper extends TMSObjectHelper
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ArtObjectHelper.class);
 
-	protected ArtObjectHelper(ArtDataManager mgr) 
+	protected ArtObjectHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	protected void fetchRelatedWorks(final FetchByIDsQuery request, 
@@ -53,6 +55,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 					.setTotalResults(rslts.size())
 					.addAllIds(rslts).build());
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.ARTOBJECT_SEARCH, rslts.size());
 		}
 		catch (final Exception err)
 		{
@@ -86,6 +89,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 									.addAllIds(aos.keySet()).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.ARTOBJECT_SEARCH, request.getIdsCount());
 		}
 		catch (final Exception err)
 		{
@@ -123,6 +127,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 			LOG.debug(String.format("fetchArtObjects(%s)\nObjecet Fetch: %s\nStreaming: %s\nTotal time: %s", 
 					request.getIdsList(), formatToSeconds(fetchTime), formatToSeconds(streamTime),
 					formatToSeconds(taskMonitor.getElapseTimeFromSeed())));
+			reportCall(TMSOperation.ARTOBJECT_FETCH, rslts.size());
 		}
 		catch (final Exception err)
 		{
@@ -179,6 +184,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 					builder.getIdsList(), formatToSeconds(searchTime), 
 					formatToSeconds(responseBuildTime),formatToSeconds(streamTime),
 					formatToSeconds(taskMonitor.getElapseTimeFromSeed())));
+			reportCall(TMSOperation.ARTOBJECT_SEARCH, rslt.getResults().size());
 		}
 		catch (final Exception err)
 		{
@@ -209,6 +215,7 @@ public class ArtObjectHelper extends TMSObjectHelper
 				}
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.IMG_FETCH, rslts.size());
 		}
 		catch (final Exception err)
 		{

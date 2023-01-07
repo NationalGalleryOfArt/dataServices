@@ -10,15 +10,17 @@ import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.FetchByStringsQuery;
 import gov.nga.common.rpc.PlaceObjectResult;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 
 public class PlaceHelper extends TMSObjectHelper 
 {
 	private static final Logger LOG = LoggerFactory.getLogger(PlaceHelper.class);
 
-	protected PlaceHelper(ArtDataManager mgr) 
+	protected PlaceHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 
 	public void getPlaceByPlaceKey(final FetchByStringsQuery request, 
@@ -34,6 +36,7 @@ public class PlaceHelper extends TMSObjectHelper
 						PlaceMessageFactory.createMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.PLACE_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{
@@ -55,6 +58,7 @@ public class PlaceHelper extends TMSObjectHelper
 						PlaceMessageFactory.createMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.PLACE_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{

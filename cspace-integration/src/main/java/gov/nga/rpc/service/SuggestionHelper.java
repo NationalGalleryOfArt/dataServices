@@ -13,6 +13,8 @@ import gov.nga.common.entities.art.SuggestType;
 import gov.nga.common.rpc.ArtDataSuggestionResult;
 import gov.nga.common.rpc.SuggestArtDataQuery;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 import gov.nga.common.proto.messages.ArtDataSuggestionMessageFactory;
 
@@ -20,9 +22,9 @@ public class SuggestionHelper extends TMSObjectHelper
 {
 	private static final Logger LOG = LoggerFactory.getLogger(SuggestionHelper.class);
 
-	protected SuggestionHelper(ArtDataManager mgr) 
+	protected SuggestionHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	public void getSuggestions(final SuggestArtDataQuery request, 
@@ -74,6 +76,7 @@ public class SuggestionHelper extends TMSObjectHelper
 				}
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.SUGGESTION, results.size());
 		}
 		catch (final Exception err)
 		{

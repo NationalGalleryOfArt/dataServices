@@ -35,6 +35,7 @@ import gov.nga.common.rpc.TimeStampRequest;
 import gov.nga.common.rpc.TimeStampResponse;
 import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
 import io.grpc.stub.StreamObserver;
 
 @GrpcService 
@@ -44,6 +45,9 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 	
 	@Autowired
 	private ArtDataManager artDataManager;
+	
+	@Autowired
+	private GrpcTMSStats statsMonitor;
 	
 	private ConstituentHelper constHlpr;
 	private ExhibitionHelper exhHlpr;
@@ -59,15 +63,15 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
     @PostConstruct
     public void postConstruct() 
     {
-    	artObjHlpr = new ArtObjectHelper(artDataManager);
-    	constHlpr = new ConstituentHelper(artDataManager);
-    	exhHlpr = new ExhibitionHelper(artDataManager);
-    	mediaHlpr = new MediaHelper(artDataManager);
-    	locationHlpr = new LocationHelper(artDataManager);
-    	placeHlpr = new PlaceHelper(artDataManager);
-    	suggHlpr = new SuggestionHelper(artDataManager);
-    	cacheHlpr = new CacheHelper(artDataManager);
-    	departmentHlpr = new DepartmentHelper(artDataManager);
+    	artObjHlpr = new ArtObjectHelper(artDataManager, statsMonitor);
+    	constHlpr = new ConstituentHelper(artDataManager, statsMonitor);
+    	exhHlpr = new ExhibitionHelper(artDataManager, statsMonitor);
+    	mediaHlpr = new MediaHelper(artDataManager, statsMonitor);
+    	locationHlpr = new LocationHelper(artDataManager, statsMonitor);
+    	placeHlpr = new PlaceHelper(artDataManager, statsMonitor);
+    	suggHlpr = new SuggestionHelper(artDataManager, statsMonitor);
+    	cacheHlpr = new CacheHelper(artDataManager, statsMonitor);
+    	departmentHlpr = new DepartmentHelper(artDataManager, statsMonitor);
     }
     
     @Override    

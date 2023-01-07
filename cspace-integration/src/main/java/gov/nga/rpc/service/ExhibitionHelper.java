@@ -20,14 +20,16 @@ import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionObjectQuery;
 import gov.nga.common.rpc.ExhibitionQueryResult;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 
 public class ExhibitionHelper extends TMSObjectHelper 
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ExhibitionHelper.class);
 
-	protected ExhibitionHelper(ArtDataManager mgr) {
-		super(mgr);
+	protected ExhibitionHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) {
+		super(mgr, statsMonitor);
 	}
 	
 	protected void fetchArtObjects(final ExhibitionObjectQuery request,
@@ -49,6 +51,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 				}
 			} 
 			responseObserver.onCompleted();		
+			reportCall(TMSOperation.EXHIBTION_ARTOBJECT_FETCH, 1);
 		}
 		catch (final Exception err)
 		{
@@ -75,6 +78,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 				}
 			} 	
 			responseObserver.onCompleted();	
+			reportCall(TMSOperation.EXHIBITION_CONSTITUENT_FETCH, 1);
 		}
 		catch (final Exception err)
 		{
@@ -97,6 +101,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 				responseObserver.onNext(builder.build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.EXHIBITION_FETCH, rslts.size());
 		}
 		catch (final Exception err)
 		{
@@ -128,6 +133,7 @@ public class ExhibitionHelper extends TMSObjectHelper
 			}
 			responseObserver.onNext(builder.build());
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.EXHIBITION_SEARCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{

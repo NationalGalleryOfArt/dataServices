@@ -9,15 +9,17 @@ import gov.nga.common.proto.messages.MediaMessageFactory;
 import gov.nga.common.rpc.FetchByStringsQuery;
 import gov.nga.common.rpc.MediaObjectResult;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 
 public class MediaHelper extends TMSObjectHelper 
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MediaHelper.class);
 
-	protected MediaHelper(ArtDataManager mgr) 
+	protected MediaHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	public void getMedia(final FetchByStringsQuery request,
@@ -33,6 +35,7 @@ public class MediaHelper extends TMSObjectHelper
 						MediaMessageFactory.createMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.MEDIA_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{

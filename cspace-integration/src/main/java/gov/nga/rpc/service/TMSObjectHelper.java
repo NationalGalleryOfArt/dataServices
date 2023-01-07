@@ -15,6 +15,8 @@ import gov.nga.common.search.Searchable;
 import gov.nga.common.search.Sortable;
 import gov.nga.common.utils.EnumUtils;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import gov.nga.utils.CollectionUtils;
 
 public class TMSObjectHelper 
@@ -22,10 +24,17 @@ public class TMSObjectHelper
 	private static final Logger LOG = LoggerFactory.getLogger(TMSObjectHelper.class);
 	
 	final ArtDataManager manager;
+	final GrpcTMSStats statsMonitor;
 	
-	protected TMSObjectHelper(final ArtDataManager mgr)
+	protected TMSObjectHelper(final ArtDataManager mgr, final GrpcTMSStats statsMonitor)
 	{
 		manager = mgr;
+		this.statsMonitor = statsMonitor;
+	}
+	
+	protected void reportCall(final TMSOperation type, final int numOfObjects) 
+	{
+		statsMonitor.reportTransaction(type, numOfObjects);
 	}
 	
 	protected ArtDataManager getManager()

@@ -17,6 +17,8 @@ import gov.nga.common.rpc.message.QueryMessage;
 import gov.nga.common.search.Facet;
 import gov.nga.common.search.SearchHelper;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import gov.nga.utils.CollectionUtils;
 import io.grpc.stub.StreamObserver;
 
@@ -24,9 +26,9 @@ public class ConstituentHelper extends TMSObjectHelper
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ConstituentHelper.class);
 
-	protected ConstituentHelper(ArtDataManager mgr) 
+	protected ConstituentHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	protected void fetchConstituents(final FetchByIDsQuery request,
@@ -43,6 +45,7 @@ public class ConstituentHelper extends TMSObjectHelper
 				responseObserver.onNext(builder.build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.CONSITIUENT_FETCH, constituents.size());
 		}
 		catch (final Exception err)
 		{
@@ -90,6 +93,7 @@ public class ConstituentHelper extends TMSObjectHelper
 			}
 			responseObserver.onNext(builder.build());
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.CONSTITUENT_SEARCH, rslt.getResults().size());
 		}
 		catch (final Exception err)
 		{

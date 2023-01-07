@@ -12,15 +12,17 @@ import gov.nga.common.rpc.FetchByIDsQuery;
 import gov.nga.common.rpc.FetchByStringsQuery;
 import gov.nga.common.rpc.DepartmentObjectResult;
 import gov.nga.entities.art.ArtDataManager;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import io.grpc.stub.StreamObserver;
 
 public class DepartmentHelper  extends TMSObjectHelper 
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DepartmentHelper.class);
 
-	protected DepartmentHelper(ArtDataManager mgr) 
+	protected DepartmentHelper(ArtDataManager mgr, final GrpcTMSStats statsMonitor) 
 	{
-		super(mgr);
+		super(mgr, statsMonitor);
 	}
 	
 	public void getDepartmentByCode(final FetchByStringsQuery request, 
@@ -36,6 +38,7 @@ public class DepartmentHelper  extends TMSObjectHelper
 						DepartmentMessageFactory.convertToMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.DEPARTMENT_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{
@@ -57,6 +60,7 @@ public class DepartmentHelper  extends TMSObjectHelper
 						DepartmentMessageFactory.convertToMessage(obj)).build());
 			}
 			responseObserver.onCompleted();
+			reportCall(TMSOperation.DEPARTMENT_FETCH, rslts.getResults().size());
 		}
 		catch (final Exception err)
 		{
