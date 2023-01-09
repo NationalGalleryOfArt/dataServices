@@ -44,6 +44,7 @@ import gov.nga.entities.art.ArtDataManagerService;
 import gov.nga.common.entities.art.ArtObject;
 import gov.nga.entities.art.OperatingModeService;
 import gov.nga.integration.controllers.RecordSearchController;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
 import gov.nga.common.search.SearchHelper;
 import gov.nga.utils.LongUtils;
 
@@ -63,6 +64,9 @@ public class ObjectRecordController {
 
 	@Autowired
 	private ImageSearchController imgCtrl;
+	
+	@Autowired
+	protected GrpcTMSStats statsRecorder;
 
     @RequestMapping(value="/art/objects/{id}.json",method={RequestMethod.GET,RequestMethod.HEAD,RequestMethod.POST})
     public ResponseEntity<RecordContainer> objectRecordNoSource(
@@ -123,7 +127,7 @@ public class ObjectRecordController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
-		RecordSearchController.logSearchResults(request, 1);
+		RecordSearchController.logSearchResults(statsRecorder, request, 1);
 		 
 		return new ResponseEntity<RecordContainer>(new RecordContainer(or), headers, HttpStatus.OK);
 	}

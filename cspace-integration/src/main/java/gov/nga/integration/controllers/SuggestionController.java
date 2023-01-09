@@ -69,7 +69,7 @@ public class SuggestionController extends RecordSearchController  {
     		suggestItems.add(new SuggestResultItem(suggestion));
     	}
     	
-    	logSearchResults(request, paginator.getTotalResults());
+    	logSearchResults(statsRecorder, request, paginator.getTotalResults());
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		respEntity = new ResponseEntity<Items<SuggestResultItem>>(new Items<SuggestResultItem>(paginator, suggestItems), headers, HttpStatus.OK);

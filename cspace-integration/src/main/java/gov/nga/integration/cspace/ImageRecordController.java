@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import gov.nga.entities.art.OperatingModeService;
 import gov.nga.integration.controllers.RecordSearchController;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
 import gov.nga.common.entities.art.Derivative;
 import gov.nga.common.search.SearchHelper;
 import gov.nga.common.search.SearchHelper.SEARCHOP;
@@ -60,6 +61,9 @@ public class ImageRecordController {
 
 	@Autowired
 	private OperatingModeService om;
+	
+	@Autowired
+	protected GrpcTMSStats statsRecorder;
 
 	private static final Logger log = LoggerFactory.getLogger(ImageRecordController.class);
     
@@ -113,7 +117,7 @@ public class ImageRecordController {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
-		RecordSearchController.logSearchResults(request, 1);
+		RecordSearchController.logSearchResults(statsRecorder, request, 1);
 		 
 		return new ResponseEntity<RecordContainer>(new RecordContainer(ir), headers, HttpStatus.OK);
 	}
@@ -161,7 +165,7 @@ public class ImageRecordController {
     	CSpaceImage d = images.get(0);
     	URI imageURI = d.getSourceImageURI("https");
     	
-		RecordSearchController.logSearchResults(request, 1);
+		RecordSearchController.logSearchResults(statsRecorder, request, 1);
 		
 		try {
 	        return ResponseEntity.ok()

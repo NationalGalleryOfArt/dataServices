@@ -31,10 +31,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import gov.nga.integration.cspace.APIUsageException;
 import gov.nga.integration.cspace.NamespaceUtils;
 import gov.nga.integration.cspace.OrderField;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
+import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
 import gov.nga.common.search.ResultsPaginator;
 import gov.nga.utils.CollectionUtils;
 import gov.nga.utils.StringUtils;
@@ -43,6 +46,15 @@ public abstract class RecordSearchController {
 
 	public abstract Pattern getSourcePattern();
 	public abstract String[] getSupportedSources();
+	
+	@Autowired
+	protected GrpcTMSStats statsRecorder;
+	
+	private static final Pattern REQUEST_PTTRN_IMAGE_SEARCH = Pattern.compile("/images.json");
+	private static final Pattern REQUEST_PTTRN_IMAGE_FETCH = Pattern.compile("/images/.+\\.json");
+	private static final Pattern REQUEST_PTTRN_SUGGEST = Pattern.compile("/suggestions/(works|artists|exhibitions).json");
+	private static final Pattern REQUEST_PTTRN_ARTOBJECT_FETCH = Pattern.compile("/objects/\\d+\\.json");
+	private static final Pattern REQUEST_PTTRN_ARTOBJECT_SEARCH = Pattern.compile("/objects.json");
 	
 	private static final Logger log = LoggerFactory.getLogger(RecordSearchController.class);
 
@@ -109,8 +121,9 @@ public abstract class RecordSearchController {
     	return new String[]{source};
     }
 
-	public static void logSearchResults(HttpServletRequest request, Integer numSearchResults) {
-		String url = request.getRequestURL().toString();
+	public static void logSearchResults(final GrpcTMSStats statsRecorder, HttpServletRequest request, Integer numSearchResults) {
+		String baseURL = request.getRequestURL().toString();
+		String url = baseURL;
 		if (!StringUtils.isNullOrEmpty(request.getQueryString()))
 			url += "?" + request.getQueryString();
 		if (numSearchResults == null)
@@ -122,6 +135,24 @@ public abstract class RecordSearchController {
 				message += " with posted parameters " + request.getParameterMap().toString();
 		}
 		log.info(message);
+		
+		TMSOperation operation = null;
+		if (REQUEST_PTTRN_ARTOBJECT_FETCH.matcher(baseURL).find()) {
+			operation = TMSOperation.REST_ARTOBJECT_FETCH;
+		} else if (REQUEST_PTTRN_ARTOBJECT_SEARCH.matcher(baseURL).find()) {
+			operation = TMSOperation.REST_ARTOBJECT_SEARCH;
+		} else if (REQUEST_PTTRN_SUGGEST.matcher(baseURL).find()) {
+			operation = TMSOperation.REST_SUGGESTION;
+		} else if (REQUEST_PTTRN_IMAGE_SEARCH.matcher(baseURL).find()) {
+			operation = TMSOperation.REST_IMAGE_SEARCH;
+		} else if (REQUEST_PTTRN_IMAGE_FETCH.matcher(baseURL).find()) {
+			operation = TMSOperation.REST_IMAGE_FETCH;
+		} 
+		
+		if (operation != null) {
+			statsRecorder.reportTransaction(operation, numSearchResults);
+		}
+		//log.info(String.format("******* Operation %s recorded******(%s)", operation, baseURL));
 	}
 
     protected static DateTime[] getLastModifiedDates(String[] lastModified, String[] ns_lastModified) throws APIUsageException {

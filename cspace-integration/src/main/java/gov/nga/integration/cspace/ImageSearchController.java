@@ -184,7 +184,7 @@ public class ImageSearchController extends RecordSearchController {
     		return new ResponseEntity<Items>(new Items(paginator, resultPage), headers, HttpStatus.OK);
 
     	List<CSpaceImage> images = searchImages(sourceScope, imageSearchHelper, artObjects);
-		logSearchResults(request, images.size());
+		logSearchResults(statsRecorder, request, images.size());
 		
 		// now that we have the full list of images, but before we grab thumbnails and assemble the results, we have
 		// to sort and then clip the results as per the paging specified by the caller

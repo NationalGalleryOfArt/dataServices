@@ -209,7 +209,7 @@ public class ObjectSearchController extends RecordSearchController {
 			log.info(String.format("Paginator after search %s[%d]", paginator, artObjects.size()));
 		}
     	log.info(String.format("Num of filters: %d", searchHelper.getFilterSize()));
-    	logSearchResults(request, paginator.getTotalResults());
+    	logSearchResults(statsRecorder, request, paginator.getTotalResults());
     	if (artObjects.size() > 0) {
     		
     		// we need to find all of the images associated with these objects, so we do that search ahead of time now
