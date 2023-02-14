@@ -5,6 +5,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PreDestroy;
+
 import org.joda.time.LocalTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,11 @@ public class GrpcTMSStats {
 	private int getCurrentHour() {
 		return LocalTime.now().getHourOfDay();
 	}
+	
+    @PreDestroy
+    public void preDestroy() {
+    	reportStats();
+    }
     
 	@Scheduled(cron="0 0 0 * * ?")
 	public void resetStats() {
@@ -64,7 +71,7 @@ public class GrpcTMSStats {
 		}
 	}
     
-	@Scheduled(cron="45 59 * * * ?")
+	@Scheduled(cron="${dataservice.reporting.metrics.cron}")
 	public void reportStats() {
 		final int hour = getCurrentHour();
 		LOG.info("*********** Report on Remote Calls for the past hour *******");
