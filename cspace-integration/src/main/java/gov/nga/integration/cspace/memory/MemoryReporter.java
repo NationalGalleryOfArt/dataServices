@@ -22,7 +22,7 @@ public class MemoryReporter {
         
     }
     
-	@Scheduled(cron="0 0/15 * * * ?")
+    @Scheduled(cron="${dataservice.reporting.memory.cron}")
 	public void reportMemory() {
 		log.info(SystemUtils.freeMemorySummary());
 	}
