@@ -19,6 +19,7 @@ import gov.nga.common.rpc.ExhibitionConstituentResult;
 import gov.nga.common.rpc.ExhibitionObjectResult;
 import gov.nga.common.rpc.ExhibitionObjectQuery;
 import gov.nga.common.rpc.ExhibitionQueryResult;
+import gov.nga.common.rpc.ExhibitionArtObjectQueryResult;
 import gov.nga.entities.art.ArtDataManager;
 import gov.nga.integration.cspace.monitoring.GrpcTMSStats;
 import gov.nga.integration.cspace.monitoring.GrpcTMSStats.TMSOperation;
@@ -108,6 +109,61 @@ public class ExhibitionHelper extends TMSObjectHelper
 			LOG.error("fetchExhibitions(): Exception Caught", err);
 			responseObserver.onError(err);
 		}
+	}
+	
+	protected void searchArtObjectExhibitions(final QueryMessage request,
+			final StreamObserver<ExhibitionArtObjectQueryResult> responseObserver)
+	{
+
+		LOG.debug("searchExhibitionArtObjects() called..."); 
+		try
+		{
+			final QueryResultArtData<ExhibitionArtObject> rslts = processArtObjectSearchRequest(request);
+			final ExhibitionArtObjectQueryResult.Builder builder = ExhibitionArtObjectQueryResult.newBuilder();
+			if (rslts == null)
+			{
+				builder.setTotalResults(0);
+			}
+			else
+			{
+				builder.setTotalResults(rslts.getResultCount());
+				for (ExhibitionArtObject rt: rslts.getResults())
+				{
+					builder.addObjects(ExhibitionMessageHelper.createArtObject(rt));
+				}
+			}
+			responseObserver.onNext(builder.build());
+			responseObserver.onCompleted();
+			reportCall(TMSOperation.EXHIBITION_SEARCH, rslts.getResults().size());
+		}
+		catch (final Exception err)
+		{
+			LOG.error("searchExhibitionArtObjects(): Exception Caught", err);
+			responseObserver.onError(err);
+		}
+	}
+	
+	private QueryResultArtData<ExhibitionArtObject> processArtObjectSearchRequest(final QueryMessage request)
+	{
+
+		gov.nga.common.rpc.api.QueryMessage<ExhibitionArtObject> args = 
+				getQueryMessagePOJO(ExhibitionArtObject.class, ExhibitionArtObject.SORT.class, ExhibitionArtObject.SEARCH.class, request);
+		
+		if (args.getSrchHlpr() != null)
+		{
+			if (args.getOrder() == null)
+			{
+				LOG.debug("Making search call with no sort: ");
+				return getQueryManager().searchExhibitionArtObjects(args.getSrchHlpr(), args.getPgn(), null);
+			}
+			else
+			{
+				LOG.debug(String.format("Making search call with sort: %s", args.getOrder().getSortOrder()));
+				return getQueryManager().searchExhibitionArtObjects(args.getSrchHlpr(), args.getPgn(), new SortHelper<ExhibitionArtObject>(args.getOrder()));
+			}
+			
+		}
+		return null;
 	}
 	
 	protected void searchExhibitions(final QueryMessage request,

@@ -17,6 +17,7 @@ import gov.nga.common.rpc.CacheFetchQuery;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentsObjectResult;
 import gov.nga.common.rpc.ConstituentQueryMessages.ConstituentQueryResult;
 import gov.nga.common.rpc.DepartmentObjectResult;
+import gov.nga.common.rpc.ExhibitionArtObjectQueryResult;
 import gov.nga.common.rpc.ExhibitionArtObjectResult;
 import gov.nga.common.rpc.ExhibitionConstituentResult;
 import gov.nga.common.rpc.ExhibitionObjectQuery;
@@ -102,6 +103,20 @@ public class ExhibitionQueryService extends ArtDataQuerierGrpc.ArtDataQuerierImp
 			LOG.error("Exception caught while processing request.", err);
 		}
 		
+	}
+	
+	@Override
+	public void searchExhibitionsArtObjects(final QueryMessage request,
+			final StreamObserver<ExhibitionArtObjectQueryResult> responseObserver)
+	{
+		try
+		{
+			exhHlpr.searchArtObjectExhibitions(request, responseObserver);
+		}
+		catch (final Exception err)
+		{
+			LOG.error("Exception caught while processing request.", err);
+		}
 	}
 	
 	@Override

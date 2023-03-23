@@ -19,6 +19,7 @@ import gov.nga.common.search.Facet;
 import gov.nga.common.search.ResultsPaginator;
 import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.ExhibitionArtObject;
 
 public class QueryResultFactory 
 {
@@ -72,6 +73,16 @@ public class QueryResultFactory
 	}
 	
 	public static <T extends Exhibition>QueryResultArtData<T> createLocalExhibitionResult(List<T> results, ResultsPaginator rp)
+	{
+		return new QueryResultArtDataLocal<T>(results, rp);
+	}
+	
+	public static <T extends ExhibitionArtObject>QueryResultArtData<T> createLocalExhibitionArtObjectResult(List<T> results)
+	{
+		return new QueryResultArtDataLocal<T>(results);
+	}
+	
+	public static <T extends ExhibitionArtObject>QueryResultArtData<T> createLocalExhibitionArtObjectResult(List<T> results, ResultsPaginator rp)
 	{
 		return new QueryResultArtDataLocal<T>(results, rp);
 	}

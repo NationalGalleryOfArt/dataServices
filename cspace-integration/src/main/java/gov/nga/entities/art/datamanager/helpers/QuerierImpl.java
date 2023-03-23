@@ -30,9 +30,12 @@ import gov.nga.common.entities.art.QueryResultSuggestion;
 import gov.nga.common.entities.art.SuggestType;
 import gov.nga.common.entities.art.QueryResultArtData;
 import gov.nga.common.entities.art.Exhibition;
+import gov.nga.common.entities.art.ExhibitionArtObject;
 import gov.nga.common.entities.art.factory.ArtObjectFactory;
 import gov.nga.common.entities.art.factory.ConstituentFactory;
 import gov.nga.common.entities.art.factory.ConstituentFactoryImpl;
+import gov.nga.common.entities.art.factory.ExhibitionArtObjectFactory;
+import gov.nga.common.entities.art.factory.ExhibitionArtObjectFactoryImpl;
 import gov.nga.common.entities.art.factory.ExhibitionFactory;
 import gov.nga.common.entities.art.factory.ExhibitionFactoryImpl;
 import gov.nga.common.entities.art.factory.LocationFactory;
@@ -63,13 +66,23 @@ public class QuerierImpl implements ArtDataQuerier
     private static ConstituentFactory<Constituent> constFactory = new ConstituentFactoryImpl();
     private static LocationFactory<Location> locationFactory = new LocationFactoryImpl();
     private static ExhibitionFactory<Exhibition> exhFactory = new ExhibitionFactoryImpl();
+    private static ExhibitionArtObjectFactory<ExhibitionArtObject> exhAOFactory = new ExhibitionArtObjectFactoryImpl();
     
 	private ArtDataCacher dataCache;
 	private NetXImageDAO imageDAO;
 	
+	private List<ExhibitionArtObject> exhArtObjectsCache;
+	
 	public QuerierImpl(final ArtDataCacher ac)
 	{
 		dataCache = ac;
+		
+		//TODO Move this to the cacher
+		exhArtObjectsCache = CollectionUtils.newArrayList();
+		for (Exhibition exh: dataCache.getExhibitionsRaw())
+		{
+			exhArtObjectsCache.addAll(exh.getExhibitionObjects());
+		}
 	}
 	
 	public QuerierImpl()
@@ -798,5 +811,26 @@ public class QuerierImpl implements ArtDataQuerier
         srchh.setFreeTextServicer(null);
         log.info(String.format("searchLocations(): Paginator results before call: %d", pn.getTotalResults()));
         return QueryResultFactory.createLocalLocationResult(srchh.search(results, pn, null, srth), pn);
+	}
+
+	@Override
+	public QueryResultArtData<ExhibitionArtObject> searchExhibitionArtObjects(SearchHelper<ExhibitionArtObject> arg0,
+			ResultsPaginator arg1, SortHelper<ExhibitionArtObject> arg2) throws DataNotReadyException 
+	{
+		return searchExhibitionArtObjects(arg0, arg1, arg2, exhAOFactory);
+	}
+
+	@Override
+	public <T extends ExhibitionArtObject> QueryResultArtData<T> searchExhibitionArtObjects(final SearchHelper<T> srchh,
+			ResultsPaginator pn, SortHelper<T> srth, ExhibitionArtObjectFactory<T> factory)
+			throws DataNotReadyException 
+	{
+		final List<T> results = CollectionUtils.newArrayList();
+        for (ExhibitionArtObject exhObj: exhArtObjectsCache)
+        {
+        	results.add(factory.createObject(exhObj));
+        }
+        srchh.setFreeTextServicer(null);
+        return QueryResultFactory.createLocalExhibitionArtObjectResult(srchh.search(results, pn, null, srth), pn);
 	}
 }
