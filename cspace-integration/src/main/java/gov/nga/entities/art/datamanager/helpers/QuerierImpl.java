@@ -71,23 +71,44 @@ public class QuerierImpl implements ArtDataQuerier
 	private ArtDataCacher dataCache;
 	private NetXImageDAO imageDAO;
 	
-	private List<ExhibitionArtObject> exhArtObjectsCache;
+	private List<ExhibitionArtObject> exhArtObjectsCache = CollectionUtils.newArrayList();
 	
 	public QuerierImpl(final ArtDataCacher ac)
 	{
 		dataCache = ac;
-		
-		//TODO Move this to the cacher
-		exhArtObjectsCache = CollectionUtils.newArrayList();
-		for (Exhibition exh: dataCache.getExhibitionsRaw())
-		{
-			exhArtObjectsCache.addAll(exh.getExhibitionObjects());
-		}
+		createExhibitionArtObjectsCache(dataCache);
 	}
 	
 	public QuerierImpl()
 	{
 		
+	}
+	
+	private List<ExhibitionArtObject> getExhibitionArtObjectsCache()
+	{
+		if (exhArtObjectsCache == null || exhArtObjectsCache.size() == 0)
+			createExhibitionArtObjectsCache(dataCache);
+		
+		return exhArtObjectsCache;
+	}
+	
+	private void createExhibitionArtObjectsCache(final ArtDataCacher ac)
+	{
+		if (ac.getIsDataReady())
+		{
+			List<ExhibitionArtObject> newCache = CollectionUtils.newArrayList();
+			for (Exhibition exh: dataCache.getExhibitionsRaw())
+			{
+				newCache.addAll(exh.getExhibitionObjects());
+			}
+			
+			synchronized(exhArtObjectsCache)
+			{
+				exhArtObjectsCache = newCache;
+			}
+			
+			log.info(String.format("Exhibitions ArtObject Cache size (init): %d", exhArtObjectsCache.size()));
+		}
 	}
 	
 	public void setImageDAO(NetXImageDAO dao)
@@ -98,6 +119,7 @@ public class QuerierImpl implements ArtDataQuerier
 	public void setArtDataCacher(ArtDataCacher cacher)
 	{
 		dataCache = cacher;
+		createExhibitionArtObjectsCache(cacher);
 	}
 
 	@Override
@@ -826,7 +848,7 @@ public class QuerierImpl implements ArtDataQuerier
 			throws DataNotReadyException 
 	{
 		final List<T> results = CollectionUtils.newArrayList();
-        for (ExhibitionArtObject exhObj: exhArtObjectsCache)
+        for (ExhibitionArtObject exhObj: getExhibitionArtObjectsCache())
         {
         	results.add(factory.createObject(exhObj));
         }
