@@ -32,7 +32,7 @@ public class FreeTextFilter implements CustomHash {
 	private String searchTerm = null;
 
 	public long customHash() {
-		org.apache.commons.lang.builder.HashCodeBuilder hcb = new org.apache.commons.lang.builder.HashCodeBuilder(17,19);
+		org.apache.commons.lang3.builder.HashCodeBuilder hcb = new org.apache.commons.lang3.builder.HashCodeBuilder(17,19);
 		hcb.append(searchTerm);
 		for (Object o : fieldsToSearch) {
 			hcb.append(o);
